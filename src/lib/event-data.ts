@@ -22,8 +22,9 @@ export const mockEvents: Event[] = [
     title: 'Fiesta de Cumpleaños de Superhéroes',
     description: '¡Una fiesta de cumpleaños llena de acción para pequeños superhéroes! Juegos, disfraces y diversión heroica te esperan.',
     images: [
-      { url: 'https://placehold.co/800x600.png', hint: 'kids birthday' },
-      { url: 'https://placehold.co/800x600.png', hint: 'superhero party' },
+      { url: 'https://www.limohummerjb.es/wp-content/uploads/2024/03/fiestasinfantiles4.jpg', hint: 'kids party' },
+      { url: 'https://i.pinimg.com/736x/ce/e5/cc/cee5cc084f97ba3dceb7d34a5127dc73.jpg', hint: 'spiderman theme' },
+      { url: 'https://i.pinimg.com/564x/9a/6a/dc/9a6adcbed7d90b636082a467fc4dc7ca.jpg', hint: 'superhero decorations' },
     ],
     date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
     category: 'Cumpleaños',
