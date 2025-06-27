@@ -33,12 +33,12 @@ export const mockEvents: Event[] = [
   },
   {
     id: '3',
-    title: 'Cumbre Corporativa Innovatech',
+    title: 'eventos corporativos',
     description: 'Un evento corporativo de primer nivel para líderes e innovadores tecnológicos. Networking, ponencias y ideas revolucionarias.',
     images: [
-      { url: 'https://placehold.co/800x600.png', hint: 'corporate conference' },
-      { url: 'https://placehold.co/800x600.png', hint: 'business networking' },
-      { url: 'https://placehold.co/800x600.png', hint: 'keynote speaker' },
+      { url: 'https://www.wradio.com.co/resizer/v2/K556I4FRVBGFTIVSJKKKPJRSKQ.jpg?auth=7529b86c3f6f95bd0f292794ca57905ad758c59554c410048f8ec6d00726a876&width=800&height=600&quality=70&smart=true', hint: 'corporate event' },
+      { url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6um0kf8bpmTmpKS_bhgRIh2NR-dsu2CNHVA&s', hint: 'business meeting' },
+      { url: 'https://proartistas.com/assets/images/eventos/mariachis3.jpg', hint: 'corporate party' },
     ],
     date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
     category: 'Corporativo',
