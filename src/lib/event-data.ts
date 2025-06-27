@@ -77,8 +77,9 @@ export const mockEvents: Event[] = [
     title: 'Celebración de Aniversario de Oro',
     description: 'Una conmovedora celebración por un 50 aniversario de bodas. Acompáñanos en una velada de recuerdos y alegría.',
     images: [
-      { url: 'https://placehold.co/800x600.png', hint: 'anniversary party' },
-      { url: 'https://placehold.co/800x600.png', hint: 'elegant dinner' },
+      { url: 'https://eventosbellasuiza.co/wp-content/uploads/2024/09/pexels-kampus-8790779-min-1024x684.jpg', hint: 'anniversary party' },
+      { url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJAwvhB5icU2QpF566ZQm2pfskvgMBkzTsEFNFuQnlqrRbQJ38TNQX2YBPCL6_8m01Cq0&usqp=CAU', hint: 'elegant dinner' },
+      { url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYQoiKZ_tWOxuL48yxN3L_NURYJsDoA2Fr-CNELg9ut0K-Rz9TMR440A5lryJb32KWwJU&usqp=CAU', hint: 'golden anniversary' },
     ],
     date: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(), // 20 days from now
     category: 'Aniversario',
