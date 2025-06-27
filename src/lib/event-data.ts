@@ -92,9 +92,9 @@ export const mockEvents: Event[] = [
     title: 'Anchetas y Regalos',
     description: 'Sorprende a tus seres queridos con nuestras anchetas y regalos personalizados. Perfectos para cualquier ocasión, llenos de productos de alta calidad y presentados con un toque de elegancia.',
     images: [
-      { url: 'https://placehold.co/600x400.png', hint: 'gift basket' },
-      { url: 'https://placehold.co/600x400.png', hint: 'personalized gift' },
-      { url: 'https://placehold.co/600x400.png', hint: 'chocolate box' },
+      { url: 'https://gourmetfamily.co/wp-content/uploads/2018/08/anchetas-navidenas-medellin-navidad.jpg', hint: 'gift basket' },
+      { url: 'https://pipelandia.com/wp-content/uploads/2020/03/031.jpg', hint: 'surprise gift' },
+      { url: 'https://amordidas.com.co/wp-content/uploads/2022/10/BAUL-NAVIDEN%CC%83O.jpg', hint: 'christmas basket' },
     ],
     date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
     category: 'Anchetas y Regalos',
