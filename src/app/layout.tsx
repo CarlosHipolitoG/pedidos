@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home, Sparkles } from 'lucide-react';
+import { Home, Sparkles, ClipboardList } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Always Events',
@@ -32,6 +32,11 @@ export default function RootLayout({
               <Button variant="ghost" asChild>
                 <Link href="/" className="flex items-center">
                   <Home className="mr-2 h-5 w-5" /> Eventos
+                </Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/quote" className="flex items-center">
+                  <ClipboardList className="mr-2 h-5 w-5" /> Cotizar
                 </Link>
               </Button>
               <Button variant="ghost" asChild>
