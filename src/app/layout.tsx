@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Home, Sparkles } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Escaparate de Eventos',
+  title: 'Always Events',
   description: 'Descubre y muestra eventos increíbles.',
 };
 
@@ -26,7 +26,7 @@ export default function RootLayout({
         <header className="bg-card shadow-md sticky top-0 z-50">
           <nav className="container mx-auto px-4 py-3 flex justify-between items-center">
             <Link href="/" className="text-3xl font-headline text-primary hover:text-primary/80 transition-colors">
-              Escaparate de Eventos
+              Always Events
             </Link>
             <div className="space-x-2">
               <Button variant="ghost" asChild>
@@ -47,7 +47,7 @@ export default function RootLayout({
         </main>
         <Toaster />
         <footer className="bg-card text-center py-6 mt-auto border-t">
-          <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} Escaparate de Eventos. Todos los derechos reservados.</p>
+          <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} Always Events. Todos los derechos reservados.</p>
         </footer>
       </body>
     </html>
