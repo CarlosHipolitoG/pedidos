@@ -4,6 +4,7 @@ import ImageCarousel from './image-carousel';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 interface EventCardProps {
   event: Event;
@@ -21,8 +22,10 @@ const EventCard: FC<EventCardProps> = ({ event }) => {
         <CardDescription className="line-clamp-3 text-sm">{event.description}</CardDescription>
       </CardContent>
       <CardFooter>
-        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-          Cotiza Ahora
+        <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Link href="/quote">
+            Cotiza Ahora
+          </Link>
         </Button>
       </CardFooter>
     </Card>
