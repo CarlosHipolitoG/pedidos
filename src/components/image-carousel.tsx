@@ -42,7 +42,7 @@ const ImageCarousel: FC<ImageCarouselProps> = ({ images, altText, autoplay = tru
   if (!images || images.length === 0) {
     return (
       <div className="aspect-video w-full bg-muted flex items-center justify-center rounded-t-lg">
-        <p className="text-muted-foreground">No images available</p>
+        <p className="text-muted-foreground">No hay imágenes disponibles</p>
       </div>
     );
   }
@@ -67,7 +67,7 @@ const ImageCarousel: FC<ImageCarouselProps> = ({ images, altText, autoplay = tru
           <div key={index} className="w-full h-full flex-shrink-0 relative">
             <Image
               src={image.url}
-              alt={`${altText} - Image ${index + 1}`}
+              alt={`${altText} - Imagen ${index + 1}`}
               data-ai-hint={image.hint}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -85,7 +85,7 @@ const ImageCarousel: FC<ImageCarouselProps> = ({ images, altText, autoplay = tru
             size="icon"
             className="absolute top-1/2 left-2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             onClick={goToPrevious}
-            aria-label="Previous image"
+            aria-label="Imagen anterior"
           >
             <ChevronLeft className="h-6 w-6" />
           </Button>
@@ -94,7 +94,7 @@ const ImageCarousel: FC<ImageCarouselProps> = ({ images, altText, autoplay = tru
             size="icon"
             className="absolute top-1/2 right-2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             onClick={goToNext}
-            aria-label="Next image"
+            aria-label="Siguiente imagen"
           >
             <ChevronRight className="h-6 w-6" />
           </Button>
@@ -104,7 +104,7 @@ const ImageCarousel: FC<ImageCarouselProps> = ({ images, altText, autoplay = tru
               <button
                 key={slideIndex}
                 onClick={() => goToSlide(slideIndex)}
-                aria-label={`Go to image ${slideIndex + 1}`}
+                aria-label={`Ir a la imagen ${slideIndex + 1}`}
                 className={cn(
                   'h-2 w-2 rounded-full transition-colors duration-300',
                   currentIndex === slideIndex ? 'bg-primary' : 'bg-white/50 hover:bg-white/80'

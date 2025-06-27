@@ -13,7 +13,7 @@ import { Loader2, Sparkles } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  eventDetails: z.string().min(20, { message: "Please provide at least 20 characters for event details." }).max(1000, {message: "Event details cannot exceed 1000 characters."}),
+  eventDetails: z.string().min(20, { message: "Por favor, proporciona al menos 20 caracteres para los detalles del evento." }).max(1000, {message: "Los detalles del evento no pueden exceder los 1000 caracteres."}),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -37,15 +37,15 @@ export function EventDescriptionGenerator() {
       const result = await generateEventDescription({ eventDetails: values.eventDetails });
       setGeneratedDescription(result.description);
       toast({
-        title: "Description Generated!",
-        description: "Your event description has been successfully created.",
+        title: "¡Descripción Generada!",
+        description: "La descripción de tu evento ha sido creada exitosamente.",
         variant: "default",
       });
     } catch (e) {
       console.error(e);
       toast({
-        title: "Error Generating Description",
-        description: "Failed to generate description. Please try again later.",
+        title: "Error al Generar la Descripción",
+        description: "No se pudo generar la descripción. Por favor, inténtalo de nuevo más tarde.",
         variant: "destructive",
       });
     }
@@ -58,9 +58,9 @@ export function EventDescriptionGenerator() {
         <div className="inline-block p-3 bg-primary/10 rounded-full mx-auto mb-4">
           <Sparkles className="h-10 w-10 text-primary" />
         </div>
-        <CardTitle className="font-headline text-3xl text-primary">AI Event Description Generator</CardTitle>
+        <CardTitle className="font-headline text-3xl text-primary">Generador de Descripciones de Eventos con IA</CardTitle>
         <CardDescription className="text-md">
-          Enter some details about your event, and let our AI craft a compelling description for you!
+          ¡Introduce algunos detalles sobre tu evento y deja que nuestra IA elabore una descripción atractiva para ti!
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -71,10 +71,10 @@ export function EventDescriptionGenerator() {
               name="eventDetails"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold">Event Details</FormLabel>
+                  <FormLabel className="text-lg font-semibold">Detalles del Evento</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g., A magical birthday party for a 5-year-old, unicorn theme, with a bouncy castle, face painting, and a custom cake. Target audience: kids and parents. The event is on July 20th at Willow Creek Park."
+                      placeholder="Ej: Una fiesta de cumpleaños mágica para un niño de 5 años, tema de unicornios, con un castillo inflable, pintacaritas y un pastel personalizado. Público objetivo: niños y padres. El evento es el 20 de julio en el Parque Willow Creek."
                       className="min-h-[150px] text-base p-3 focus:ring-accent focus:border-accent"
                       {...field}
                     />
@@ -90,11 +90,11 @@ export function EventDescriptionGenerator() {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generating...
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Generando...
                 </>
               ) : (
                 <>
-                  <Sparkles className="mr-2 h-5 w-5" /> Generate Description
+                  <Sparkles className="mr-2 h-5 w-5" /> Generar Descripción
                 </>
               )}
             </Button>
@@ -105,7 +105,7 @@ export function EventDescriptionGenerator() {
       {generatedDescription && (
         <CardFooter className="mt-6 p-0">
           <div className="w-full p-6 border-t border-border">
-            <h3 className="text-xl font-semibold mb-3 text-primary font-headline">Generated Description:</h3>
+            <h3 className="text-xl font-semibold mb-3 text-primary font-headline">Descripción Generada:</h3>
             <div className="p-4 border rounded-md bg-secondary/30 text-foreground whitespace-pre-wrap text-sm leading-relaxed">
               {generatedDescription}
             </div>

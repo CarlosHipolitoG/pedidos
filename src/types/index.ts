@@ -1,4 +1,4 @@
-export type EventCategory = "Birthday" | "Wedding" | "Corporate" | "Festival" | "Workshop" | "Anniversary" | "Charity";
+export type EventCategory = "Cumpleaños" | "Boda" | "Corporativo" | "Festival" | "Taller" | "Aniversario" | "Beneficencia";
 
 export interface Event {
   id: string;

@@ -11,7 +11,7 @@ export default function GenerateDescriptionPage() {
           <Button variant="outline" asChild className="text-primary border-primary hover:bg-primary/10">
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Events
+              Volver a Eventos
             </Link>
           </Button>
         </div>

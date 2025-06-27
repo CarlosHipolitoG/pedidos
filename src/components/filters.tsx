@@ -16,12 +16,12 @@ interface FiltersProps {
 }
 
 const sortOptions = [
-  { value: 'date-desc', label: 'Date (Newest First)', icon: <CalendarDays className="mr-2 h-4 w-4" /> },
-  { value: 'date-asc', label: 'Date (Oldest First)', icon: <CalendarDays className="mr-2 h-4 w-4" /> },
-  { value: 'pop-desc', label: 'Popularity (High to Low)', icon: <SparklesIcon className="mr-2 h-4 w-4" /> },
-  { value: 'pop-asc', label: 'Popularity (Low to High)', icon: <SparklesIcon className="mr-2 h-4 w-4" /> },
-  { value: 'title-asc', label: 'Title (A-Z)', icon: <ArrowDownAZ className="mr-2 h-4 w-4" /> },
-  { value: 'title-desc', label: 'Title (Z-A)', icon: <ArrowUpAZ className="mr-2 h-4 w-4" /> },
+  { value: 'date-desc', label: 'Fecha (Más recientes primero)', icon: <CalendarDays className="mr-2 h-4 w-4" /> },
+  { value: 'date-asc', label: 'Fecha (Más antiguos primero)', icon: <CalendarDays className="mr-2 h-4 w-4" /> },
+  { value: 'pop-desc', label: 'Popularidad (Mayor a menor)', icon: <SparklesIcon className="mr-2 h-4 w-4" /> },
+  { value: 'pop-asc', label: 'Popularidad (Menor a mayor)', icon: <SparklesIcon className="mr-2 h-4 w-4" /> },
+  { value: 'title-asc', label: 'Título (A-Z)', icon: <ArrowDownAZ className="mr-2 h-4 w-4" /> },
+  { value: 'title-desc', label: 'Título (Z-A)', icon: <ArrowUpAZ className="mr-2 h-4 w-4" /> },
 ];
 
 const Filters: FC<FiltersProps> = ({
@@ -36,14 +36,14 @@ const Filters: FC<FiltersProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <Label htmlFor="category-select" className="text-lg font-semibold font-headline text-primary flex items-center mb-2">
-            <Filter className="mr-2 h-5 w-5" /> Category
+            <Filter className="mr-2 h-5 w-5" /> Categoría
           </Label>
           <Select value={selectedCategory} onValueChange={(value) => onCategoryChange(value as EventCategory | 'all')}>
             <SelectTrigger id="category-select" className="w-full">
-              <SelectValue placeholder="Select category" />
+              <SelectValue placeholder="Seleccionar categoría" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="all">Todas las Categorías</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}
@@ -55,11 +55,11 @@ const Filters: FC<FiltersProps> = ({
         
         <div>
           <Label className="text-lg font-semibold font-headline text-primary flex items-center mb-2">
-            <ArrowDownAZ className="mr-2 h-5 w-5" /> Sort By
+            <ArrowDownAZ className="mr-2 h-5 w-5" /> Ordenar por
           </Label>
           <Select value={sortOption} onValueChange={onSortChange}>
             <SelectTrigger id="sort-select" className="w-full">
-              <SelectValue placeholder="Select sort option" />
+              <SelectValue placeholder="Seleccionar opción de orden" />
             </SelectTrigger>
             <SelectContent>
               {sortOptions.map((option) => (

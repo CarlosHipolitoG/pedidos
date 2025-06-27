@@ -1,53 +1,53 @@
 import type { Event, EventCategory } from '@/types';
 
-export const eventCategories: EventCategory[] = ["Birthday", "Wedding", "Corporate", "Festival", "Workshop", "Anniversary", "Charity"];
+export const eventCategories: EventCategory[] = ["Cumpleaños", "Boda", "Corporativo", "Festival", "Taller", "Aniversario", "Beneficencia"];
 
 export const mockEvents: Event[] = [
   {
     id: '1',
-    title: 'Enchanted Forest Wedding',
-    description: 'A magical wedding ceremony and reception set in a lush, enchanted forest theme. Experience romance under the stars.',
+    title: 'Boda en el Bosque Encantado',
+    description: 'Una ceremonia y recepción de boda mágicas con el tema de un frondoso bosque encantado. Vive el romance bajo las estrellas.',
     images: [
       { url: 'https://placehold.co/800x600.png', hint: 'forest wedding' },
       { url: 'https://placehold.co/800x600.png', hint: 'wedding decoration' },
       { url: 'https://placehold.co/800x600.png', hint: 'bride groom' },
     ],
     date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
-    category: 'Wedding',
+    category: 'Boda',
     popularity: 95,
     location: 'Willow Creek Forest, CA',
   },
   {
     id: '2',
-    title: 'Superhero Kids Birthday Bash',
-    description: 'An action-packed birthday party for little superheroes! Games, costumes, and heroic fun await.',
+    title: 'Fiesta de Cumpleaños de Superhéroes',
+    description: '¡Una fiesta de cumpleaños llena de acción para pequeños superhéroes! Juegos, disfraces y diversión heroica te esperan.',
     images: [
       { url: 'https://placehold.co/800x600.png', hint: 'kids birthday' },
       { url: 'https://placehold.co/800x600.png', hint: 'superhero party' },
     ],
     date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
-    category: 'Birthday',
+    category: 'Cumpleaños',
     popularity: 88,
     location: 'Adventure Zone, NY',
   },
   {
     id: '3',
-    title: 'Innovatech Corporate Summit',
-    description: 'A premier corporate event for tech leaders and innovators. Networking, keynotes, and breakthrough ideas.',
+    title: 'Cumbre Corporativa Innovatech',
+    description: 'Un evento corporativo de primer nivel para líderes e innovadores tecnológicos. Networking, ponencias y ideas revolucionarias.',
     images: [
       { url: 'https://placehold.co/800x600.png', hint: 'corporate conference' },
       { url: 'https://placehold.co/800x600.png', hint: 'business networking' },
       { url: 'https://placehold.co/800x600.png', hint: 'keynote speaker' },
     ],
     date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-    category: 'Corporate',
+    category: 'Corporativo',
     popularity: 75,
     location: 'Grand Convention Center, TX',
   },
   {
     id: '4',
-    title: 'Summer Beats Music Festival',
-    description: 'The hottest music festival of the summer! Featuring top artists, food trucks, and an unforgettable vibe.',
+    title: 'Festival de Música Summer Beats',
+    description: '¡El festival de música más candente del verano! Con los mejores artistas, food trucks y un ambiente inolvidable.',
     images: [
       { url: 'https://placehold.co/800x600.png', hint: 'music festival' },
       { url: 'https://placehold.co/800x600.png', hint: 'live concert' },
@@ -60,41 +60,41 @@ export const mockEvents: Event[] = [
   },
   {
     id: '5',
-    title: 'Artisan Pottery Workshop',
-    description: 'Discover your inner artist at our hands-on pottery workshop. Create unique pieces to take home.',
+    title: 'Taller de Cerámica Artesanal',
+    description: 'Descubre tu artista interior en nuestro taller práctico de cerámica. Crea piezas únicas para llevar a casa.',
     images: [
       { url: 'https://placehold.co/800x600.png', hint: 'pottery workshop' },
       { url: 'https://placehold.co/800x600.png', hint: 'craft class' },
     ],
     date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days from now
-    category: 'Workshop',
+    category: 'Taller',
     popularity: 60,
     location: 'Creative Studio, OR',
   },
   {
     id: '6',
-    title: 'Golden Anniversary Celebration',
-    description: 'A heartwarming celebration for a 50th wedding anniversary. Join us for an evening of memories and joy.',
+    title: 'Celebración de Aniversario de Oro',
+    description: 'Una conmovedora celebración por un 50 aniversario de bodas. Acompáñanos en una velada de recuerdos y alegría.',
     images: [
       { url: 'https://placehold.co/800x600.png', hint: 'anniversary party' },
       { url: 'https://placehold.co/800x600.png', hint: 'elegant dinner' },
     ],
     date: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(), // 20 days from now
-    category: 'Anniversary',
+    category: 'Aniversario',
     popularity: 80,
     location: 'The Grand Ballroom, IL',
   },
    {
     id: '7',
-    title: 'Community Charity Gala',
-    description: 'An elegant gala to support local charities. An evening of fine dining, auctions, and giving back.',
+    title: 'Gala Benéfica Comunitaria',
+    description: 'Una elegante gala para apoyar a organizaciones benéficas locales. Una noche de alta cocina, subastas y contribuciones.',
     images: [
       { url: 'https://placehold.co/800x600.png', hint: 'charity gala' },
       { url: 'https://placehold.co/800x600.png', hint: 'formal event' },
       { url: 'https://placehold.co/800x600.png', hint: 'auction event' },
     ],
     date: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(), // 45 days from now
-    category: 'Charity',
+    category: 'Beneficencia',
     popularity: 70,
     location: 'City Art Museum, WA',
   }

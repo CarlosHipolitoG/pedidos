@@ -1,11 +1,11 @@
 'use server';
 
 /**
- * @fileOverview A flow for generating event descriptions using AI.
+ * @fileOverview Un flujo para generar descripciones de eventos usando IA.
  *
- * - generateEventDescription - A function that generates event descriptions.
- * - GenerateEventDescriptionInput - The input type for the generateEventDescription function.
- * - GenerateEventDescriptionOutput - The return type for the generateEventDescription function.
+ * - generateEventDescription - Una función que genera descripciones de eventos.
+ * - GenerateEventDescriptionInput - El tipo de entrada para la función generateEventDescription.
+ * - GenerateEventDescriptionOutput - El tipo de retorno para la función generateEventDescription.
  */
 
 import {ai} from '@/ai/genkit';
@@ -14,12 +14,12 @@ import {z} from 'genkit';
 const GenerateEventDescriptionInputSchema = z.object({
   eventDetails: z
     .string()
-    .describe('Details about the event, including theme, activities, and target audience.'),
+    .describe('Detalles sobre el evento, incluyendo tema, actividades y público objetivo.'),
 });
 export type GenerateEventDescriptionInput = z.infer<typeof GenerateEventDescriptionInputSchema>;
 
 const GenerateEventDescriptionOutputSchema = z.object({
-  description: z.string().describe('A compelling and engaging event description.'),
+  description: z.string().describe('Una descripción de evento atractiva y cautivadora.'),
 });
 export type GenerateEventDescriptionOutput = z.infer<typeof GenerateEventDescriptionOutputSchema>;
 
@@ -31,11 +31,11 @@ const prompt = ai.definePrompt({
   name: 'generateEventDescriptionPrompt',
   input: {schema: GenerateEventDescriptionInputSchema},
   output: {schema: GenerateEventDescriptionOutputSchema},
-  prompt: `You are an expert event description writer.
+  prompt: `Eres un experto redactor de descripciones de eventos.
 
-  Based on the event details provided, create a compelling and engaging event description.
+  Basándote en los detalles del evento proporcionados, crea una descripción de evento atractiva y cautivadora.
 
-  Event Details: {{{eventDetails}}}`,
+  Detalles del Evento: {{{eventDetails}}}`,
 });
 
 const generateEventDescriptionFlow = ai.defineFlow(

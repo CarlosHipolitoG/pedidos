@@ -102,8 +102,8 @@ export default function HomePage() {
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-2xl font-semibold text-muted-foreground">No events match your criteria.</p>
-          <p className="mt-2 text-md text-muted-foreground">Try adjusting your filters or search term.</p>
+          <p className="text-2xl font-semibold text-muted-foreground">No se encontraron eventos que coincidan con sus criterios.</p>
+          <p className="mt-2 text-md text-muted-foreground">Intente ajustar sus filtros o término de búsqueda.</p>
         </div>
       )}
     </div>

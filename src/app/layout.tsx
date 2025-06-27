@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Home, Sparkles } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Event Showcase',
-  description: 'Discover and showcase amazing events.',
+  title: 'Escaparate de Eventos',
+  description: 'Descubre y muestra eventos increíbles.',
 };
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -26,17 +26,17 @@ export default function RootLayout({
         <header className="bg-card shadow-md sticky top-0 z-50">
           <nav className="container mx-auto px-4 py-3 flex justify-between items-center">
             <Link href="/" className="text-3xl font-headline text-primary hover:text-primary/80 transition-colors">
-              Event Showcase
+              Escaparate de Eventos
             </Link>
             <div className="space-x-2">
               <Button variant="ghost" asChild>
                 <Link href="/" className="flex items-center">
-                  <Home className="mr-2 h-5 w-5" /> Events
+                  <Home className="mr-2 h-5 w-5" /> Eventos
                 </Link>
               </Button>
               <Button variant="ghost" asChild>
                 <Link href="/generate-description" className="flex items-center text-accent hover:text-accent/90">
-                  <Sparkles className="mr-2 h-5 w-5" /> AI Generator
+                  <Sparkles className="mr-2 h-5 w-5" /> Generador IA
                 </Link>
               </Button>
             </div>
@@ -47,7 +47,7 @@ export default function RootLayout({
         </main>
         <Toaster />
         <footer className="bg-card text-center py-6 mt-auto border-t">
-          <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} Event Showcase. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} Escaparate de Eventos. Todos los derechos reservados.</p>
         </footer>
       </body>
     </html>
