@@ -4,32 +4,28 @@ import type { FC } from 'react';
 import type { EventCategory } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Filter, ArrowDownAZ, ArrowUpAZ, CalendarDays, SparklesIcon } from 'lucide-react';
+import { Filter, CalendarDays } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Button } from './ui/button';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { Calendar } from './ui/calendar';
 
 interface FiltersProps {
   categories: EventCategory[];
   selectedCategory: EventCategory | 'all';
   onCategoryChange: (category: EventCategory | 'all') => void;
-  sortOption: string;
-  onSortChange: (option: string) => void;
+  selectedDate: Date | undefined;
+  onDateChange: (date: Date | undefined) => void;
 }
-
-const sortOptions = [
-  { value: 'date-desc', label: 'Fecha (Más recientes primero)', icon: <CalendarDays className="mr-2 h-4 w-4" /> },
-  { value: 'date-asc', label: 'Fecha (Más antiguos primero)', icon: <CalendarDays className="mr-2 h-4 w-4" /> },
-  { value: 'pop-desc', label: 'Popularidad (Mayor a menor)', icon: <SparklesIcon className="mr-2 h-4 w-4" /> },
-  { value: 'pop-asc', label: 'Popularidad (Menor a mayor)', icon: <SparklesIcon className="mr-2 h-4 w-4" /> },
-  { value: 'title-asc', label: 'Título (A-Z)', icon: <ArrowDownAZ className="mr-2 h-4 w-4" /> },
-  { value: 'title-desc', label: 'Título (Z-A)', icon: <ArrowUpAZ className="mr-2 h-4 w-4" /> },
-];
 
 const Filters: FC<FiltersProps> = ({
   categories,
   selectedCategory,
   onCategoryChange,
-  sortOption,
-  onSortChange,
+  selectedDate,
+  onDateChange,
 }) => {
   return (
     <div className="p-4 md:p-6 bg-card rounded-lg shadow-md mb-8">
@@ -55,22 +51,31 @@ const Filters: FC<FiltersProps> = ({
         
         <div>
           <Label className="text-lg font-semibold font-headline text-primary flex items-center mb-2">
-            <ArrowDownAZ className="mr-2 h-5 w-5" /> Ordenar por
+            <CalendarDays className="mr-2 h-5 w-5" /> Seleccionar fecha de tu Evento
           </Label>
-          <Select value={sortOption} onValueChange={onSortChange}>
-            <SelectTrigger id="sort-select" className="w-full">
-              <SelectValue placeholder="Seleccionar opción de orden" />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  <div className="flex items-center">
-                    {option.icon} {option.label}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarDays className="mr-2 h-4 w-4" />
+                {selectedDate ? format(selectedDate, "PPP", { locale: es }) : <span>Elige una fecha</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={onDateChange}
+                initialFocus
+                locale={es}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
     </div>

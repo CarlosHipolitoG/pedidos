@@ -12,7 +12,7 @@ export default function HomePage() {
   const [allEvents] = useState<Event[]>(mockEvents);
   const [displayedEvents, setDisplayedEvents] = useState<Event[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | 'all'>('all');
-  const [sortOption, setSortOption] = useState<string>('date-desc');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   useEffect(() => {
@@ -30,31 +30,17 @@ export default function HomePage() {
       );
     }
     
-    switch (sortOption) {
-      case 'date-asc':
-        filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        break;
-      case 'date-desc':
-        filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        break;
-      case 'pop-asc':
-        filtered.sort((a, b) => a.popularity - b.popularity);
-        break;
-      case 'pop-desc':
-        filtered.sort((a, b) => b.popularity - a.popularity);
-        break;
-      case 'title-asc':
-        filtered.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case 'title-desc':
-        filtered.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      default:
-        break;
+    if (selectedDate) {
+      const targetDate = selectedDate.toDateString();
+      filtered = filtered.filter(event => new Date(event.date).toDateString() === targetDate);
     }
+    
+    // Default sort by most recent date
+    filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
 
     setDisplayedEvents(filtered);
-  }, [allEvents, selectedCategory, sortOption, searchTerm]);
+  }, [allEvents, selectedCategory, searchTerm, selectedDate]);
   
   const uniqueCategories = useMemo(() => {
     const categories = new Set(allEvents.map(event => event.category));
@@ -90,8 +76,8 @@ export default function HomePage() {
         categories={uniqueCategories}
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
-        sortOption={sortOption}
-        onSortChange={setSortOption}
+        selectedDate={selectedDate}
+        onDateChange={setSelectedDate}
       />
 
       {displayedEvents.length > 0 ? (

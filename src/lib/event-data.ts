@@ -1,6 +1,6 @@
 import type { Event, EventCategory } from '@/types';
 
-export const eventCategories: EventCategory[] = ["Cumpleaños", "Boda", "Corporativo", "Festival", "QuinceAños", "Aniversario", "Beneficencia", "Graduación"];
+export const eventCategories: EventCategory[] = ["Cumpleaños", "Boda", "Corporativo", "Festival", "QuinceAños", "Aniversario", "Graduación"];
 
 export const mockEvents: Event[] = [
   {
@@ -86,19 +86,5 @@ export const mockEvents: Event[] = [
     category: 'Aniversario',
     popularity: 80,
     location: 'The Grand Ballroom, IL',
-  },
-   {
-    id: '7',
-    title: 'Gala Benéfica Comunitaria',
-    description: 'Una elegante gala para apoyar a organizaciones benéficas locales. Una noche de alta cocina, subastas y contribuciones.',
-    images: [
-      { url: 'https://placehold.co/800x600.png', hint: 'charity gala' },
-      { url: 'https://placehold.co/800x600.png', hint: 'formal event' },
-      { url: 'https://placehold.co/800x600.png', hint: 'auction event' },
-    ],
-    date: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(), // 45 days from now
-    category: 'Beneficencia',
-    popularity: 70,
-    location: 'City Art Museum, WA',
   }
 ];
