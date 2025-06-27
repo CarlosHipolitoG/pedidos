@@ -88,6 +88,18 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'diariodechiapas.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'oflash.la',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

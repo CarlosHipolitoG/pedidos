@@ -1,6 +1,6 @@
 import type { Event, EventCategory } from '@/types';
 
-export const eventCategories: EventCategory[] = ["Cumpleaños", "Boda", "Corporativo", "Festival", "Taller", "Aniversario", "Beneficencia", "Graduación"];
+export const eventCategories: EventCategory[] = ["Cumpleaños", "Boda", "Corporativo", "Festival", "QuinceAños", "Aniversario", "Beneficencia", "Graduación"];
 
 export const mockEvents: Event[] = [
   {
@@ -61,16 +61,17 @@ export const mockEvents: Event[] = [
   },
   {
     id: '5',
-    title: 'Taller de Cerámica Artesanal',
-    description: 'Descubre tu artista interior en nuestro taller práctico de cerámica. Crea piezas únicas para llevar a casa.',
+    title: 'Fiesta de Quince Años de Ensueño',
+    description: 'Celebra una transición mágica a la feminidad con una fiesta de quince años inolvidable, llena de elegancia, alegría y momentos para atesorar.',
     images: [
-      { url: 'https://placehold.co/800x600.png', hint: 'pottery workshop' },
-      { url: 'https://placehold.co/800x600.png', hint: 'craft class' },
+      { url: 'https://diariodechiapas.com/wp-content/uploads/2025/02/Llamado-1-8.jpg', hint: 'quinceanera dress' },
+      { url: 'https://oflash.la/wp-content/uploads/2022/06/Quince-anos-de-Desiree-Caballero-9.jpg', hint: 'quinceanera party' },
+      { url: 'https://i.pinimg.com/originals/d5/39/f4/d539f4ba4094e0a2983d42d334881606.jpg', hint: 'quinceanera celebration' },
     ],
-    date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days from now
-    category: 'Taller',
-    popularity: 60,
-    location: 'Creative Studio, OR',
+    date: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(),
+    category: 'QuinceAños',
+    popularity: 92,
+    location: 'Salón de Fiestas "La Joya"',
   },
   {
     id: '6',
