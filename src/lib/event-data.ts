@@ -8,9 +8,9 @@ export const mockEvents: Event[] = [
     title: 'Boda en el Bosque Encantado',
     description: 'Una ceremonia y recepción de boda mágicas con el tema de un frondoso bosque encantado. Vive el romance bajo las estrellas.',
     images: [
-      { url: 'https://placehold.co/800x600.png', hint: 'forest wedding' },
-      { url: 'https://placehold.co/800x600.png', hint: 'wedding decoration' },
-      { url: 'https://placehold.co/800x600.png', hint: 'bride groom' },
+      { url: 'https://www.m-moments.com/myweddingblog/wp-content/uploads/2019/01/CatalinaJoan-by-FonteyneCo_508.jpg', hint: 'forest wedding' },
+      { url: 'https://marryspain.com/blog/wp-content/uploads/2021/08/boda-bosque-encantado-jardin-las-adelfas.jpg', hint: 'wedding decoration' },
+      { url: 'https://www.hola.com/horizon/original_aspect_ratio/9327a46045c5-netflix-bridgerton-a.jpg?im=Resize=(960),type=downsize', hint: 'bride groom' },
     ],
     date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
     category: 'Boda',
