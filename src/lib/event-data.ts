@@ -106,9 +106,9 @@ export const mockEvents: Event[] = [
     title: 'Tortas Personalizadas',
     description: 'Celebra tus momentos especiales con nuestras tortas personalizadas. Diseños únicos y sabores deliciosos que harán de tu evento algo inolvidable.',
     images: [
-      { url: 'https://placehold.co/600x400.png', hint: 'custom cake' },
-      { url: 'https://placehold.co/600x400.png', hint: 'wedding cake' },
-      { url: 'https://placehold.co/600x400.png', hint: 'birthday cake' },
+      { url: 'https://i0.wp.com/bacidangelo-shop.com/wp-content/uploads/2019/01/IMG_5576_edited.jpg?resize=560%2C560&ssl=1', hint: 'custom cake' },
+      { url: 'https://pastisserialapalma.com/wp-content/uploads/pasteles-con-foto4.jpg', hint: 'photo cake' },
+      { url: 'https://pastisserialapalma.com/wp-content/uploads/pasteles-con-foto1.jpg', hint: 'themed cake' },
     ],
     date: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(),
     category: 'Tortas Personalizadas',
