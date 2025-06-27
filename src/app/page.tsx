@@ -4,9 +4,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import EventCard from '@/components/event-card';
 import Filters from '@/components/filters';
 import type { Event, EventCategory } from '@/types';
-import { mockEvents, eventCategories } from '@/lib/event-data';
+import { mockEvents } from '@/lib/event-data';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export default function HomePage() {
   const [allEvents] = useState<Event[]>(mockEvents);
@@ -14,6 +18,8 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | 'all'>('all');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedTime, setSelectedTime] = useState<string>('');
+  const { toast } = useToast();
 
   useEffect(() => {
     let filtered = [...allEvents];
@@ -30,22 +36,31 @@ export default function HomePage() {
       );
     }
     
-    if (selectedDate) {
-      const targetDate = selectedDate.toDateString();
-      filtered = filtered.filter(event => new Date(event.date).toDateString() === targetDate);
-    }
-    
     // Default sort by most recent date
     filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-
     setDisplayedEvents(filtered);
-  }, [allEvents, selectedCategory, searchTerm, selectedDate]);
+  }, [allEvents, selectedCategory, searchTerm]);
   
   const uniqueCategories = useMemo(() => {
     const categories = new Set(allEvents.map(event => event.category));
     return Array.from(categories) as EventCategory[];
   }, [allEvents]);
+
+  const handleBookingRequest = () => {
+    if (!selectedDate || !selectedTime) {
+      toast({
+        title: "Información incompleta",
+        description: "Por favor, selecciona una fecha y una hora.",
+        variant: "destructive",
+      });
+      return;
+    }
+    toast({
+      title: "¡Solicitud Recibida!",
+      description: `Nos pondremos en contacto contigo para organizar tu evento el ${format(selectedDate, "PPP", { locale: es })} a las ${selectedTime}.`,
+    });
+  };
 
 
   return (
@@ -79,6 +94,26 @@ export default function HomePage() {
         selectedDate={selectedDate}
         onDateChange={setSelectedDate}
       />
+
+      {selectedDate && (
+        <div className="my-8 p-6 bg-card rounded-lg shadow-md text-center border border-primary/20">
+          <h3 className="text-2xl font-headline text-primary mb-2">
+            Disponibilidad para el día {format(selectedDate, "PPP", { locale: es })}
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            Por favor, selecciona una hora para organizar tu evento.
+          </p>
+          <div className="flex justify-center items-center gap-4 max-w-md mx-auto">
+            <Input
+              type="time"
+              className="w-full"
+              value={selectedTime}
+              onChange={(e) => setSelectedTime(e.target.value)}
+            />
+            <Button onClick={handleBookingRequest}>Solicitar</Button>
+          </div>
+        </div>
+      )}
 
       {displayedEvents.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
