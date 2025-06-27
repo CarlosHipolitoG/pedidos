@@ -1,4 +1,4 @@
-export type EventCategory = "Cumpleaños" | "Boda" | "Corporativo" | "Festival" | "QuinceAños" | "Aniversario" | "Graduación";
+export type EventCategory = "Cumpleaños" | "Boda" | "Corporativo" | "Festival" | "QuinceAños" | "Aniversario" | "Graduación" | "Anchetas y Regalos" | "Tortas Personalizadas";
 
 export interface Event {
   id: string;

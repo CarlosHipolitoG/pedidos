@@ -1,6 +1,6 @@
 import type { Event, EventCategory } from '@/types';
 
-export const eventCategories: EventCategory[] = ["Cumpleaños", "Boda", "Corporativo", "Festival", "QuinceAños", "Aniversario", "Graduación"];
+export const eventCategories: EventCategory[] = ["Cumpleaños", "Boda", "Corporativo", "Festival", "QuinceAños", "Aniversario", "Graduación", "Anchetas y Regalos", "Tortas Personalizadas"];
 
 export const mockEvents: Event[] = [
   {
@@ -86,5 +86,33 @@ export const mockEvents: Event[] = [
     category: 'Aniversario',
     popularity: 80,
     location: 'The Grand Ballroom, IL',
+  },
+  {
+    id: '7',
+    title: 'Anchetas y Regalos',
+    description: 'Sorprende a tus seres queridos con nuestras anchetas y regalos personalizados. Perfectos para cualquier ocasión, llenos de productos de alta calidad y presentados con un toque de elegancia.',
+    images: [
+      { url: 'https://placehold.co/600x400.png', hint: 'gift basket' },
+      { url: 'https://placehold.co/600x400.png', hint: 'personalized gift' },
+      { url: 'https://placehold.co/600x400.png', hint: 'chocolate box' },
+    ],
+    date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+    category: 'Anchetas y Regalos',
+    popularity: 85,
+    location: 'Servicio a Domicilio',
+  },
+  {
+    id: '8',
+    title: 'Tortas Personalizadas',
+    description: 'Celebra tus momentos especiales con nuestras tortas personalizadas. Diseños únicos y sabores deliciosos que harán de tu evento algo inolvidable.',
+    images: [
+      { url: 'https://placehold.co/600x400.png', hint: 'custom cake' },
+      { url: 'https://placehold.co/600x400.png', hint: 'wedding cake' },
+      { url: 'https://placehold.co/600x400.png', hint: 'birthday cake' },
+    ],
+    date: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(),
+    category: 'Tortas Personalizadas',
+    popularity: 90,
+    location: 'Servicio a Domicilio',
   }
 ];
