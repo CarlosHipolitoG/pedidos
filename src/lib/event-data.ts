@@ -1,6 +1,6 @@
 import type { Event, EventCategory } from '@/types';
 
-export const eventCategories: EventCategory[] = ["Cumpleaños", "Boda", "Corporativo", "Festival", "Taller", "Aniversario", "Beneficencia"];
+export const eventCategories: EventCategory[] = ["Cumpleaños", "Boda", "Corporativo", "Festival", "Taller", "Aniversario", "Beneficencia", "Graduación"];
 
 export const mockEvents: Event[] = [
   {
@@ -47,17 +47,17 @@ export const mockEvents: Event[] = [
   },
   {
     id: '4',
-    title: 'Festival de Música Summer Beats',
-    description: '¡El festival de música más candente del verano! Con los mejores artistas, food trucks y un ambiente inolvidable.',
+    title: 'Prom 2025',
+    description: 'La noche más esperada del año. Celebra tu graduación con estilo en una fiesta inolvidable con tus compañeros.',
     images: [
-      { url: 'https://placehold.co/800x600.png', hint: 'music festival' },
-      { url: 'https://placehold.co/800x600.png', hint: 'live concert' },
-      { url: 'https://placehold.co/800x600.png', hint: 'festival crowd' },
+      { url: 'https://www.liceosanjose.edu.co/wp-content/uploads/2023/11/fiesta-prom-2023.jpg', hint: 'prom party' },
+      { url: 'https://i.ytimg.com/vi/6Lukyj13QQk/sddefault.jpg', hint: 'prom night' },
+      { url: 'https://eventostrinity.com/wp-content/uploads/2021/04/tupromtrinity-eventostrinity-11-768x512.jpg', hint: 'prom dance' },
     ],
-    date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago (for sorting test)
-    category: 'Festival',
+    date: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+    category: 'Graduación',
     popularity: 98,
-    location: 'Sunnyvale Park, FL',
+    location: 'Grand Ballroom, CA',
   },
   {
     id: '5',
