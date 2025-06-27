@@ -66,10 +66,10 @@ export default function HomePage() {
     <div className="w-full">
       <header className="mb-8 text-center py-8 bg-gradient-to-r from-primary/10 via-background to-accent/10 rounded-lg shadow">
         <h1 className="text-5xl md:text-6xl font-headline text-primary drop-shadow-sm">
-          Event Showcase
+          Always Events
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground mt-3 max-w-2xl mx-auto">
-          Discover your next unforgettable experience. Browse our curated list of exciting events.
+        Bienvenidos es aqui donde la elegancia y la sofisticación se encuentran para transformar sus sueños en realidades inolvidables. Ubicados en el corazón de la ciudad, ofrecemos un espacio excepcional diseñado para albergar desde íntimas reuniones hasta grandiosas celebraciones. Permítanos ser el telón de fondo perfecto para sus momentos más preciados.
         </p>
       </header>
 
@@ -78,7 +78,7 @@ export default function HomePage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search events by title, description, or location..."
+            placeholder="Buscar eventos por título, descripción o ubicación..."
             className="w-full pl-10 pr-4 py-3 text-base rounded-lg shadow-sm focus:ring-primary focus:border-primary"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}

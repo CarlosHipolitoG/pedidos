@@ -4,33 +4,33 @@
 
 @layer base {
   :root {
-    --background: 330 56% 90%; /* Desaturated light pink #F5D3E4 */
-    --foreground: 330 40% 25%; /* Darker, muted pink/purple for text */
+    --background: 150 40% 96%;
+    --foreground: 155 40% 10%;
 
-    --card: 330 60% 96%; /* Very light pink, almost white for cards */
-    --card-foreground: 330 40% 25%;
+    --card: 150 40% 99%;
+    --card-foreground: 155 40% 10%;
 
-    --popover: 330 60% 96%;
-    --popover-foreground: 330 40% 25%;
+    --popover: 150 40% 99%;
+    --popover-foreground: 155 40% 10%;
 
-    --primary: 329 100% 44%; /* Saturated magenta #E0007B */
-    --primary-foreground: 0 0% 100%; /* White */
+    --primary: 155 70% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 330 70% 85%; /* A slightly more saturated pink for secondary elements */
-    --secondary-foreground: 329 80% 35%; /* Darker Primary color for text on secondary */
+    --secondary: 155 50% 80%;
+    --secondary-foreground: 155 60% 25%;
 
-    --muted: 330 60% 88%; /* Muted pink */
-    --muted-foreground: 330 40% 45%; /* Muted text color */
+    --muted: 150 30% 92%;
+    --muted-foreground: 150 25% 45%;
 
-    --accent: 289 100% 45%; /* Analogous red-violet #C300E4 */
-    --accent-foreground: 0 0% 100%; /* White */
+    --accent: 180 70% 45%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 330 50% 80%;
-    --input: 330 50% 85%;
-    --ring: 329 100% 44%; /* Primary color for rings */
+    --border: 150 35% 85%;
+    --input: 150 35% 88%;
+    --ring: 155 70% 45%;
 
     --radius: 0.5rem;
 
@@ -40,45 +40,44 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    --sidebar-background: 330 60% 94%; /* Light pink for sidebar */
-    --sidebar-foreground: 330 40% 25%; /* Dark text for sidebar */
-    --sidebar-primary: 329 100% 44%; /* Magenta for sidebar primary elements */
-    --sidebar-primary-foreground: 0 0% 100%; /* White text on magenta */
-    --sidebar-accent: 289 100% 45%; /* Red-violet for sidebar accent */
-    --sidebar-accent-foreground: 0 0% 100%; /* White text on red-violet */
-    --sidebar-border: 330 50% 80%;
-    --sidebar-ring: 329 100% 44%;
+    --sidebar-background: 150 40% 94%;
+    --sidebar-foreground: 155 40% 10%;
+    --sidebar-primary: 155 70% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 180 70% 45%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 150 35% 85%;
+    --sidebar-ring: 155 70% 45%;
   }
 
   .dark {
-    /* Keeping dark theme distinct for now, can be harmonized later if needed */
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 160 15% 5%;
+    --foreground: 160 20% 95%;
 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 160 15% 5%;
+    --card-foreground: 160 20% 95%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 160 15% 5%;
+    --popover-foreground: 160 20% 95%;
 
-    --primary: 329 100% 65%; /* Lighter magenta for dark mode */
-    --primary-foreground: 329 100% 15%;
+    --primary: 155 70% 60%;
+    --primary-foreground: 155 70% 10%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 160 20% 20%;
+    --secondary-foreground: 160 40% 90%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 160 15% 15%;
+    --muted-foreground: 160 10% 60%;
 
-    --accent: 289 100% 68%; /* Lighter red-violet for dark mode */
-    --accent-foreground: 289 100% 18%;
+    --accent: 180 70% 60%;
+    --accent-foreground: 180 70% 10%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 329 100% 65%;
+    --border: 160 15% 20%;
+    --input: 160 15% 20%;
+    --ring: 155 70% 60%;
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -86,14 +85,14 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 329 100% 65%;
-    --sidebar-primary-foreground: 329 100% 15%;
-    --sidebar-accent: 289 100% 68%;
-    --sidebar-accent-foreground: 289 100% 18%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 329 100% 65%;
+    --sidebar-background: 160 15% 8%;
+    --sidebar-foreground: 160 20% 95%;
+    --sidebar-primary: 155 70% 60%;
+    --sidebar-primary-foreground: 155 70% 10%;
+    --sidebar-accent: 180 70% 60%;
+    --sidebar-accent-foreground: 180 70% 10%;
+    --sidebar-border: 160 15% 20%;
+    --sidebar-ring: 155 70% 60%;
   }
 }
 
