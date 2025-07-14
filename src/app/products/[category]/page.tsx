@@ -1,9 +1,9 @@
-'use client';
 import { productsByCategory, menuItems } from '@/lib/data';
 import ProductCard from '@/components/product-card';
+import {use} from 'react';
 
-export default function CategoryPage({ params }: { params: { category: string } }) {
-  const { category } = params;
+export default function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
+  const { category } = use(params);
   const products = productsByCategory[category] || [];
   const categoryInfo = menuItems.find(item => item.slug === category);
 
