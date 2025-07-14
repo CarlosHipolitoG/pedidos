@@ -66,7 +66,7 @@ export default function RootLayout({
                         <ul>
                             {menuItems.map((item) => (
                                 <li key={item.slug}>
-                                    <Link href={`/products/${item.slug}`} passHref>
+                                    <Link href={`/products/${item.slug}`} passHref asChild>
                                        <Button
                                             variant="ghost"
                                             className={`w-full justify-start text-left mb-1`}
