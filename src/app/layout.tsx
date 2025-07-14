@@ -68,7 +68,7 @@ export default function RootLayout({
               className="absolute inset-0 bg-cover bg-center opacity-20"
               style={{
                 backgroundImage:
-                  'url(https://placehold.co/1200x800/e2e8f0/e2e8f0)',
+                  'url(https://www.toptal.com/designers/subtlepatterns/uploads/double-bubble-outline.png)',
               }}
               data-ai-hint="background texture"
             ></div>
