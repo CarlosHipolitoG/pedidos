@@ -30,12 +30,12 @@ export default function HomePage() {
       <div className="absolute top-4 right-4 flex gap-4">
         <Link href="/waiter" passHref>
           <Button variant="ghost" size="icon" aria-label="Waiter Login">
-            <Utensils className="h-6 w-6" />
+            <Utensils className="h-6 w-6 text-foreground" />
           </Button>
         </Link>
         <Link href="/admin" passHref>
           <Button variant="ghost" size="icon" aria-label="Admin Login">
-            <Shield className="h-6 w-6" />
+            <Shield className="h-6 w-6 text-foreground" />
           </Button>
         </Link>
       </div>
