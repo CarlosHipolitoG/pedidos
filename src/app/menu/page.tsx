@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,22 +8,51 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { mockProducts, Product } from '@/lib/products';
-import { ShoppingCart, Search } from 'lucide-react';
+import { ShoppingCart, Search, Plus, Minus, Trash2 } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter } from '@/components/ui/sheet';
+import { Separator } from '@/components/ui/separator';
+
+type CartItem = Product & { quantity: number };
 
 export default function MenuPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
-  const [cart, setCart] = useState<Product[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
 
   const filteredProducts = mockProducts.filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
 
   const handleAddToCart = (product: Product) => {
-    setCart((prevCart) => [...prevCart, product]);
-    // In the future we can add a toast notification here
-    console.log('Added to cart:', product);
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((item) => item.id === product.id);
+      if (existingItem) {
+        return prevCart.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prevCart, { ...product, quantity: 1 }];
+    });
   };
+
+  const handleUpdateQuantity = (productId: number, quantity: number) => {
+    setCart((prevCart) => {
+      if (quantity <= 0) {
+        return prevCart.filter((item) => item.id !== productId);
+      }
+      return prevCart.map((item) =>
+        item.id === productId ? { ...item, quantity } : item
+      );
+    });
+  };
+
+  const handleRemoveFromCart = (productId: number) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
+  };
+  
+  const totalItemsInCart = cart.reduce((total, item) => total + item.quantity, 0);
+  const cartTotal = cart.reduce((total, item) => total + item.precio * item.quantity, 0);
+
 
   return (
     <div className="container mx-auto py-8">
@@ -38,13 +68,97 @@ export default function MenuPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button size="lg" className="relative">
-          <ShoppingCart className="mr-2 h-6 w-6" />
-          Ver Carrito
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
-            {cart.length}
-          </span>
-        </Button>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button size="lg" className="relative">
+              <ShoppingCart className="mr-2 h-6 w-6" />
+              Ver Carrito
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
+                {totalItemsInCart}
+              </span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent className="flex flex-col">
+            <SheetHeader>
+              <SheetTitle>Carrito de Compras ({totalItemsInCart})</SheetTitle>
+            </SheetHeader>
+            <Separator />
+            {cart.length > 0 ? (
+              <>
+                <div className="flex-grow overflow-y-auto pr-4 -mr-4">
+                  <div className="space-y-4">
+                    {cart.map((item) => (
+                      <div key={item.id} className="flex items-center gap-4">
+                        <Image
+                          src={item.imagen || 'https://placehold.co/100x100.png'}
+                          alt={item.nombre}
+                          width={80}
+                          height={80}
+                          className="rounded-md object-cover"
+                          data-ai-hint="beverage drink"
+                        />
+                        <div className="flex-grow">
+                          <p className="font-semibold">{item.nombre}</p>
+                          <p className="text-sm text-muted-foreground">
+                            ${item.precio.toLocaleString('es-CO')}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <span>{item.quantity}</span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                           <p className="font-semibold">
+                            ${(item.precio * item.quantity).toLocaleString('es-CO')}
+                           </p>
+                           <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={() => handleRemoveFromCart(item.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <Separator />
+                <SheetFooter className="mt-4">
+                  <div className="w-full space-y-2">
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total:</span>
+                      <span>${cartTotal.toLocaleString('es-CO')}</span>
+                    </div>
+                    <Button className="w-full" size="lg">Confirmar Pedido</Button>
+                  </div>
+                </SheetFooter>
+              </>
+            ) : (
+              <div className="flex-grow flex flex-col items-center justify-center text-center">
+                <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
+                <p className="text-lg font-semibold">Tu carrito está vacío</p>
+                <p className="text-sm text-muted-foreground">Agrega productos del menú para comenzar.</p>
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
