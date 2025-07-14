@@ -56,7 +56,9 @@ class OrderStore {
     private nextOrderId = 1;
     private listeners: ((orders: Order[]) => void)[] = [];
 
-    private constructor() {}
+    private constructor() {
+        this.nextOrderId = this.orders.reduce((maxId, order) => Math.max(order.id, maxId), 0) + 1;
+    }
 
     public static getInstance(): OrderStore {
         if (!OrderStore.instance) {

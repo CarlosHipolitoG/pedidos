@@ -86,8 +86,11 @@ export default function AdminDashboardPage() {
                   </AccordionTrigger>
                   <AccordionContent className="px-4 pb-4">
                      <div className="mb-4">
-                        <p className="text-sm mb-2">
-                            <strong>{order.orderedBy.type}:</strong> {order.orderedBy.name}
+                        <p className="font-semibold mb-1">
+                            Atendido por: <span className="font-normal">{order.orderedBy.type} ({order.orderedBy.name})</span>
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                            <strong>Cliente:</strong> {order.customer.name}
                         </p>
                         <p className="text-sm text-muted-foreground">
                             <strong>Celular:</strong> {order.customer.phone}
