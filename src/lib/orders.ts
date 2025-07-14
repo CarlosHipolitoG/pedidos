@@ -83,8 +83,12 @@ class OrderStore {
     public getOrders(): Order[] {
         return this.orders;
     }
+    
+    public getOrderById(orderId: number): Order | undefined {
+        return this.orders.find(order => order.id === orderId);
+    }
 
-    public addOrder(payload: NewOrderPayload) {
+    public addOrder(payload: NewOrderPayload): number {
         const newOrder: Order = {
             ...payload,
             id: this.nextOrderId++,
@@ -93,6 +97,7 @@ class OrderStore {
         };
         this.orders = [newOrder, ...this.orders];
         this.broadcast();
+        return newOrder.id;
     }
 
     public updateOrderStatus(orderId: number, status: OrderStatus) {
@@ -127,8 +132,8 @@ class OrderStore {
 const orderStoreInstance = OrderStore.getInstance();
 
 // Exported functions to interact with the store
-export const addOrder = (payload: NewOrderPayload) => {
-    orderStoreInstance.addOrder(payload);
+export const addOrder = (payload: NewOrderPayload): number => {
+    return orderStoreInstance.addOrder(payload);
 };
 
 export const updateOrderStatus = (orderId: number, status: OrderStatus) => {
@@ -138,6 +143,11 @@ export const updateOrderStatus = (orderId: number, status: OrderStatus) => {
 export const addProductToOrder = (orderId: number, product: OrderItem) => {
     orderStoreInstance.addProductToOrder(orderId, product);
 };
+
+export const getOrderById = (orderId: number): Order | undefined => {
+    return orderStoreInstance.getOrderById(orderId);
+};
+
 
 // --- Custom Hook to Access Orders ---
 export function useOrders() {
