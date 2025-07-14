@@ -18,8 +18,12 @@ export default function HomePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name && phone) {
-      // For now, we'll just log the data.
-      // In the future, this would save the client info.
+      // In a real app, you might use a global state manager (Context, Redux, etc.)
+      // For this simulation, we'll use localStorage.
+      localStorage.setItem('customerName', name);
+      localStorage.setItem('customerPhone', phone);
+      localStorage.setItem('customerEmail', email);
+
       console.log({ name, phone, email });
       router.push('/menu'); // Navigate to the menu
     }

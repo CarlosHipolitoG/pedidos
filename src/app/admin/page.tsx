@@ -18,10 +18,10 @@ export default function AdminPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (username && password) {
-      // For now, we'll just log the data.
+      // For now, we'll just log the data and navigate.
       // In the future, this would authenticate the admin.
       console.log({ username, password });
-      // router.push('/admin/dashboard'); // Example navigation
+      router.push('/admin/dashboard');
     }
   };
 
@@ -30,12 +30,12 @@ export default function AdminPage() {
       <div className="absolute top-4 right-4 flex gap-4">
         <Link href="/" passHref>
           <Button variant="ghost" size="icon" aria-label="Client Login">
-            <User className="h-6 w-6" />
+            <User className="h-6 w-6 text-foreground" />
           </Button>
         </Link>
         <Link href="/waiter" passHref>
           <Button variant="ghost" size="icon" aria-label="Waiter Login">
-            <Utensils className="h-6 w-6" />
+            <Utensils className="h-6 w-6 text-foreground" />
           </Button>
         </Link>
       </div>

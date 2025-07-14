@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useDebounce } from 'use-debounce';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,10 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Input } from '@/components/ui/input';
 import { mockProducts, Product } from '@/lib/products';
 import { ShoppingCart, Search, Plus, Minus, Trash2 } from 'lucide-react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from "@/hooks/use-toast";
+import { useOrders, OrderItem } from '@/lib/orders';
 
 type CartItem = Product & { quantity: number };
 
@@ -18,6 +20,19 @@ export default function MenuPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const { toast } = useToast();
+  const { addOrder } = useOrders();
+  const [customerInfo, setCustomerInfo] = useState<{name: string, phone: string, email: string} | null>(null);
+
+  useEffect(() => {
+    // In a real app, this would come from a global state/context after login
+    const savedCustomer = {
+      name: localStorage.getItem('customerName') || 'Cliente Anónimo',
+      phone: localStorage.getItem('customerPhone') || 'N/A',
+      email: localStorage.getItem('customerEmail') || '',
+    };
+    setCustomerInfo(savedCustomer);
+  }, []);
 
   const filteredProducts = mockProducts.filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
@@ -33,6 +48,10 @@ export default function MenuPage() {
       }
       return [...prevCart, { ...product, quantity: 1 }];
     });
+    toast({
+        title: "Producto agregado",
+        description: `${product.nombre} se ha añadido al carrito.`,
+    })
   };
 
   const handleUpdateQuantity = (productId: number, quantity: number) => {
@@ -53,6 +72,30 @@ export default function MenuPage() {
   const totalItemsInCart = cart.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = cart.reduce((total, item) => total + item.precio * item.quantity, 0);
 
+  const handleConfirmOrder = () => {
+    if (cart.length === 0 || !customerInfo) return;
+
+    const orderItems: OrderItem[] = cart.map(item => ({
+        id: item.id,
+        nombre: item.nombre,
+        precio: item.precio,
+        quantity: item.quantity,
+    }));
+
+    addOrder({
+        customer: customerInfo,
+        items: orderItems,
+        total: cartTotal,
+    });
+    
+    toast({
+        title: "¡Pedido Enviado!",
+        description: "Tu pedido ha sido enviado al administrador.",
+        variant: "default",
+    });
+
+    setCart([]);
+  }
 
   return (
     <div className="container mx-auto py-8">
@@ -73,9 +116,11 @@ export default function MenuPage() {
             <Button size="lg" className="relative">
               <ShoppingCart className="mr-2 h-6 w-6" />
               Ver Carrito
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
-                {totalItemsInCart}
-              </span>
+              {totalItemsInCart > 0 && (
+                <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-6 w-6 flex items-center justify-center animate-pulse">
+                  {totalItemsInCart}
+                </span>
+              )}
             </Button>
           </SheetTrigger>
           <SheetContent className="flex flex-col">
@@ -146,7 +191,11 @@ export default function MenuPage() {
                       <span>Total:</span>
                       <span>${cartTotal.toLocaleString('es-CO')}</span>
                     </div>
-                    <Button className="w-full" size="lg">Confirmar Pedido</Button>
+                     <SheetClose asChild>
+                      <Button className="w-full" size="lg" onClick={handleConfirmOrder}>
+                        Confirmar Pedido
+                      </Button>
+                    </SheetClose>
                   </div>
                 </SheetFooter>
               </>
