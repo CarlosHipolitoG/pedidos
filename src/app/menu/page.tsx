@@ -6,16 +6,23 @@ import { useDebounce } from 'use-debounce';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { mockProducts } from '@/lib/products';
+import { mockProducts, Product } from '@/lib/products';
 import { ShoppingCart, Search } from 'lucide-react';
 
 export default function MenuPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+  const [cart, setCart] = useState<Product[]>([]);
 
   const filteredProducts = mockProducts.filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
+
+  const handleAddToCart = (product: Product) => {
+    setCart((prevCart) => [...prevCart, product]);
+    // In the future we can add a toast notification here
+    console.log('Added to cart:', product);
+  };
 
   return (
     <div className="container mx-auto py-8">
@@ -35,7 +42,7 @@ export default function MenuPage() {
           <ShoppingCart className="mr-2 h-6 w-6" />
           Ver Carrito
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
-            0
+            {cart.length}
           </span>
         </Button>
       </header>
@@ -68,6 +75,7 @@ export default function MenuPage() {
               <Button
                 className="w-full"
                 disabled={product.disponibilidad === 'PRODUCTO_AGOTADO'}
+                onClick={() => handleAddToCart(product)}
               >
                 <ShoppingCart className="mr-2 h-4 w-4" />
                 Agregar
