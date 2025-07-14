@@ -4,7 +4,7 @@ import { Users, Utensils, Shield } from "lucide-react";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-background">
+    <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="text-center mb-12">
         <h1 className="text-5xl font-extrabold tracking-tight text-primary sm:text-[5rem]">
           HOLIDAYS <span className="text-secondary-foreground/80">FRIENDS</span>
@@ -16,7 +16,7 @@ export default function Home() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
         <Link href="/client" passHref>
-          <Card className="hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer h-full flex flex-col justify-center">
+          <Card className="hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer h-full flex flex-col justify-center bg-card/80 backdrop-blur-sm">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
                 <Users className="w-12 h-12 text-primary" />
@@ -28,7 +28,7 @@ export default function Home() {
         </Link>
         
         <Link href="/waiter" passHref>
-          <Card className="hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer h-full flex flex-col justify-center">
+          <Card className="hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer h-full flex flex-col justify-center bg-card/80 backdrop-blur-sm">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
                 <Utensils className="w-12 h-12 text-primary" />
@@ -40,7 +40,7 @@ export default function Home() {
         </Link>
 
         <Link href="/admin" passHref>
-          <Card className="hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer h-full flex flex-col justify-center">
+          <Card className="hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer h-full flex flex-col justify-center bg-card/80 backdrop-blur-sm">
             <CardHeader className="text-center">
                <div className="flex justify-center mb-4">
                 <Shield className="w-12 h-12 text-primary" />

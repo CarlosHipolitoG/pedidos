@@ -55,5 +55,27 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: url('https://storage.googleapis.com/project-spark-b6b15e45/dc407172-5953-4565-a83a-48a58ca7694f.png');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-attachment: fixed;
+    background-size: contain;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: hsla(var(--background), 0.85); 
+    z-index: -1;
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
   }
 }
