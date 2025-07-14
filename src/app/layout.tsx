@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ShoppingCart } from "lucide-react";
 import Link from 'next/link';
+import { menuItems } from '@/lib/data';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,36 +34,55 @@ export default function RootLayout({
               }}
               data-ai-hint="background texture"
             ></div>
-            <Sidebar>
-            </Sidebar>
-            <div className="relative z-10">
-              <SidebarInset>
-                <header className="p-4 border-b flex justify-between items-center bg-white/50 backdrop-blur-sm sticky top-0 z-20">
+              <header className="p-4 border-b flex justify-between items-center bg-white/50 backdrop-blur-sm sticky top-0 z-20 md:hidden">
                   <div className="flex items-center gap-2">
                     <SidebarTrigger />
                     <h1 className="text-xl font-semibold text-primary">Holidays Friends</h1>
                   </div>
-                  <nav>
-                    <Link href="/" passHref>
-                       <Button variant="link">INICIO</Button>
-                    </Link>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline">
-                          <ShoppingCart className="mr-2 h-4 w-4" />
-                          Carrito
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80">
-                        <p>El carrito está vacío</p>
-                      </PopoverContent>
-                    </Popover>
-                  </nav>
-                </header>
-                <main className="p-4 sm:p-6">
+              </header>
+            <div className="grid grid-cols-1 md:grid-cols-4 max-w-7xl mx-auto">
+                <aside className="md:col-span-1 p-4">
+                     <div className="p-4 bg-white rounded-lg shadow-md">
+                        <div className="flex items-center gap-2 mb-4">
+                           <h1 className="text-xl font-semibold text-primary">Holidays Friends</h1>
+                        </div>
+                        <nav className="mb-4">
+                            <Link href="/" passHref>
+                               <Button variant="link">INICIO</Button>
+                            </Link>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline">
+                                  <ShoppingCart className="mr-2 h-4 w-4" />
+                                  Carrito
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80">
+                                <p>El carrito está vacío</p>
+                              </PopoverContent>
+                            </Popover>
+                        </nav>
+                        <h2 className="text-lg font-semibold mb-4 text-primary">Categorías</h2>
+                        <ul>
+                            {menuItems.map((item) => (
+                                <li key={item.slug}>
+                                    <Link href={`/products/${item.slug}`} passHref>
+                                       <Button
+                                            variant="ghost"
+                                            className={`w-full justify-start text-left mb-1`}
+                                        >
+                                            {item.icon}
+                                            <span className="ml-2">{item.name}</span>
+                                       </Button>
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </aside>
+                <main className="md:col-span-3 p-4">
                   {children}
                 </main>
-              </SidebarInset>
             </div>
           </div>
         </SidebarProvider>
