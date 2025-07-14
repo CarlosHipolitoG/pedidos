@@ -66,16 +66,13 @@ export default function RootLayout({
                         <ul>
                             {menuItems.map((item) => (
                                 <li key={item.slug}>
-                                    <Link href={`/products/${item.slug}`} legacyBehavior passHref>
+                                    <Link href={`/products/${item.slug}`} passHref>
                                        <Button
-                                            asChild
                                             variant="ghost"
                                             className={`w-full justify-start text-left mb-1`}
                                         >
-                                          <a>
                                             {item.icon}
                                             <span className="ml-2">{item.name}</span>
-                                          </a>
                                        </Button>
                                     </Link>
                                 </li>
