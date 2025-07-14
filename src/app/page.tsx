@@ -19,9 +19,9 @@ export default function HomePage() {
     e.preventDefault();
     if (name && phone) {
       // For now, we'll just log the data.
-      // In the future, this would save the client info and navigate to the menu.
+      // In the future, this would save the client info.
       console.log({ name, phone, email });
-      // router.push('/menu'); // Example navigation
+      router.push('/menu'); // Navigate to the menu
     }
   };
 
