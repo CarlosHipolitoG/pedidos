@@ -12,7 +12,7 @@ import { ShoppingCart, Search, Plus, Minus, Trash2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
-import { useOrders, addOrder, OrderItem } from '@/lib/orders';
+import { addOrder, OrderItem, CustomerInfo } from '@/lib/orders';
 
 type CartItem = Product & { quantity: number };
 
@@ -21,16 +21,19 @@ export default function MenuPage() {
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
   const [cart, setCart] = useState<CartItem[]>([]);
   const { toast } = useToast();
-  const [customerInfo, setCustomerInfo] = useState<{name: string, phone: string, email: string} | null>(null);
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
+  const sheetCloseRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     // In a real app, this would come from a global state/context after login
-    const savedCustomer = {
+    const savedCustomer: CustomerInfo = {
       name: localStorage.getItem('customerName') || 'Cliente Anónimo',
       phone: localStorage.getItem('customerPhone') || 'N/A',
       email: localStorage.getItem('customerEmail') || '',
     };
-    setCustomerInfo(savedCustomer);
+    if (savedCustomer.name !== 'Cliente Anónimo') {
+        setCustomerInfo(savedCustomer);
+    }
   }, []);
 
   const filteredProducts = mockProducts.filter((product) =>
@@ -72,10 +75,16 @@ export default function MenuPage() {
   const cartTotal = cart.reduce((total, item) => total + item.precio * item.quantity, 0);
 
   const handleConfirmOrder = () => {
-    if (cart.length === 0 || !customerInfo) return;
+    if (cart.length === 0 || !customerInfo) {
+        toast({
+            title: "Error en el pedido",
+            description: "El carrito está vacío o no se ha identificado al cliente.",
+            variant: "destructive",
+        });
+        return;
+    }
   
-    const currentCart = [...cart];
-    const orderItems: OrderItem[] = currentCart.map(item => ({
+    const orderItems: OrderItem[] = cart.map(item => ({
         id: item.id,
         nombre: item.nombre,
         precio: item.precio,
@@ -86,15 +95,17 @@ export default function MenuPage() {
         customer: customerInfo,
         items: orderItems,
         total: cartTotal,
+        orderedBy: { type: 'Cliente', name: customerInfo.name }
     });
     
     toast({
         title: "¡Pedido Enviado!",
-        description: "Tu pedido ha sido enviado al administrador.",
+        description: "Tu pedido ha sido enviado al administrador. ¡Gracias por tu compra!",
         variant: "default",
     });
   
     setCart([]);
+    sheetCloseRef.current?.click(); // Close the sheet after confirming
   }
 
   return (
@@ -191,11 +202,10 @@ export default function MenuPage() {
                       <span>Total:</span>
                       <span>${cartTotal.toLocaleString('es-CO')}</span>
                     </div>
-                     <SheetClose asChild>
                       <Button className="w-full" size="lg" onClick={handleConfirmOrder}>
                         Confirmar Pedido
                       </Button>
-                    </SheetClose>
+                      <SheetClose ref={sheetCloseRef} className="hidden" />
                   </div>
                 </SheetFooter>
               </>

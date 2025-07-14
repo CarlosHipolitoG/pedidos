@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 // Data types for orders
 export type OrderItem = {
@@ -8,13 +8,16 @@ export type OrderItem = {
     nombre: string;
     precio: number;
     quantity: number;
-}
+};
 
 export type CustomerInfo = {
     name: string;
     phone: string;
     email?: string;
-}
+};
+
+export type OrderStatus = 'Pendiente' | 'En Preparación' | 'Completado';
+export type OrderedBy = { type: 'Cliente' | 'Mesero', name: string };
 
 export type Order = {
     id: number;
@@ -22,64 +25,104 @@ export type Order = {
     customer: CustomerInfo;
     items: OrderItem[];
     total: number;
-    status: 'new' | 'viewed' | 'completed';
+    status: OrderStatus;
+    orderedBy: OrderedBy;
 };
 
-type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status'>;
+export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status'>;
 
 // --- Centralized State Management ---
+// We use a singleton pattern to ensure state is shared across client components.
+class OrderStore {
+    private static instance: OrderStore;
+    private orders: Order[] = [];
+    private nextOrderId = 1;
+    private listeners: ((orders: Order[]) => void)[] = [];
 
-// This is our in-memory "database"
-let ordersStore: Order[] = [];
-let nextOrderId = 1;
+    private constructor() {}
 
-// Listeners to notify components of changes
-type Listener = (orders: Order[]) => void;
-let listeners: Listener[] = [];
-
-// Function to notify all subscribed components
-const broadcast = () => {
-    for (const listener of listeners) {
-        listener(ordersStore);
+    public static getInstance(): OrderStore {
+        if (!OrderStore.instance) {
+            OrderStore.instance = new OrderStore();
+        }
+        return OrderStore.instance;
     }
-};
 
-// Function to add an order to the store and notify listeners
+    private broadcast() {
+        this.listeners.forEach(listener => listener(this.orders));
+    }
+
+    public subscribe(listener: (orders: Order[]) => void): () => void {
+        this.listeners.push(listener);
+        return () => {
+            this.listeners = this.listeners.filter(l => l !== listener);
+        };
+    }
+
+    public getOrders(): Order[] {
+        return this.orders;
+    }
+
+    public addOrder(payload: NewOrderPayload) {
+        const newOrder: Order = {
+            ...payload,
+            id: this.nextOrderId++,
+            timestamp: Date.now(),
+            status: 'Pendiente',
+        };
+        this.orders = [newOrder, ...this.orders];
+        this.broadcast();
+    }
+
+    public updateOrderStatus(orderId: number, status: OrderStatus) {
+        this.orders = this.orders.map(order => 
+            order.id === orderId ? { ...order, status } : order
+        );
+        this.broadcast();
+    }
+    
+    public addProductToOrder(orderId: number, product: OrderItem) {
+        this.orders = this.orders.map(order => {
+            if (order.id === orderId) {
+                const newItems = [...order.items, product];
+                const newTotal = newItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
+                return { ...order, items: newItems, total: newTotal };
+            }
+            return order;
+        });
+        this.broadcast();
+    }
+}
+
+const orderStoreInstance = OrderStore.getInstance();
+
+// Exported functions to interact with the store
 export const addOrder = (payload: NewOrderPayload) => {
-    const newOrder: Order = {
-        ...payload,
-        id: nextOrderId++,
-        timestamp: Date.now(),
-        status: 'new',
-    };
-    // Add new order to the beginning of the array
-    ordersStore = [newOrder, ...ordersStore]; 
-    broadcast(); // Notify all subscribed components
+    orderStoreInstance.addOrder(payload);
 };
 
+export const updateOrderStatus = (orderId: number, status: OrderStatus) => {
+    orderStoreInstance.updateOrderStatus(orderId, status);
+};
+
+export const addProductToOrder = (orderId: number, product: OrderItem) => {
+    orderStoreInstance.addProductToOrder(orderId, product);
+};
 
 // --- Custom Hook to Access Orders ---
-
-// A custom hook to manage and access orders state across components
 export function useOrders() {
-    // We use useState to make our component re-render when the orders data changes.
-    const [orders, setOrders] = useState(ordersStore);
+    const [orders, setOrders] = useState(orderStoreInstance.getOrders());
 
     useEffect(() => {
-        // When the component mounts, it subscribes to changes.
-        const newListener: Listener = (newOrders) => {
+        const unsubscribe = orderStoreInstance.subscribe(newOrders => {
             setOrders([...newOrders]);
-        };
-        listeners.push(newListener);
+        });
         
-        // When the component first mounts, ensure it has the latest data.
-        setOrders([...ordersStore]);
+        // Ensure we have the latest state on mount
+        setOrders([...orderStoreInstance.getOrders()]);
 
-        // When the component unmounts, it unsubscribes.
-        return () => {
-            listeners = listeners.filter(l => l !== newListener);
-        };
+        return () => unsubscribe();
     }, []);
 
-    return { orders, addOrder };
+    return { orders };
 }
