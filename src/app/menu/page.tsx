@@ -74,14 +74,15 @@ export default function MenuPage() {
 
   const handleConfirmOrder = () => {
     if (cart.length === 0 || !customerInfo) return;
-
-    const orderItems: OrderItem[] = cart.map(item => ({
+  
+    const currentCart = [...cart];
+    const orderItems: OrderItem[] = currentCart.map(item => ({
         id: item.id,
         nombre: item.nombre,
         precio: item.precio,
         quantity: item.quantity,
     }));
-
+  
     addOrder({
         customer: customerInfo,
         items: orderItems,
@@ -93,7 +94,7 @@ export default function MenuPage() {
         description: "Tu pedido ha sido enviado al administrador.",
         variant: "default",
     });
-
+  
     setCart([]);
   }
 
