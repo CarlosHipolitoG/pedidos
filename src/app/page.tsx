@@ -15,7 +15,7 @@ export default function Home() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
-        <Link href="/client" passHref>
+        <Link href="/client" passHref className="h-full">
           <Card className="hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer h-full flex flex-col justify-center bg-card/80 backdrop-blur-sm">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
@@ -27,7 +27,7 @@ export default function Home() {
           </Card>
         </Link>
         
-        <Link href="/waiter" passHref>
+        <Link href="/waiter" passHref className="h-full">
           <Card className="hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer h-full flex flex-col justify-center bg-card/80 backdrop-blur-sm">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
@@ -39,7 +39,7 @@ export default function Home() {
           </Card>
         </Link>
 
-        <Link href="/admin" passHref>
+        <Link href="/admin" passHref className="h-full">
           <Card className="hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer h-full flex flex-col justify-center bg-card/80 backdrop-blur-sm">
             <CardHeader className="text-center">
                <div className="flex justify-center mb-4">
