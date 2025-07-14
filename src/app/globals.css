@@ -64,3 +64,14 @@
     background-size: contain;
   }
 }
+
+@layer utilities {
+    @keyframes highlight-fade {
+      from { background-color: hsl(var(--accent)); }
+      to { background-color: transparent; }
+    }
+
+    .animate-highlight {
+        animation: highlight-fade 2s ease-out;
+    }
+}

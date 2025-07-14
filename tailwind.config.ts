@@ -67,10 +67,15 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+         "highlight-fade": {
+          "from": { "backgroundColor": "hsl(var(--accent))" },
+          "to": { "backgroundColor": "transparent" }
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "highlight": "highlight-fade 2s ease-out forwards"
       },
     },
   },

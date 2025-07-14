@@ -11,10 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PlusCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 
 export default function AdminDashboardPage() {
   const { orders } = useOrders();
+  const [highlightedProducts, setHighlightedProducts] = useState<Record<string, number[]>>({});
+
 
   const handleStatusChange = (orderId: number, newStatus: OrderStatus) => {
     updateOrderStatus(orderId, newStatus);
@@ -23,14 +26,26 @@ export default function AdminDashboardPage() {
   const handleAddProduct = (orderId: number) => {
     // In a real scenario, this would open a dialog to select a product.
     // For now, we'll add a dummy product to test the functionality.
+    const newProductId = Math.floor(Math.random() * 1000);
     const dummyProduct = {
-        id: Math.floor(Math.random() * 1000), // temp id
+        id: newProductId, 
         nombre: "Producto Adicional",
         precio: 10000,
         quantity: 1,
     };
     addProductToOrder(orderId, dummyProduct);
-    console.log(`(Simulación) Añadir producto al pedido #${orderId}`);
+
+    setHighlightedProducts(prev => ({
+      ...prev,
+      [orderId]: [...(prev[orderId] || []), newProductId]
+    }));
+
+    setTimeout(() => {
+        setHighlightedProducts(prev => ({
+            ...prev,
+            [orderId]: (prev[orderId] || []).filter(id => id !== newProductId)
+        }));
+    }, 2000); // Highlight for 2 seconds
   };
 
   const getStatusBadgeVariant = (status: OrderStatus) => {
@@ -107,7 +122,7 @@ export default function AdminDashboardPage() {
                         </TableHeader>
                         <TableBody>
                             {order.items.map((item) => (
-                                <TableRow key={item.id}>
+                                <TableRow key={item.id} className={cn(highlightedProducts[order.id]?.includes(item.id) && 'animate-highlight')}>
                                     <TableCell>{item.nombre}</TableCell>
                                     <TableCell className="text-center">{item.quantity}</TableCell>
                                     <TableCell className="text-right">${(item.precio * item.quantity).toLocaleString('es-CO')}</TableCell>
