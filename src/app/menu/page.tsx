@@ -12,7 +12,7 @@ import { ShoppingCart, Search, Plus, Minus, Trash2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
-import { useOrders, OrderItem } from '@/lib/orders';
+import { useOrders, addOrder, OrderItem } from '@/lib/orders';
 
 type CartItem = Product & { quantity: number };
 
@@ -21,7 +21,6 @@ export default function MenuPage() {
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
   const [cart, setCart] = useState<CartItem[]>([]);
   const { toast } = useToast();
-  const { addOrder } = useOrders();
   const [customerInfo, setCustomerInfo] = useState<{name: string, phone: string, email: string} | null>(null);
 
   useEffect(() => {

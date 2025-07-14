@@ -14,7 +14,6 @@ export default function AdminDashboardPage() {
 
   // Effect to identify new orders and trigger a visual hint
   useEffect(() => {
-    const latestOrderId = orders.length > 0 ? Math.max(...orders.map(o => o.id)) : 0;
     
     // Simple check to see if there are new orders since last render
     if (orders.length > 0) {
