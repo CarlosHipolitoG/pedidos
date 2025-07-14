@@ -61,7 +61,7 @@ export default function AdminDashboardPage() {
         </CardHeader>
         <CardContent>
           {orders.length > 0 ? (
-            <Accordion type="single" collapsible className="w-full" defaultValue="item-0">
+            <Accordion type="single" collapsible className="w-full" defaultValue={orders.length > 0 ? "item-0" : undefined}>
               {orders.map((order, index) => (
                 <AccordionItem 
                   key={order.id} 
