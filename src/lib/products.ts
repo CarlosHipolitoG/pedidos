@@ -154,6 +154,11 @@ class ProductStore {
         );
         this.broadcast();
     }
+    
+    public deleteProduct(productId: number): void {
+        this.products = this.products.filter(product => product.id !== productId);
+        this.broadcast();
+    }
 }
 
 const productStoreInstance = ProductStore.getInstance();
@@ -164,6 +169,10 @@ export const addProduct = (productData: Omit<Product, 'id'>): void => {
 
 export const updateProduct = (productId: number, updatedData: Partial<Omit<Product, 'id'>>): void => {
     productStoreInstance.updateProduct(productId, updatedData);
+};
+
+export const deleteProduct = (productId: number): void => {
+    productStoreInstance.deleteProduct(productId);
 };
 
 export function useProducts() {
@@ -182,4 +191,5 @@ export function useProducts() {
 
 // Keep the old export for compatibility where it might still be used.
 export const mockProducts = productStoreInstance.getProducts();
+
 

@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useProducts, Product, addProduct, updateProduct } from '@/lib/products';
-import { ArrowLeft, CheckCircle, XCircle, PlusCircle, Edit } from 'lucide-react';
+import { useProducts, Product, addProduct, updateProduct, deleteProduct } from '@/lib/products';
+import { ArrowLeft, CheckCircle, XCircle, PlusCircle, Edit, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function AdminProductsPage() {
   const { products } = useProducts();
@@ -48,6 +59,10 @@ export default function AdminProductsPage() {
     }
     setIsModalOpen(false);
     setEditingProduct(null);
+  };
+
+  const handleDeleteProduct = (productId: number) => {
+    deleteProduct(productId);
   };
 
   const handleInputChange = (field: keyof Product, value: string | number) => {
@@ -125,10 +140,31 @@ export default function AdminProductsPage() {
                         </div>
                     )}
                   </TableCell>
-                  <TableCell className="text-center">
-                    <Button variant="outline" size="sm" onClick={() => openModal(product)}>
+                  <TableCell className="text-center space-x-2">
+                    <Button variant="outline" size="icon" onClick={() => openModal(product)}>
                         <Edit className="h-4 w-4" />
                     </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                         <Button variant="destructive" size="icon">
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Estás seguro de que deseas eliminar este producto?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta acción no se puede deshacer. Esto eliminará permanentemente el producto de tu menú.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteProduct(product.id)}>
+                            Eliminar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </TableCell>
                 </TableRow>
               ))}
@@ -188,4 +224,3 @@ export default function AdminProductsPage() {
     </div>
   );
 }
-
