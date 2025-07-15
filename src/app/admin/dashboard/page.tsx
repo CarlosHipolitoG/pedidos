@@ -11,7 +11,7 @@ import { es } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, DollarSign, Edit, History } from 'lucide-react';
+import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -158,6 +158,12 @@ export default function AdminDashboardPage() {
                     <Link href="/admin/my-orders">
                         <History className="mr-2 h-4 w-4" />
                         Mis Pedidos Atendidos
+                    </Link>
+                </Button>
+                <Button variant="outline" asChild>
+                    <Link href="/admin/products">
+                        <ListOrdered className="mr-2 h-4 w-4" />
+                        Gestionar Productos
                     </Link>
                 </Button>
             </div>
