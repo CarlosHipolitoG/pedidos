@@ -15,7 +15,7 @@ import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered } from 'luci
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { mockProducts, Product } from '@/lib/products';
+import { useProducts, Product } from '@/lib/products';
 import Image from 'next/image';
 import { useDebounce } from 'use-debounce';
 import Link from 'next/link';
@@ -23,6 +23,7 @@ import Link from 'next/link';
 
 export default function AdminDashboardPage() {
   const { orders } = useOrders();
+  const { products } = useProducts();
   const [highlightedProducts, setHighlightedProducts] = useState<Record<string, number[]>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -88,7 +89,7 @@ export default function AdminDashboardPage() {
     }, 2000); // Highlight for 2 seconds
   };
 
-  const filteredProducts = mockProducts.filter((product) =>
+  const filteredProducts = products.filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
   

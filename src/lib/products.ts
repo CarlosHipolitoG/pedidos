@@ -188,8 +188,3 @@ export function useProducts() {
 
     return { products };
 }
-
-// Keep the old export for compatibility where it might still be used.
-export const mockProducts = productStoreInstance.getProducts();
-
-
