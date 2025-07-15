@@ -89,11 +89,12 @@ const initialSimulatedOrders: Order[] = [
 // --- Centralized State Management ---
 class OrderStore {
     private static instance: OrderStore;
-    private orders: Order[] = [...initialSimulatedOrders];
-    private nextOrderId = 1;
+    private orders: Order[];
+    private nextOrderId: number;
     private listeners: ((orders: Order[]) => void)[] = [];
 
     private constructor() {
+        this.orders = [...initialSimulatedOrders];
         this.nextOrderId = this.orders.reduce((maxId, order) => Math.max(order.id, maxId), 0) + 1;
     }
 
@@ -301,5 +302,3 @@ export function useOrders() {
 
     return { orders };
 }
-
-    

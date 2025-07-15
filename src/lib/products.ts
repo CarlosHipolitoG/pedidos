@@ -106,13 +106,18 @@ const initialProducts: Product[] = [
 ];
 
 // --- Centralized State Management for Products ---
+// This is a singleton class that will hold the state of the products.
+// It ensures that all parts of the app are using the same data source.
 class ProductStore {
     private static instance: ProductStore;
-    private products: Product[] = [...initialProducts];
-    private nextProductId = 1;
+    private products: Product[];
+    private nextProductId: number;
     private listeners: ((products: Product[]) => void)[] = [];
 
     private constructor() {
+        // Start with the initial list of products
+        this.products = initialProducts.map(p => ({...p}));
+        // Determine the next ID based on the initial products
         this.nextProductId = this.products.reduce((maxId, product) => Math.max(product.id, maxId), 0) + 1;
     }
 
@@ -124,12 +129,15 @@ class ProductStore {
     }
 
     private broadcast() {
+        // Notify all subscribed components about the change
         this.listeners.forEach(listener => listener(this.products));
     }
 
     public subscribe(listener: (products: Product[]) => void): () => void {
         this.listeners.push(listener);
+        // Immediately provide the current list to the new subscriber
         listener(this.products);
+        // Return an unsubscribe function
         return () => {
             this.listeners = this.listeners.filter(l => l !== listener);
         };
@@ -161,6 +169,7 @@ class ProductStore {
     }
 }
 
+// Create and export a single instance of the store
 const productStoreInstance = ProductStore.getInstance();
 
 export const addProduct = (productData: Omit<Product, 'id'>): void => {
@@ -175,14 +184,18 @@ export const deleteProduct = (productId: number): void => {
     productStoreInstance.deleteProduct(productId);
 };
 
+// This is the custom hook that components will use to access and react to product changes.
 export function useProducts() {
     const [products, setProducts] = useState(productStoreInstance.getProducts());
 
     useEffect(() => {
+        // Subscribe to the store on component mount
         const unsubscribe = productStoreInstance.subscribe(newProducts => {
+            // When the store broadcasts a change, update the component's state
             setProducts([...newProducts]);
         });
 
+        // Unsubscribe on component unmount
         return () => unsubscribe();
     }, []);
 
