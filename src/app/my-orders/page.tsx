@@ -32,10 +32,23 @@ export default function MyOrdersPage() {
     // This interval will re-render the component every 30 seconds
     // to update the disabled state of the remove buttons.
     const interval = setInterval(() => setNow(Date.now()), 30 * 1000);
+    
+    // Auto-search if phone is in localStorage
+    const storedPhone = localStorage.getItem('customerPhone');
+    if (storedPhone) {
+        setPhone(storedPhone);
+        const customerOrders = getOrdersByCustomerPhone(storedPhone);
+        setFoundOrders(customerOrders);
+        setSearched(true);
+    }
+
     return () => clearInterval(interval);
+     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
+    // This effect will re-run the search whenever the global order list changes
+    // ensuring the view is always up-to-date.
     if (searched && phone) {
         handleSearch();
     }
@@ -44,9 +57,12 @@ export default function MyOrdersPage() {
 
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
-    const orders = getOrdersByCustomerPhone(phone);
-    setFoundOrders(orders);
+    if (!phone) return;
+    const customerOrders = getOrdersByCustomerPhone(phone);
+    setFoundOrders(customerOrders);
     setSearched(true);
+    // save phone for future sessions
+    localStorage.setItem('customerPhone', phone);
   };
   
   const handleGoToMenu = (orderId: number) => {
@@ -133,7 +149,7 @@ export default function MyOrdersPage() {
               {foundOrders.length > 0 ? (
                 <>
                   <h3 className="text-lg font-semibold mb-4">Pedidos de: {foundOrders[0].customer.name}</h3>
-                  <Accordion type="single" collapsible className="w-full">
+                  <Accordion type="single" collapsible className="w-full" defaultValue="item-0">
                     {foundOrders.map((order, index) => (
                       <AccordionItem 
                         key={order.id} 
