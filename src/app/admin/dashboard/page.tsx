@@ -29,6 +29,8 @@ export default function AdminDashboardPage() {
   const [debouncedSearchTerm] = useDebounce(productSearchTerm, 300);
   const [formattedDates, setFormattedDates] = useState<Record<string, string>>({});
   const [formattedItemDates, setFormattedItemDates] = useState<Record<string, string>>({});
+  const [filterStatus, setFilterStatus] = useState<OrderStatus | 'Todos'>('Todos');
+
 
   useEffect(() => {
     const newFormattedDates: Record<string, string> = {};
@@ -87,6 +89,11 @@ export default function AdminDashboardPage() {
   const filteredProducts = mockProducts.filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
+  
+  const filteredOrders = orders.filter(order => {
+    if (filterStatus === 'Todos') return true;
+    return order.status === filterStatus;
+  });
 
   const getStatusBadgeVariant = (status: OrderStatus) => {
     switch (status) {
@@ -112,14 +119,34 @@ export default function AdminDashboardPage() {
       </div>
       
       <Card>
-        <CardHeader>
-          <CardTitle>Pedidos Recibidos ({orders.length})</CardTitle>
-          <CardDescription>Los pedidos más recientes aparecen primero.</CardDescription>
+        <CardHeader className="flex-row justify-between items-center">
+            <div>
+              <CardTitle>Pedidos Recibidos ({filteredOrders.length})</CardTitle>
+              <CardDescription>Los pedidos más recientes aparecen primero.</CardDescription>
+            </div>
+             <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Filtrar por estado:</span>
+                 <Select
+                    value={filterStatus}
+                    onValueChange={(value: OrderStatus | 'Todos') => setFilterStatus(value)}
+                >
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Filtrar estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Todos">Todos los Pedidos</SelectItem>
+                        <SelectItem value="Pendiente">Pendiente</SelectItem>
+                        <SelectItem value="En Preparación">En Preparación</SelectItem>
+                        <SelectItem value="Completado">Completado</SelectItem>
+                        <SelectItem value="Pagado">Pagado</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
         </CardHeader>
         <CardContent>
-          {orders.length > 0 ? (
-            <Accordion type="single" collapsible className="w-full" defaultValue={orders.length > 0 ? "item-0" : undefined}>
-              {orders.map((order, index) => (
+          {filteredOrders.length > 0 ? (
+            <Accordion type="single" collapsible className="w-full" defaultValue={filteredOrders.length > 0 ? "item-0" : undefined}>
+              {filteredOrders.map((order, index) => (
                 <AccordionItem 
                   key={order.id} 
                   value={`item-${index}`} 
@@ -206,7 +233,7 @@ export default function AdminDashboardPage() {
             </Accordion>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
-              <p>Aún no se han recibido pedidos.</p>
+              <p>No se encontraron pedidos con el estado seleccionado.</p>
             </div>
           )}
         </CardContent>

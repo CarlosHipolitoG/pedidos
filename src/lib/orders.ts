@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -34,27 +35,48 @@ export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status' | 'items
     items: Omit<OrderItem, 'addedAt'>[];
 };
 
-const initialSimulatedOrder: Order = {
-    id: 999,
-    timestamp: Date.now() - 5 * 60 * 1000, // 5 minutes ago
-    customer: {
-        name: "Cliente de Prueba",
-        phone: "3000000000",
-        email: "prueba@example.com"
+const initialSimulatedOrders: Order[] = [
+    {
+        id: 999,
+        timestamp: Date.now() - 5 * 60 * 1000, // 5 minutes ago
+        customer: { name: "Cliente de Prueba", phone: "3000000000", email: "prueba@example.com" },
+        items: [
+            { id: 1, nombre: 'AGUA', precio: 4500, quantity: 2, addedAt: Date.now() - 5 * 60 * 1000 },
+            { id: 3, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 375', precio: 60000, quantity: 1, addedAt: Date.now() - 5 * 60 * 1000 }
+        ],
+        total: 69000,
+        status: 'Pendiente',
+        orderedBy: { type: 'Cliente', name: 'Cliente de Prueba' }
     },
-    items: [
-        { id: 1, nombre: 'AGUA', precio: 4500, quantity: 2, addedAt: Date.now() - 5 * 60 * 1000 },
-        { id: 3, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 375', precio: 60000, quantity: 1, addedAt: Date.now() - 5 * 60 * 1000 }
-    ],
-    total: 69000,
-    status: 'Pendiente',
-    orderedBy: { type: 'Cliente', name: 'Cliente de Prueba' }
-};
+    {
+        id: 998,
+        timestamp: Date.now() - 15 * 60 * 1000, // 15 minutes ago
+        customer: { name: "Maria Rodriguez", phone: "3101234567" },
+        items: [
+            { id: 4, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 750', precio: 120000, quantity: 1, addedAt: Date.now() - 15 * 60 * 1000 }
+        ],
+        total: 120000,
+        status: 'En Preparación',
+        orderedBy: { type: 'Mesero', name: 'Ana López' }
+    },
+    {
+        id: 997,
+        timestamp: Date.now() - 30 * 60 * 1000, // 30 minutes ago
+        customer: { name: "Carlos Gomez", phone: "3209876543" },
+        items: [
+            { id: 12, nombre: 'AGUARDIENTE NÉCTAR DORADO 750 M', precio: 100000, quantity: 1, addedAt: Date.now() - 30 * 60 * 1000 },
+            { id: 2, nombre: 'AGUA GAS', precio: 4500, quantity: 4, addedAt: Date.now() - 30 * 60 * 1000 }
+        ],
+        total: 118000,
+        status: 'Completado',
+        orderedBy: { type: 'Cliente', name: 'Carlos Gomez' }
+    }
+];
 
 // --- Centralized State Management ---
 class OrderStore {
     private static instance: OrderStore;
-    private orders: Order[] = [initialSimulatedOrder];
+    private orders: Order[] = [...initialSimulatedOrders];
     private nextOrderId = 1;
     private listeners: ((orders: Order[]) => void)[] = [];
 
