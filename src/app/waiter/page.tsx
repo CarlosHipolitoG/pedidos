@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -17,10 +18,10 @@ export default function WaiterPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name && cedula) {
-      // For now, we'll just log the data.
-      // In the future, this would authenticate the waiter and navigate to their panel.
-      console.log({ name, cedula });
-      // router.push('/waiter/orders'); // Example navigation
+      // In a real app, this would be proper authentication.
+      // For this simulation, we'll use localStorage.
+      localStorage.setItem('waiterName', name);
+      router.push('/waiter/dashboard');
     }
   };
 
