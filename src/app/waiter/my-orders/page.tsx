@@ -31,6 +31,8 @@ export default function WaiterMyOrdersPage() {
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(productSearchTerm, 300);
   const [highlightedProducts, setHighlightedProducts] = useState<Record<string, number[]>>({});
+  const [formattedItemDates, setFormattedItemDates] = useState<Record<string, string>>({});
+
 
   useEffect(() => {
     const name = localStorage.getItem('waiterName');
@@ -45,6 +47,14 @@ export default function WaiterMyOrdersPage() {
     if (waiterName) {
       const waiterOrders = getOrdersByWaiterName(waiterName);
       setFoundOrders(waiterOrders);
+
+      const newFormattedItemDates: Record<string, string> = {};
+      waiterOrders.forEach(order => {
+        order.items.forEach(item => {
+            newFormattedItemDates[`item-${order.id}-${item.id}-${item.addedAt}`] = format(new Date(item.addedAt), "h:mm a", { locale: es });
+        });
+      });
+      setFormattedItemDates(newFormattedItemDates);
     }
   }, [waiterName, orders]);
 
@@ -170,14 +180,16 @@ export default function WaiterMyOrdersPage() {
                             <TableRow>
                                 <TableHead>Producto</TableHead>
                                 <TableHead className="text-center">Cant.</TableHead>
+                                <TableHead>Agregado a las</TableHead>
                                 <TableHead className="text-right">Subtotal</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {order.items.map((item) => (
-                                <TableRow key={item.id} className={cn(highlightedProducts[order.id]?.includes(item.id) && 'animate-highlight')}>
+                                <TableRow key={`${item.id}-${item.addedAt}`} className={cn(highlightedProducts[order.id]?.includes(item.id) && 'animate-highlight')}>
                                     <TableCell>{item.nombre}</TableCell>
                                     <TableCell className="text-center">{item.quantity}</TableCell>
+                                    <TableCell>{formattedItemDates[`item-${order.id}-${item.id}-${item.addedAt}`] || '...'}</TableCell>
                                     <TableCell className="text-right">${(item.precio * item.quantity).toLocaleString('es-CO')}</TableCell>
                                 </TableRow>
                             ))}

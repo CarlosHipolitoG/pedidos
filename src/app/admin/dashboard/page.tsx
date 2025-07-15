@@ -43,7 +43,7 @@ export default function AdminDashboardPage() {
         
         // Format item added dates
         order.items.forEach(item => {
-            newFormattedItemDates[`item-${order.id}-${item.id}`] = format(new Date(item.addedAt), "h:mm a", { locale: es });
+            newFormattedItemDates[`item-${order.id}-${item.id}-${item.addedAt}`] = format(new Date(item.addedAt), "h:mm a", { locale: es });
         });
     });
     setFormattedDates(newFormattedDates);
@@ -216,10 +216,10 @@ export default function AdminDashboardPage() {
                         </TableHeader>
                         <TableBody>
                             {order.items.map((item) => (
-                                <TableRow key={item.id} className={cn(highlightedProducts[order.id]?.includes(item.id) && 'animate-highlight')}>
+                                <TableRow key={`${item.id}-${item.addedAt}`} className={cn(highlightedProducts[order.id]?.includes(item.id) && 'animate-highlight')}>
                                     <TableCell>{item.nombre}</TableCell>
                                     <TableCell className="text-center">{item.quantity}</TableCell>
-                                    <TableCell>{formattedItemDates[`item-${order.id}-${item.id}`] || '...'}</TableCell>
+                                    <TableCell>{formattedItemDates[`item-${order.id}-${item.id}-${item.addedAt}`] || '...'}</TableCell>
                                     <TableCell className="text-right">${(item.precio * item.quantity).toLocaleString('es-CO')}</TableCell>
                                 </TableRow>
                             ))}
