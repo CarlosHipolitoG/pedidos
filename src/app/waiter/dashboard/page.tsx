@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { mockProducts, Product } from '@/lib/products';
-import { ShoppingCart, Search, Plus, Minus, Trash2, UserPlus, LogOut, PackagePlus } from 'lucide-react';
+import { ShoppingCart, Search, Plus, Minus, Trash2, UserPlus, LogOut, PackagePlus, History } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,7 @@ import { addOrder, NewOrderPayload } from '@/lib/orders';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 type CartItem = Product & { quantity: number };
 
@@ -146,6 +147,12 @@ export default function WaiterDashboardPage() {
             <Button variant="outline" onClick={() => setIsCustomerModalOpen(true)}>
                 <UserPlus className="mr-2"/>
                 Cambiar Cliente
+            </Button>
+            <Button variant="outline" asChild>
+                <Link href="/waiter/my-orders">
+                    <History className="mr-2 h-4 w-4" />
+                    Ver mis Pedidos
+                </Link>
             </Button>
             <Button variant="ghost" onClick={handleLogout}>
                 <LogOut className="mr-2"/>

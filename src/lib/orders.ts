@@ -128,6 +128,12 @@ class OrderStore {
             .sort((a, b) => b.timestamp - a.timestamp);
     }
 
+    public getOrdersByWaiterName(waiterName: string): Order[] {
+        return this.orders
+            .filter(order => order.orderedBy.type === 'Mesero' && order.orderedBy.name === waiterName)
+            .sort((a, b) => b.timestamp - a.timestamp);
+    }
+
     public addOrder(payload: NewOrderPayload): number {
         const now = Date.now();
         const itemsWithTimestamp: OrderItem[] = payload.items.map(item => ({
@@ -203,6 +209,11 @@ export const getOrderById = (orderId: number): Order | undefined => {
 export const getOrdersByCustomerPhone = (phone: string): Order[] => {
     return orderStoreInstance.getOrdersByCustomerPhone(phone);
 }
+
+export const getOrdersByWaiterName = (waiterName: string): Order[] => {
+    return orderStoreInstance.getOrdersByWaiterName(waiterName);
+}
+
 
 export function useOrders() {
     const [orders, setOrders] = useState(orderStoreInstance.getOrders());
