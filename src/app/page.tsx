@@ -7,32 +7,34 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, Utensils, ShoppingBag } from 'lucide-react';
+import { Shield, Utensils, History } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [hasActiveOrder, setHasActiveOrder] = useState(false);
+  const [hasPreviousOrders, setHasPreviousOrders] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // This check runs only on the client-side
-    const activeOrderId = localStorage.getItem('activeOrderId');
-    if (activeOrderId) {
-      setHasActiveOrder(true);
+    // Check if there is any customer data in localStorage to infer previous activity
+    const storedPhone = localStorage.getItem('customerPhone');
+    if (storedPhone) {
+      setHasPreviousOrders(true);
     }
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name && phone) {
-      // In a real app, you might use a global state manager (Context, Redux, etc.)
       // For this simulation, we'll use localStorage.
       localStorage.setItem('customerName', name);
       localStorage.setItem('customerPhone', phone);
       localStorage.setItem('customerEmail', email);
+
+      // A new customer might have an old active order ID, clear it.
+      localStorage.removeItem('activeOrderId');
 
       console.log({ name, phone, email });
       router.push('/menu'); // Navigate to the menu
@@ -58,7 +60,7 @@ export default function HomePage() {
         <CardHeader>
           <CardTitle className="text-2xl text-center">¡Bienvenido a HOLIDAYS FRIENDS!</CardTitle>
           <CardDescription className="text-center">
-            Ingresa tus datos para comenzar
+            Ingresa tus datos para comenzar o revisa tus pedidos anteriores.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -96,16 +98,16 @@ export default function HomePage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={!name || !phone}>
-              Ingresar al Menú
+              Crear Nuevo Pedido
             </Button>
-            {hasActiveOrder && (
+            {hasPreviousOrders && (
                <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => router.push('/menu')}
+                onClick={() => router.push('/my-orders')}
               >
-                <ShoppingBag className="mr-2 h-4 w-4" />
-                Mostrar mi Pedido
+                <History className="mr-2 h-4 w-4" />
+                Ver mis Pedidos Anteriores
               </Button>
             )}
           </form>

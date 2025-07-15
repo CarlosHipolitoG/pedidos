@@ -70,6 +70,17 @@ const initialSimulatedOrders: Order[] = [
         total: 118000,
         status: 'Completado',
         orderedBy: { type: 'Cliente', name: 'Carlos Gomez' }
+    },
+    {
+        id: 996,
+        timestamp: Date.now() - 60 * 60 * 1000, // 1 hour ago
+        customer: { name: "Cliente de Prueba", phone: "3000000000", email: "prueba@example.com" },
+        items: [
+            { id: 5, nombre: 'AGUARDIENTE ANTIOQUEÑO ROJO 375', precio: 60000, quantity: 1, addedAt: Date.now() - 60 * 60 * 1000 },
+        ],
+        total: 60000,
+        status: 'Pagado',
+        orderedBy: { type: 'Cliente', name: 'Cliente de Prueba' }
     }
 ];
 
@@ -109,6 +120,12 @@ class OrderStore {
     
     public getOrderById(orderId: number): Order | undefined {
         return this.orders.find(order => order.id === orderId);
+    }
+
+    public getOrdersByCustomerPhone(phone: string): Order[] {
+        return this.orders
+            .filter(order => order.customer.phone === phone)
+            .sort((a, b) => b.timestamp - a.timestamp);
     }
 
     public addOrder(payload: NewOrderPayload): number {
@@ -153,7 +170,11 @@ class OrderStore {
                 }
                 
                 const newTotal = newItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
-                return { ...order, items: newItems, total: newTotal };
+                
+                // If the order was completed or paid, move it to pending as it's being modified
+                const newStatus = (order.status === 'Completado' || order.status === 'Pagado') ? 'Pendiente' : order.status;
+
+                return { ...order, items: newItems, total: newTotal, status: newStatus, timestamp: now };
             }
             return order;
         });
@@ -178,6 +199,10 @@ export const addProductToOrder = (orderId: number, product: Omit<OrderItem, 'add
 export const getOrderById = (orderId: number): Order | undefined => {
     return orderStoreInstance.getOrderById(orderId);
 };
+
+export const getOrdersByCustomerPhone = (phone: string): Order[] => {
+    return orderStoreInstance.getOrdersByCustomerPhone(phone);
+}
 
 export function useOrders() {
     const [orders, setOrders] = useState(orderStoreInstance.getOrders());

@@ -14,6 +14,8 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
 import { addOrder, OrderItem, CustomerInfo, useOrders, addProductToOrder, getOrderById, Order, NewOrderPayload } from '@/lib/orders';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 type CartItem = Product & { quantity: number };
 
@@ -26,29 +28,34 @@ export default function MenuPage() {
   const [activeOrderId, setActiveOrderId] = useState<number | null>(null);
   const sheetCloseRef = useRef<HTMLButtonElement>(null);
   const { orders } = useOrders();
+  const router = useRouter();
 
   const activeOrder = activeOrderId ? getOrderById(activeOrderId) : null;
 
   useEffect(() => {
     const savedCustomer: CustomerInfo = {
-      name: localStorage.getItem('customerName') || 'Cliente Anónimo',
-      phone: localStorage.getItem('customerPhone') || 'N/A',
+      name: localStorage.getItem('customerName') || '',
+      phone: localStorage.getItem('customerPhone') || '',
       email: localStorage.getItem('customerEmail') || '',
     };
-    if (savedCustomer.name !== 'Cliente Anónimo') {
+    if (savedCustomer.name && savedCustomer.phone) {
         setCustomerInfo(savedCustomer);
+    } else {
+        // If no customer info, can't place order, go back to home
+        router.push('/');
     }
 
     const savedOrderId = localStorage.getItem('activeOrderId');
     if (savedOrderId) {
         const orderExists = getOrderById(parseInt(savedOrderId));
-        if(orderExists && orderExists.status !== 'Completado' && orderExists.status !== 'Pagado') {
+        if(orderExists) {
              setActiveOrderId(parseInt(savedOrderId));
         } else {
+             // Order doesn't exist anymore (maybe cleared), so remove from storage
              localStorage.removeItem('activeOrderId');
         }
     }
-  }, [orders]);
+  }, [orders, router]);
 
   const filteredProducts = mockProducts.filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
@@ -140,7 +147,7 @@ export default function MenuPage() {
     setActiveOrderId(null);
     toast({
         title: "¡Que disfrutes!",
-        description: "Tu pedido ha sido marcado como finalizado. Puedes crear uno nuevo.",
+        description: "Tu pedido ha sido marcado como finalizado. Puedes crear uno nuevo o ver tu historial.",
     });
   };
   
@@ -162,16 +169,27 @@ export default function MenuPage() {
   return (
     <div className="container mx-auto py-8">
       <header className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <h1 className="text-4xl font-bold text-center">Nuestro Menú</h1>
-        <div className="relative w-full md:w-1/3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Buscar productos..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="text-center md:text-left">
+            <h1 className="text-4xl font-bold">Nuestro Menú</h1>
+            {customerInfo && <p className="text-muted-foreground">Hola, <span className="font-semibold">{customerInfo.name}</span></p>}
+        </div>
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="relative flex-grow">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Buscar productos..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Button variant="outline" asChild>
+            <Link href="/my-orders">
+                <History className="mr-2 h-4 w-4" />
+                Mis Pedidos
+            </Link>
+          </Button>
         </div>
         {!activeOrder && (
             <Sheet>
@@ -276,9 +294,9 @@ export default function MenuPage() {
       {activeOrder && (
         <Card className="mb-8 bg-card/90 backdrop-blur-sm border-primary/20">
             <CardHeader>
-                <CardTitle>Resumen de tu Pedido Activo</CardTitle>
+                <CardTitle>Resumen de tu Pedido Activo (#{activeOrder.id})</CardTitle>
                 <div className="flex items-center gap-4 pt-2">
-                    <Badge variant={activeOrder.status === 'Completado' || activeOrder.status === 'Pagado' ? 'default' : 'secondary'}>
+                    <Badge variant={activeOrder.status === 'Completado' || activeOrder.status === 'Pagado' ? 'success' : 'secondary'}>
                         {activeOrder.status}
                     </Badge>
                      {(() => {
@@ -295,7 +313,7 @@ export default function MenuPage() {
             <CardContent>
                  <ul className="space-y-2 text-sm">
                     {activeOrder.items.map(item => (
-                        <li key={item.id} className="flex justify-between">
+                        <li key={`${item.id}-${item.addedAt}`} className="flex justify-between">
                             <span>{item.quantity}x {item.nombre}</span>
                             <span className="font-mono">${(item.precio * item.quantity).toLocaleString('es-CO')}</span>
                         </li>
@@ -348,7 +366,7 @@ export default function MenuPage() {
                 onClick={() => handleAddToCart(product)}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                 {activeOrder ? 'Añadir al Pedido' : 'Agregar'}
+                 {activeOrder ? 'Añadir al Pedido' : 'Agregar al Carrito'}
               </Button>
             </CardFooter>
           </Card>
