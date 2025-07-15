@@ -51,12 +51,14 @@ export default function WaiterMyOrdersPage() {
 
   return (
     <div className="container mx-auto py-8">
-       <Button variant="ghost" asChild className="absolute top-4 left-4">
-            <Link href="/waiter/dashboard">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Volver al Panel
-            </Link>
-        </Button>
+        <div className="mb-4">
+            <Button variant="ghost" asChild>
+                <Link href="/waiter/dashboard">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Volver al Panel
+                </Link>
+            </Button>
+        </div>
       <Card className="w-full max-w-4xl mx-auto bg-card/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-2xl text-center">Mis Pedidos Registrados</CardTitle>
