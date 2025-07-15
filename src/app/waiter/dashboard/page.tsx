@@ -8,11 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { mockProducts, Product } from '@/lib/products';
-import { ShoppingCart, Search, Plus, Minus, Trash2, UserPlus, LogOut, PackagePlus, History } from 'lucide-react';
+import { ShoppingCart, Search, Plus, Minus, Trash2, UserPlus, LogOut, PackagePlus, History, Edit } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
-import { addOrder, NewOrderPayload } from '@/lib/orders';
+import { addOrder, NewOrderPayload, addProductToOrder, getOrderById } from '@/lib/orders';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
@@ -29,6 +29,7 @@ export default function WaiterDashboardPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [waiterName, setWaiterName] = useState<string | null>(null);
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(true);
+  const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
   const sheetCloseRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
 
@@ -39,6 +40,23 @@ export default function WaiterDashboardPage() {
     } else {
       setWaiterName(name);
     }
+    
+    const orderIdToEdit = localStorage.getItem('waiterEditingOrderId');
+    if (orderIdToEdit) {
+      const order = getOrderById(Number(orderIdToEdit));
+      if (order) {
+        setEditingOrderId(order.id);
+        setCustomerName(order.customer.name);
+        setCustomerPhone(order.customer.phone);
+        // We don't load the cart, as the waiter will only add new items
+        setIsCustomerModalOpen(false); 
+      } else {
+        localStorage.removeItem('waiterEditingOrderId');
+      }
+    } else {
+        setIsCustomerModalOpen(true);
+    }
+
   }, [router]);
 
   const filteredProducts = mockProducts.filter((product) =>
@@ -88,26 +106,39 @@ export default function WaiterDashboardPage() {
         });
         return;
     }
-  
-    const orderItems: NewOrderPayload['items'] = cart.map(item => ({
-        id: item.id,
-        nombre: item.nombre,
-        precio: item.precio,
-        quantity: item.quantity,
-    }));
-  
-    addOrder({
-        customer: { name: customerName, phone: customerPhone },
-        items: orderItems,
-        total: cartTotal,
-        orderedBy: { type: 'Mesero', name: waiterName }
-    });
     
-    toast({
-        title: "¡Pedido Enviado!",
-        description: `El pedido para ${customerName} ha sido enviado.`,
-        variant: "default",
-    });
+    if (editingOrderId) {
+        cart.forEach(item => {
+            addProductToOrder(editingOrderId, { ...item, quantity: item.quantity });
+        });
+        toast({
+            title: "¡Pedido Actualizado!",
+            description: `Se agregaron productos al pedido de ${customerName}.`,
+            variant: "default",
+        });
+        handleFinishEditing();
+
+    } else {
+        const orderItems: NewOrderPayload['items'] = cart.map(item => ({
+            id: item.id,
+            nombre: item.nombre,
+            precio: item.precio,
+            quantity: item.quantity,
+        }));
+      
+        addOrder({
+            customer: { name: customerName, phone: customerPhone },
+            items: orderItems,
+            total: cartTotal,
+            orderedBy: { type: 'Mesero', name: waiterName }
+        });
+        
+        toast({
+            title: "¡Pedido Enviado!",
+            description: `El pedido para ${customerName} ha sido enviado.`,
+            variant: "default",
+        });
+    }
   
     setCart([]);
     setCustomerName('');
@@ -128,7 +159,26 @@ export default function WaiterDashboardPage() {
 
   const handleLogout = () => {
       localStorage.removeItem('waiterName');
+      localStorage.removeItem('waiterEditingOrderId');
       router.push('/waiter');
+  }
+
+  const handleFinishEditing = () => {
+      localStorage.removeItem('waiterEditingOrderId');
+      setEditingOrderId(null);
+      setCustomerName('');
+      setCustomerPhone('');
+      setCart([]);
+      router.push('/waiter/my-orders');
+  };
+
+  const handleChangeCustomer = () => {
+      localStorage.removeItem('waiterEditingOrderId');
+      setEditingOrderId(null);
+      setCustomerName('');
+      setCustomerPhone('');
+      setCart([]);
+      setIsCustomerModalOpen(true);
   }
 
   if (!waiterName) {
@@ -141,13 +191,24 @@ export default function WaiterDashboardPage() {
         <div className="text-center md:text-left">
             <h1 className="text-4xl font-bold">Panel del Mesero</h1>
             <p className="text-muted-foreground">Bienvenido, <span className="font-semibold">{waiterName}</span></p>
-            {customerName && <p className="text-primary font-medium">Atendiendo a: {customerName}</p>}
+            {editingOrderId ? (
+                <p className="text-primary font-medium">Editando Pedido #{editingOrderId} para: {customerName}</p>
+            ) : (
+                customerName && <p className="text-primary font-medium">Atendiendo a: {customerName}</p>
+            )}
         </div>
         <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => setIsCustomerModalOpen(true)}>
-                <UserPlus className="mr-2"/>
-                Cambiar Cliente
-            </Button>
+            {editingOrderId ? (
+                <Button variant="outline" onClick={handleFinishEditing}>
+                    <Edit className="mr-2"/>
+                    Finalizar Edición
+                </Button>
+            ) : (
+                <Button variant="outline" onClick={handleChangeCustomer}>
+                    <UserPlus className="mr-2"/>
+                    Cambiar Cliente
+                </Button>
+            )}
             <Button variant="outline" asChild>
                 <Link href="/waiter/my-orders">
                     <History className="mr-2 h-4 w-4" />
@@ -236,12 +297,12 @@ export default function WaiterDashboardPage() {
                 <SheetFooter className="mt-4">
                 <div className="w-full space-y-2">
                     <div className="flex justify-between font-bold text-lg">
-                    <span>Total:</span>
+                    <span>Total a agregar:</span>
                     <span>${cartTotal.toLocaleString('es-CO')}</span>
                     </div>
                     <Button className="w-full" size="lg" onClick={handleConfirmOrder}>
                         <PackagePlus className="mr-2" />
-                        Confirmar y Enviar Pedido
+                        {editingOrderId ? 'Agregar Productos al Pedido' : 'Confirmar y Enviar Pedido'}
                     </Button>
                     <SheetClose ref={sheetCloseRef} className="hidden" />
                 </div>
@@ -258,9 +319,9 @@ export default function WaiterDashboardPage() {
         </Sheet>
       </div>
 
-      {isCustomerModalOpen && <div className="absolute inset-0 bg-background/80 z-10"/>}
+      {isCustomerModalOpen && !editingOrderId && <div className="absolute inset-0 bg-background/80 z-10"/>}
 
-      <Dialog open={isCustomerModalOpen} onOpenChange={setIsCustomerModalOpen}>
+      <Dialog open={isCustomerModalOpen && !editingOrderId} onOpenChange={setIsCustomerModalOpen}>
           <DialogContent className="sm:max-w-[425px]" onInteractOutside={(e) => e.preventDefault()}>
                <DialogHeader>
                     <DialogTitle>Identificar Cliente</DialogTitle>
