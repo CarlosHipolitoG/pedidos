@@ -9,7 +9,7 @@ import { Order, useOrders, getOrdersByWaiterName } from '@/lib/orders';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, UserCircle, Edit } from 'lucide-react';
+import { ArrowLeft, UserCircle, Edit, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -55,6 +55,8 @@ export default function WaiterMyOrdersPage() {
     }
   };
 
+  const totalSales = foundOrders.reduce((sum, order) => sum + order.total, 0);
+
   return (
     <div className="container mx-auto py-8">
         <div className="mb-4">
@@ -73,6 +75,15 @@ export default function WaiterMyOrdersPage() {
               Aquí están todos los pedidos que has gestionado como <span className="font-semibold">{waiterName}</span>.
             </CardDescription>
           )}
+           {totalSales > 0 && (
+            <div className="text-center mt-4">
+                <p className="text-lg font-semibold flex items-center justify-center gap-2">
+                    <DollarSign className="h-6 w-6 text-green-500"/>
+                    Total Vendido: 
+                    <span className="text-primary">${totalSales.toLocaleString('es-CO')}</span>
+                </p>
+            </div>
+           )}
         </CardHeader>
         <CardContent>
           {foundOrders.length > 0 ? (
