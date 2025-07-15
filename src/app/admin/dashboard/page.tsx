@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -26,6 +27,16 @@ export default function AdminDashboardPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(productSearchTerm, 300);
+  const [formattedDates, setFormattedDates] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    const newFormattedDates: Record<number, string> = {};
+    orders.forEach(order => {
+        newFormattedDates[order.id] = format(new Date(order.timestamp), "d 'de' LLLL, h:mm a", { locale: es });
+    });
+    setFormattedDates(newFormattedDates);
+  }, [orders]);
+
 
   const handleStatusChange = (orderId: number, newStatus: OrderStatus) => {
     updateOrderStatus(orderId, newStatus);
@@ -107,7 +118,7 @@ export default function AdminDashboardPage() {
                       <div className="text-left">
                         <span className="font-bold text-lg">Pedido #{order.id}</span>
                         <p className="text-sm text-muted-foreground">
-                          {format(new Date(order.timestamp), "d 'de' LLLL, h:mm a", { locale: es })}
+                          {formattedDates[order.id] || 'Cargando fecha...'}
                         </p>
                       </div>
                       <div className="flex items-center gap-4">
