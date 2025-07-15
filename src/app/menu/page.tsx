@@ -7,7 +7,7 @@ import { useDebounce } from 'use-debounce';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { mockProducts, Product } from '@/lib/products';
+import { useProducts, Product } from '@/lib/products';
 import { ShoppingCart, Search, Plus, Minus, Trash2, PackageCheck, CookingPot, History, CreditCard } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
@@ -31,6 +31,7 @@ export default function MenuPage() {
   const [activeOrderId, setActiveOrderId] = useState<number | null>(null);
   const sheetCloseRef = useRef<HTMLButtonElement>(null);
   const { orders } = useOrders();
+  const { products } = useProducts();
   const router = useRouter();
   const [now, setNow] = useState(Date.now());
 
@@ -63,7 +64,7 @@ export default function MenuPage() {
 
   }, [orders, router]);
 
-  const filteredProducts = mockProducts.filter((product) =>
+  const filteredProducts = products.filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
   
@@ -462,3 +463,4 @@ export default function MenuPage() {
     </div>
   );
 }
+

@@ -1,3 +1,8 @@
+
+'use client';
+
+import { useState, useEffect } from 'react';
+
 export type Product = {
   id: number;
   nombre: string;
@@ -8,7 +13,7 @@ export type Product = {
   categoria: string;
 };
 
-export const mockProducts: Product[] = [
+const initialProducts: Product[] = [
   { id: 1, nombre: 'AGUA', precio: 4500, imagen: 'https://avatars.mds.yandex.net/get-altay/1987173/2a000001747d295ce25615afd42a81cb6b9e/XXL_height', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 48, categoria: 'AGUA' },
   { id: 2, nombre: 'AGUA GAS', precio: 4500, imagen: 'https://images.squarespace-cdn.com/content/v1/55697ab8e4b084f6ac0581ef/1543993440671-4K5ZMHREJWHVDD8CHJMP/shutterstock_105912563-1.jpg', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 49, categoria: 'AGUA' },
   { id: 3, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 375 ML', precio: 60000, imagen: 'https://i.pinimg.com/736x/4f/14/2d/4f142d8493f4082bf274bfd8af785708.jpg', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 4, categoria: 'AGUARDIENTE' },
@@ -99,3 +104,82 @@ export const mockProducts: Product[] = [
   { id: 88, nombre: 'WHISKY SPECIAL 350 ML', precio: 90000, imagen: 'https://drinkcentral.co/wp-content/uploads/2023/03/WHISKY-SOMETHING-SPECIAL-MEDIA-350ml.webp', disponibilidad: 'PRODUCTO_AGOTADO', existencias: 0, categoria: 'WHISKY' },
   { id: 89, nombre: 'WHISKY SPECIAL 750 ML', precio: 150000, imagen: 'https://vivanda.vtexassets.com/arquivos/ids/469581/36450.jpg?v=638379342449670000', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 1, categoria: 'WHISKY' },
 ];
+
+// --- Centralized State Management for Products ---
+class ProductStore {
+    private static instance: ProductStore;
+    private products: Product[] = [...initialProducts];
+    private nextProductId = 1;
+    private listeners: ((products: Product[]) => void)[] = [];
+
+    private constructor() {
+        this.nextProductId = this.products.reduce((maxId, product) => Math.max(product.id, maxId), 0) + 1;
+    }
+
+    public static getInstance(): ProductStore {
+        if (!ProductStore.instance) {
+            ProductStore.instance = new ProductStore();
+        }
+        return ProductStore.instance;
+    }
+
+    private broadcast() {
+        this.listeners.forEach(listener => listener(this.products));
+    }
+
+    public subscribe(listener: (products: Product[]) => void): () => void {
+        this.listeners.push(listener);
+        listener(this.products);
+        return () => {
+            this.listeners = this.listeners.filter(l => l !== listener);
+        };
+    }
+
+    public getProducts(): Product[] {
+        return this.products;
+    }
+
+    public addProduct(productData: Omit<Product, 'id'>): void {
+        const newProduct: Product = {
+            ...productData,
+            id: this.nextProductId++,
+        };
+        this.products = [...this.products, newProduct];
+        this.broadcast();
+    }
+
+    public updateProduct(productId: number, updatedData: Partial<Omit<Product, 'id'>>): void {
+        this.products = this.products.map(product =>
+            product.id === productId ? { ...product, ...updatedData } : product
+        );
+        this.broadcast();
+    }
+}
+
+const productStoreInstance = ProductStore.getInstance();
+
+export const addProduct = (productData: Omit<Product, 'id'>): void => {
+    productStoreInstance.addProduct(productData);
+};
+
+export const updateProduct = (productId: number, updatedData: Partial<Omit<Product, 'id'>>): void => {
+    productStoreInstance.updateProduct(productId, updatedData);
+};
+
+export function useProducts() {
+    const [products, setProducts] = useState(productStoreInstance.getProducts());
+
+    useEffect(() => {
+        const unsubscribe = productStoreInstance.subscribe(newProducts => {
+            setProducts([...newProducts]);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    return { products };
+}
+
+// Keep the old export for compatibility where it might still be used.
+export const mockProducts = productStoreInstance.getProducts();
+

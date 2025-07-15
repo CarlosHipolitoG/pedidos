@@ -1,19 +1,60 @@
 
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { mockProducts } from '@/lib/products';
-import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
+import { useProducts, Product, addProduct, updateProduct } from '@/lib/products';
+import { ArrowLeft, CheckCircle, XCircle, PlusCircle, Edit } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function AdminProductsPage() {
-  const products = mockProducts;
+  const { products } = useProducts();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | Partial<Product> | null>(null);
+
+  const openModal = (product: Product | null = null) => {
+    if (product) {
+      setEditingProduct({ ...product });
+    } else {
+      setEditingProduct({
+        nombre: '',
+        precio: 0,
+        existencias: 0,
+        disponibilidad: 'PRODUCTO_DISPONIBLE',
+        categoria: '',
+        imagen: '',
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSaveProduct = () => {
+    if (!editingProduct) return;
+
+    if ('id' in editingProduct && editingProduct.id) {
+      // Editing existing product
+      updateProduct(editingProduct.id, editingProduct as Product);
+    } else {
+      // Adding new product
+      addProduct(editingProduct as Omit<Product, 'id'>);
+    }
+    setIsModalOpen(false);
+    setEditingProduct(null);
+  };
+
+  const handleInputChange = (field: keyof Product, value: string | number) => {
+    if (editingProduct) {
+      setEditingProduct({ ...editingProduct, [field]: value });
+    }
+  };
 
   return (
     <div className="container mx-auto py-8">
@@ -27,11 +68,17 @@ export default function AdminProductsPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Gestión de Productos</CardTitle>
-          <CardDescription>
-            Visualiza y gestiona todos los productos del menú.
-          </CardDescription>
+        <CardHeader className="flex flex-row justify-between items-center">
+            <div>
+                <CardTitle>Gestión de Productos</CardTitle>
+                <CardDescription>
+                    Visualiza, edita y agrega nuevos productos al menú.
+                </CardDescription>
+            </div>
+            <Button onClick={() => openModal()}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Agregar Nuevo Producto
+            </Button>
         </CardHeader>
         <CardContent>
           <Table>
@@ -43,6 +90,7 @@ export default function AdminProductsPage() {
                 <TableHead className="text-right">Precio</TableHead>
                 <TableHead className="text-center">Existencias</TableHead>
                 <TableHead className="text-center">Disponibilidad</TableHead>
+                <TableHead className="text-center">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -50,7 +98,7 @@ export default function AdminProductsPage() {
                 <TableRow key={product.id}>
                   <TableCell>
                     <Image
-                      src={product.imagen}
+                      src={product.imagen || 'https://placehold.co/40x40.png'}
                       alt={product.nombre}
                       width={40}
                       height={40}
@@ -77,12 +125,67 @@ export default function AdminProductsPage() {
                         </div>
                     )}
                   </TableCell>
+                  <TableCell className="text-center">
+                    <Button variant="outline" size="sm" onClick={() => openModal(product)}>
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+      
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle>{editingProduct && 'id' in editingProduct && editingProduct.id ? 'Editar Producto' : 'Agregar Nuevo Producto'}</DialogTitle>
+                <DialogDescription>
+                    {editingProduct && 'id' in editingProduct && editingProduct.id ? 'Modifica los detalles del producto.' : 'Completa la información para agregar un nuevo producto al menú.'}
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                    <Label htmlFor="nombre">Nombre</Label>
+                    <Input id="nombre" value={editingProduct?.nombre || ''} onChange={(e) => handleInputChange('nombre', e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="precio">Precio</Label>
+                    <Input id="precio" type="number" value={editingProduct?.precio || 0} onChange={(e) => handleInputChange('precio', parseFloat(e.target.value))} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="existencias">Existencias</Label>
+                    <Input id="existencias" type="number" value={editingProduct?.existencias || 0} onChange={(e) => handleInputChange('existencias', parseInt(e.target.value, 10))} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="disponibilidad">Disponibilidad</Label>
+                     <Select value={editingProduct?.disponibilidad} onValueChange={(value) => handleInputChange('disponibilidad', value)}>
+                        <SelectTrigger id="disponibilidad">
+                            <SelectValue placeholder="Seleccionar disponibilidad" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="PRODUCTO_DISPONIBLE">Disponible</SelectItem>
+                            <SelectItem value="PRODUCTO_AGOTADO">Agotado</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="categoria">Categoría</Label>
+                    <Input id="categoria" value={editingProduct?.categoria || ''} onChange={(e) => handleInputChange('categoria', e.target.value)} />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="imagen">URL de la Imagen</Label>
+                    <Input id="imagen" value={editingProduct?.imagen || ''} onChange={(e) => handleInputChange('imagen', e.target.value)} />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+                <Button onClick={handleSaveProduct}>Guardar Cambios</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

@@ -9,14 +9,14 @@ import { Order, useOrders, getOrdersByWaiterName, addProductToOrder, OrderItem }
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, UserCircle, Edit, DollarSign, PlusCircle, Search, History } from 'lucide-react';
+import { ArrowLeft, UserCircle, Edit, DollarSign, PlusCircle, Search } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { mockProducts, Product } from '@/lib/products';
+import { useProducts, Product } from '@/lib/products';
 import Image from 'next/image';
 import { useDebounce } from 'use-debounce';
 
@@ -24,6 +24,7 @@ export default function WaiterMyOrdersPage() {
   const [waiterName, setWaiterName] = useState<string | null>(null);
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
   const { orders } = useOrders();
+  const { products } = useProducts();
   const router = useRouter();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -90,7 +91,7 @@ export default function WaiterMyOrdersPage() {
     }, 2000);
   };
   
-  const filteredProducts = mockProducts.filter((product) =>
+  const filteredProducts = products.filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
 
