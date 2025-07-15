@@ -41,8 +41,8 @@ const initialSimulatedOrders: Order[] = [
         timestamp: Date.now() - 5 * 60 * 1000, // 5 minutes ago
         customer: { name: "Cliente de Prueba", phone: "3000000000", email: "prueba@example.com" },
         items: [
-            { id: 1, nombre: 'AGUA', precio: 4500, quantity: 2, addedAt: Date.now() - 5 * 60 * 1000 },
-            { id: 3, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 375', precio: 60000, quantity: 1, addedAt: Date.now() - 5 * 60 * 1000 }
+            { id: 1, nombre: 'AGUA', precio: 4500, quantity: 2, addedAt: Date.now() - 8 * 60 * 1000 },
+            { id: 3, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 375', precio: 60000, quantity: 1, addedAt: Date.now() - 12 * 60 * 1000 }
         ],
         total: 69000,
         status: 'Pendiente',
@@ -170,14 +170,12 @@ class OrderStore {
                 if (existingItemIndex > -1) {
                     newItems = [...order.items];
                     newItems[existingItemIndex].quantity += product.quantity;
-                    newItems[existingItemIndex].addedAt = now; // Update timestamp on modification
+                    newItems[existingItemIndex].addedAt = now;
                 } else {
                     newItems = [...order.items, { ...product, addedAt: now }];
                 }
                 
                 const newTotal = newItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
-                
-                // If the order was completed or paid, move it to pending as it's being modified
                 const newStatus = (order.status === 'Completado' || order.status === 'Pagado') ? 'Pendiente' : order.status;
 
                 return { ...order, items: newItems, total: newTotal, status: newStatus, timestamp: now };
@@ -185,6 +183,58 @@ class OrderStore {
             return order;
         });
         this.broadcast();
+    }
+    
+    public updateProductQuantityInOrder(orderId: number, itemId: number, newQuantity: number) {
+        this.orders = this.orders.map(order => {
+            if (order.id === orderId) {
+                const itemIndex = order.items.findIndex(item => item.id === itemId);
+                if (itemIndex === -1) return order;
+
+                const item = order.items[itemIndex];
+                const isLocked = (Date.now() - item.addedAt) > 10 * 60 * 1000;
+                
+                if (isLocked && newQuantity < item.quantity) {
+                    console.warn("Cannot decrease quantity of a locked item.");
+                    return order; // Do not update if item is locked and quantity is decreasing
+                }
+
+                const newItems = [...order.items];
+                newItems[itemIndex] = { ...item, quantity: newQuantity };
+                
+                const newTotal = newItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
+                return { ...order, items: newItems, total: newTotal };
+            }
+            return order;
+        });
+        this.broadcast();
+    }
+
+    public removeProductFromOrder(orderId: number, itemId: number): boolean {
+        let success = false;
+        this.orders = this.orders.map(order => {
+            if (order.id === orderId) {
+                const itemIndex = order.items.findIndex(item => item.id === itemId);
+                if (itemIndex === -1) return order;
+                
+                const item = order.items[itemIndex];
+                const isLocked = (Date.now() - item.addedAt) > 10 * 60 * 1000;
+                
+                if (isLocked) {
+                    console.warn("Cannot remove a locked item.");
+                    success = false;
+                    return order;
+                }
+
+                const newItems = order.items.filter(item => item.id !== itemId);
+                const newTotal = newItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
+                success = true;
+                return { ...order, items: newItems, total: newTotal };
+            }
+            return order;
+        });
+        this.broadcast();
+        return success;
     }
 }
 
@@ -213,6 +263,14 @@ export const getOrdersByCustomerPhone = (phone: string): Order[] => {
 export const getOrdersByWaiterName = (waiterName: string): Order[] => {
     return orderStoreInstance.getOrdersByWaiterName(waiterName);
 }
+
+export const updateProductQuantityInOrder = (orderId: number, itemId: number, newQuantity: number) => {
+    orderStoreInstance.updateProductQuantityInOrder(orderId, itemId, newQuantity);
+};
+
+export const removeProductFromOrder = (orderId: number, itemId: number): boolean => {
+    return orderStoreInstance.removeProductFromOrder(orderId, itemId);
+};
 
 
 export function useOrders() {

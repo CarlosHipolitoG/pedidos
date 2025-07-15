@@ -12,10 +12,13 @@ import { ShoppingCart, Search, Plus, Minus, Trash2, PackageCheck, CookingPot, Hi
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
-import { addOrder, OrderItem, CustomerInfo, useOrders, addProductToOrder, getOrderById, Order, NewOrderPayload } from '@/lib/orders';
+import { addOrder, OrderItem, CustomerInfo, useOrders, addProductToOrder, getOrderById, Order, NewOrderPayload, removeProductFromOrder, updateProductQuantityInOrder } from '@/lib/orders';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 type CartItem = Product & { quantity: number };
 
@@ -29,6 +32,7 @@ export default function MenuPage() {
   const sheetCloseRef = useRef<HTMLButtonElement>(null);
   const { orders } = useOrders();
   const router = useRouter();
+  const [now, setNow] = useState(Date.now());
 
   const activeOrder = activeOrderId ? getOrderById(activeOrderId) : null;
 
@@ -41,7 +45,6 @@ export default function MenuPage() {
     if (savedCustomer.name && savedCustomer.phone) {
         setCustomerInfo(savedCustomer);
     } else {
-        // If no customer info, can't place order, go back to home
         router.push('/');
     }
 
@@ -51,10 +54,15 @@ export default function MenuPage() {
         if(orderExists) {
              setActiveOrderId(parseInt(savedOrderId));
         } else {
-             // Order doesn't exist anymore (maybe cleared), so remove from storage
              localStorage.removeItem('activeOrderId');
         }
     }
+
+    // This interval will re-render the component every 30 seconds
+    // to update the disabled state of the remove buttons.
+    const interval = setInterval(() => setNow(Date.now()), 30 * 1000);
+    return () => clearInterval(interval);
+
   }, [orders, router]);
 
   const filteredProducts = mockProducts.filter((product) =>
@@ -164,6 +172,27 @@ export default function MenuPage() {
       default:
         return { icon: History, text: "", color: "" };
     }
+  };
+
+  const handleUpdateActiveOrderQuantity = (itemId: number, newQuantity: number) => {
+      if (!activeOrder) return;
+      if (newQuantity <= 0) {
+          handleRemoveFromActiveOrder(itemId);
+      } else {
+          updateProductQuantityInOrder(activeOrder.id, itemId, newQuantity);
+      }
+  };
+
+  const handleRemoveFromActiveOrder = (itemId: number) => {
+      if (!activeOrder) return;
+      const success = removeProductFromOrder(activeOrder.id, itemId);
+      if (!success) {
+          toast({
+              title: "No se puede eliminar",
+              description: "Este producto no se puede eliminar porque fue agregado hace más de 10 minutos.",
+              variant: "destructive",
+          });
+      }
   };
 
   return (
@@ -294,7 +323,7 @@ export default function MenuPage() {
       {activeOrder && (
         <Card className="mb-8 bg-card/90 backdrop-blur-sm border-primary/20">
             <CardHeader>
-                <CardTitle>Resumen de tu Pedido Activo (#{activeOrder.id})</CardTitle>
+                <CardTitle>Tu Pedido Activo (#{activeOrder.id})</CardTitle>
                 <div className="flex items-center gap-4 pt-2">
                     <Badge variant={activeOrder.status === 'Completado' || activeOrder.status === 'Pagado' ? 'success' : 'secondary'}>
                         {activeOrder.status}
@@ -311,14 +340,56 @@ export default function MenuPage() {
                 </div>
             </CardHeader>
             <CardContent>
-                 <ul className="space-y-2 text-sm">
-                    {activeOrder.items.map(item => (
-                        <li key={`${item.id}-${item.addedAt}`} className="flex justify-between">
-                            <span>{item.quantity}x {item.nombre}</span>
-                            <span className="font-mono">${(item.precio * item.quantity).toLocaleString('es-CO')}</span>
-                        </li>
-                    ))}
-                 </ul>
+                 <div className="space-y-4">
+                    {activeOrder.items.map(item => {
+                       const isLocked = (now - item.addedAt) > 10 * 60 * 1000;
+                       return (
+                        <div key={`${item.id}-${item.addedAt}`} className="flex items-center gap-4">
+                           <div className="flex-grow">
+                             <p className={cn("font-medium", isLocked && "text-muted-foreground")}>
+                                {item.nombre}
+                             </p>
+                             <p className="text-xs text-muted-foreground">
+                               Agregado a las {format(new Date(item.addedAt), "h:mm a", { locale: es })}
+                             </p>
+                           </div>
+                           <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => handleUpdateActiveOrderQuantity(item.id, item.quantity - 1)}
+                                disabled={isLocked}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <span className="w-4 text-center">{item.quantity}</span>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => handleUpdateActiveOrderQuantity(item.id, item.quantity + 1)}
+                                disabled={activeOrder.status === 'Completado' || activeOrder.status === 'Pagado'}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                           </div>
+                           <span className={cn("w-20 text-right font-mono text-sm", isLocked && "text-muted-foreground")}>
+                            ${(item.precio * item.quantity).toLocaleString('es-CO')}
+                           </span>
+                           <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                onClick={() => handleRemoveFromActiveOrder(item.id)}
+                                disabled={isLocked}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                       )
+                    })}
+                 </div>
                  <Separator className="my-4"/>
                  <div className="flex justify-between font-bold text-lg">
                     <span>Total del Pedido:</span>
@@ -362,7 +433,7 @@ export default function MenuPage() {
             <CardFooter className="p-4 pt-0">
               <Button
                 className="w-full"
-                disabled={product.disponibilidad === 'PRODUCTO_AGOTADO'}
+                disabled={product.disponibilidad === 'PRODUCTO_AGOTADO' || (activeOrder && (activeOrder.status === 'Completado' || activeOrder.status === 'Pagado'))}
                 onClick={() => handleAddToCart(product)}
               >
                 <Plus className="mr-2 h-4 w-4" />
