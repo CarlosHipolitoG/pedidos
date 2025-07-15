@@ -58,8 +58,6 @@ export default function MenuPage() {
         }
     }
 
-    // This interval will re-render the component every 30 seconds
-    // to update the disabled state of the remove buttons.
     const interval = setInterval(() => setNow(Date.now()), 30 * 1000);
     return () => clearInterval(interval);
 
@@ -68,6 +66,17 @@ export default function MenuPage() {
   const filteredProducts = mockProducts.filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
+  
+  const productsByCategory = filteredProducts.reduce((acc, product) => {
+    const category = product.categoria;
+    if (!acc[category]) {
+        acc[category] = [];
+    }
+    acc[category].push(product);
+    return acc;
+  }, {} as Record<string, Product[]>);
+
+  const categories = Object.keys(productsByCategory).sort();
 
   const handleAddToCart = (product: Product) => {
     if (activeOrder) {
@@ -406,41 +415,48 @@ export default function MenuPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredProducts.map((product) => (
-          <Card key={product.id} className="flex flex-col overflow-hidden group">
-            <CardHeader className="p-0 relative">
-              <Image
-                src={product.imagen || 'https://placehold.co/600x400.png'}
-                alt={product.nombre}
-                width={600}
-                height={400}
-                className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
-                data-ai-hint="beverage drink"
-              />
-               {product.disponibilidad === 'PRODUCTO_AGOTADO' && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">AGOTADO</span>
-                </div>
-              )}
-            </CardHeader>
-            <CardContent className="flex-grow p-4 flex flex-col">
-              <CardTitle className="text-lg mb-2 flex-grow">{product.nombre}</CardTitle>
-              <p className="text-xl font-semibold text-primary">
-                ${product.precio.toLocaleString('es-CO')}
-              </p>
-            </CardContent>
-            <CardFooter className="p-4 pt-0">
-              <Button
-                className="w-full"
-                disabled={product.disponibilidad === 'PRODUCTO_AGOTADO' || (activeOrder && (activeOrder.status === 'Completado' || activeOrder.status === 'Pagado'))}
-                onClick={() => handleAddToCart(product)}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                 {activeOrder ? 'Añadir al Pedido' : 'Agregar al Carrito'}
-              </Button>
-            </CardFooter>
-          </Card>
+      <div className="space-y-8">
+        {categories.map((category) => (
+          <div key={category}>
+            <h2 className="text-2xl font-bold mb-4 border-b pb-2">{category}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {productsByCategory[category].map((product) => (
+                <Card key={product.id} className="flex flex-col overflow-hidden group">
+                  <CardHeader className="p-0 relative">
+                    <Image
+                      src={product.imagen || 'https://placehold.co/600x400.png'}
+                      alt={product.nombre}
+                      width={600}
+                      height={400}
+                      className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
+                      data-ai-hint="beverage drink"
+                    />
+                    {product.disponibilidad === 'PRODUCTO_AGOTADO' && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <span className="text-white font-bold text-lg">AGOTADO</span>
+                      </div>
+                    )}
+                  </CardHeader>
+                  <CardContent className="flex-grow p-4 flex flex-col">
+                    <CardTitle className="text-lg mb-2 flex-grow">{product.nombre}</CardTitle>
+                    <p className="text-xl font-semibold text-primary">
+                      ${product.precio.toLocaleString('es-CO')}
+                    </p>
+                  </CardContent>
+                  <CardFooter className="p-4 pt-0">
+                    <Button
+                      className="w-full"
+                      disabled={product.disponibilidad === 'PRODUCTO_AGOTADO' || (activeOrder && (activeOrder.status === 'Completado' || activeOrder.status === 'Pagado'))}
+                      onClick={() => handleAddToCart(product)}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      {activeOrder ? 'Añadir al Pedido' : 'Agregar al Carrito'}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </div>
