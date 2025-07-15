@@ -12,7 +12,7 @@ import { ShoppingCart, Search, Plus, Minus, Trash2, PackageCheck, CookingPot, Hi
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
-import { addOrder, OrderItem, CustomerInfo, useOrders, addProductToOrder, getOrderById, Order } from '@/lib/orders';
+import { addOrder, OrderItem, CustomerInfo, useOrders, addProductToOrder, getOrderById, Order, NewOrderPayload } from '@/lib/orders';
 import { Badge } from '@/components/ui/badge';
 
 type CartItem = Product & { quantity: number };
@@ -30,7 +30,6 @@ export default function MenuPage() {
   const activeOrder = activeOrderId ? getOrderById(activeOrderId) : null;
 
   useEffect(() => {
-    // In a real app, this would come from a global state/context after login
     const savedCustomer: CustomerInfo = {
       name: localStorage.getItem('customerName') || 'Cliente Anónimo',
       phone: localStorage.getItem('customerPhone') || 'N/A',
@@ -43,14 +42,13 @@ export default function MenuPage() {
     const savedOrderId = localStorage.getItem('activeOrderId');
     if (savedOrderId) {
         const orderExists = getOrderById(parseInt(savedOrderId));
-        // Reset if order is completed or doesn't exist
         if(orderExists && orderExists.status !== 'Completado') {
              setActiveOrderId(parseInt(savedOrderId));
         } else {
              localStorage.removeItem('activeOrderId');
         }
     }
-  }, [orders]); // Re-check when orders change
+  }, [orders]);
 
   const filteredProducts = mockProducts.filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
@@ -58,14 +56,12 @@ export default function MenuPage() {
 
   const handleAddToCart = (product: Product) => {
     if (activeOrder) {
-        // If there is an active order, add directly to it
         addProductToOrder(activeOrder.id, { ...product, quantity: 1 });
         toast({
             title: "Producto agregado",
             description: `${product.nombre} se ha añadido a tu pedido.`,
         });
     } else {
-        // Otherwise, add to the local cart
         setCart((prevCart) => {
             const existingItem = prevCart.find((item) => item.id === product.id);
             if (existingItem) {
@@ -110,7 +106,7 @@ export default function MenuPage() {
         return;
     }
   
-    const orderItems: OrderItem[] = cart.map(item => ({
+    const orderItems: NewOrderPayload['items'] = cart.map(item => ({
         id: item.id,
         nombre: item.nombre,
         precio: item.precio,
@@ -136,7 +132,7 @@ export default function MenuPage() {
     });
   
     setCart([]);
-    sheetCloseRef.current?.click(); // Close the sheet after confirming
+    sheetCloseRef.current?.click();
   }
 
   const handleFinishOrder = () => {

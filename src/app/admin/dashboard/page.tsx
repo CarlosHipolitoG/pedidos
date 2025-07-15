@@ -27,14 +27,24 @@ export default function AdminDashboardPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(productSearchTerm, 300);
-  const [formattedDates, setFormattedDates] = useState<Record<number, string>>({});
+  const [formattedDates, setFormattedDates] = useState<Record<string, string>>({});
+  const [formattedItemDates, setFormattedItemDates] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const newFormattedDates: Record<number, string> = {};
+    const newFormattedDates: Record<string, string> = {};
+    const newFormattedItemDates: Record<string, string> = {};
+
     orders.forEach(order => {
-        newFormattedDates[order.id] = format(new Date(order.timestamp), "d 'de' LLLL, h:mm a", { locale: es });
+        // Format order creation date
+        newFormattedDates[`order-${order.id}`] = format(new Date(order.timestamp), "d 'de' LLLL, h:mm a", { locale: es });
+        
+        // Format item added dates
+        order.items.forEach(item => {
+            newFormattedItemDates[`item-${order.id}-${item.id}`] = format(new Date(item.addedAt), "h:mm a", { locale: es });
+        });
     });
     setFormattedDates(newFormattedDates);
+    setFormattedItemDates(newFormattedItemDates);
   }, [orders]);
 
 
@@ -51,7 +61,7 @@ export default function AdminDashboardPage() {
   const handleAddProduct = (product: Product) => {
     if (!selectedOrder) return;
 
-    const newProduct: OrderItem = {
+    const newProduct: Omit<OrderItem, 'addedAt'> = {
       id: product.id,
       nombre: product.nombre,
       precio: product.precio,
@@ -118,7 +128,7 @@ export default function AdminDashboardPage() {
                       <div className="text-left">
                         <span className="font-bold text-lg">Pedido #{order.id}</span>
                         <p className="text-sm text-muted-foreground">
-                          {formattedDates[order.id] || 'Cargando fecha...'}
+                          {formattedDates[`order-${order.id}`] || 'Cargando fecha...'}
                         </p>
                       </div>
                       <div className="flex items-center gap-4">
@@ -147,6 +157,7 @@ export default function AdminDashboardPage() {
                             <TableRow>
                                 <TableHead>Producto</TableHead>
                                 <TableHead className="text-center">Cant.</TableHead>
+                                <TableHead>Agregado a las</TableHead>
                                 <TableHead className="text-right">Subtotal</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -155,6 +166,7 @@ export default function AdminDashboardPage() {
                                 <TableRow key={item.id} className={cn(highlightedProducts[order.id]?.includes(item.id) && 'animate-highlight')}>
                                     <TableCell>{item.nombre}</TableCell>
                                     <TableCell className="text-center">{item.quantity}</TableCell>
+                                    <TableCell>{formattedItemDates[`item-${order.id}-${item.id}`] || '...'}</TableCell>
                                     <TableCell className="text-right">${(item.precio * item.quantity).toLocaleString('es-CO')}</TableCell>
                                 </TableRow>
                             ))}

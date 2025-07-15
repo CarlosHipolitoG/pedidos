@@ -8,6 +8,7 @@ export type OrderItem = {
     nombre: string;
     precio: number;
     quantity: number;
+    addedAt: number; // Timestamp for when the item was added
 };
 
 export type CustomerInfo = {
@@ -29,7 +30,9 @@ export type Order = {
     orderedBy: OrderedBy;
 };
 
-export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status'>;
+export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status' | 'items'> & {
+    items: Omit<OrderItem, 'addedAt'>[];
+};
 
 const initialSimulatedOrder: Order = {
     id: 999,
@@ -40,8 +43,8 @@ const initialSimulatedOrder: Order = {
         email: "prueba@example.com"
     },
     items: [
-        { id: 1, nombre: 'AGUA', precio: 4500, quantity: 2 },
-        { id: 3, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 375', precio: 60000, quantity: 1 }
+        { id: 1, nombre: 'AGUA', precio: 4500, quantity: 2, addedAt: Date.now() - 5 * 60 * 1000 },
+        { id: 3, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 375', precio: 60000, quantity: 1, addedAt: Date.now() - 5 * 60 * 1000 }
     ],
     total: 69000,
     status: 'Pendiente',
@@ -49,7 +52,6 @@ const initialSimulatedOrder: Order = {
 };
 
 // --- Centralized State Management ---
-// We use a singleton pattern to ensure state is shared across client components.
 class OrderStore {
     private static instance: OrderStore;
     private orders: Order[] = [initialSimulatedOrder];
@@ -73,7 +75,6 @@ class OrderStore {
 
     public subscribe(listener: (orders: Order[]) => void): () => void {
         this.listeners.push(listener);
-        // Provide the initial state immediately
         listener(this.orders);
         return () => {
             this.listeners = this.listeners.filter(l => l !== listener);
@@ -89,10 +90,17 @@ class OrderStore {
     }
 
     public addOrder(payload: NewOrderPayload): number {
+        const now = Date.now();
+        const itemsWithTimestamp: OrderItem[] = payload.items.map(item => ({
+            ...item,
+            addedAt: now
+        }));
+
         const newOrder: Order = {
             ...payload,
+            items: itemsWithTimestamp,
             id: this.nextOrderId++,
-            timestamp: Date.now(),
+            timestamp: now,
             status: 'Pendiente',
         };
         this.orders = [newOrder, ...this.orders];
@@ -107,17 +115,19 @@ class OrderStore {
         this.broadcast();
     }
     
-    public addProductToOrder(orderId: number, product: OrderItem) {
+    public addProductToOrder(orderId: number, product: Omit<OrderItem, 'addedAt'>) {
         this.orders = this.orders.map(order => {
             if (order.id === orderId) {
-                // Check if product already exists to update quantity, otherwise add it
                 const existingItemIndex = order.items.findIndex(item => item.id === product.id);
                 let newItems;
+                const now = Date.now();
+
                 if (existingItemIndex > -1) {
                     newItems = [...order.items];
                     newItems[existingItemIndex].quantity += product.quantity;
+                    newItems[existingItemIndex].addedAt = now; // Update timestamp on modification
                 } else {
-                    newItems = [...order.items, product];
+                    newItems = [...order.items, { ...product, addedAt: now }];
                 }
                 
                 const newTotal = newItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
@@ -131,7 +141,6 @@ class OrderStore {
 
 const orderStoreInstance = OrderStore.getInstance();
 
-// Exported functions to interact with the store
 export const addOrder = (payload: NewOrderPayload): number => {
     return orderStoreInstance.addOrder(payload);
 };
@@ -140,7 +149,7 @@ export const updateOrderStatus = (orderId: number, status: OrderStatus) => {
     orderStoreInstance.updateOrderStatus(orderId, status);
 };
 
-export const addProductToOrder = (orderId: number, product: OrderItem) => {
+export const addProductToOrder = (orderId: number, product: Omit<OrderItem, 'addedAt'>) => {
     orderStoreInstance.addProductToOrder(orderId, product);
 };
 
@@ -148,8 +157,6 @@ export const getOrderById = (orderId: number): Order | undefined => {
     return orderStoreInstance.getOrderById(orderId);
 };
 
-
-// --- Custom Hook to Access Orders ---
 export function useOrders() {
     const [orders, setOrders] = useState(orderStoreInstance.getOrders());
 
