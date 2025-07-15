@@ -96,7 +96,7 @@ export default function AdminDashboardPage() {
         return 'secondary';
       case 'Completado':
       case 'Pagado':
-        return 'default';
+        return 'success';
       default:
         return 'outline';
     }
