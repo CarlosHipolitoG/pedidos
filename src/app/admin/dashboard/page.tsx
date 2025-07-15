@@ -11,13 +11,14 @@ import { es } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, DollarSign, Edit, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { mockProducts, Product } from '@/lib/products';
 import Image from 'next/image';
 import { useDebounce } from 'use-debounce';
+import Link from 'next/link';
 
 
 export default function AdminDashboardPage() {
@@ -69,7 +70,8 @@ export default function AdminDashboardPage() {
       precio: product.precio,
       quantity: 1,
     };
-    addProductToOrder(selectedOrder.id, newProduct);
+    // Let's assume the admin name is "Admin" for now
+    addProductToOrder(selectedOrder.id, newProduct, 'Admin');
 
     setHighlightedProducts(prev => ({
       ...prev,
@@ -110,22 +112,33 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
+
 
   return (
     <div className="container mx-auto py-8">
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold">Panel de Administrador</h1>
-        <p className="text-muted-foreground">Aquí puedes ver y gestionar los pedidos entrantes.</p>
+        <p className="text-muted-foreground">Aquí puedes ver y gestionar todos los pedidos del sistema.</p>
+        {totalSales > 0 && (
+            <div className="text-center mt-4">
+                <p className="text-lg font-semibold flex items-center justify-center gap-2">
+                    <DollarSign className="h-6 w-6 text-green-500"/>
+                    Ventas Totales del Sistema: 
+                    <span className="text-primary">${totalSales.toLocaleString('es-CO')}</span>
+                </p>
+            </div>
+           )}
       </div>
       
       <Card>
-        <CardHeader className="flex-row justify-between items-center">
+        <CardHeader className="flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <CardTitle>Pedidos Recibidos ({filteredOrders.length})</CardTitle>
               <CardDescription>Los pedidos más recientes aparecen primero.</CardDescription>
             </div>
-             <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Filtrar por estado:</span>
+             <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-medium">Filtrar:</span>
                  <Select
                     value={filterStatus}
                     onValueChange={(value: OrderStatus | 'Todos') => setFilterStatus(value)}
@@ -141,6 +154,12 @@ export default function AdminDashboardPage() {
                         <SelectItem value="Pagado">Pagado</SelectItem>
                     </SelectContent>
                 </Select>
+                 <Button variant="outline" asChild>
+                    <Link href="/admin/my-orders">
+                        <History className="mr-2 h-4 w-4" />
+                        Mis Pedidos Atendidos
+                    </Link>
+                </Button>
             </div>
         </CardHeader>
         <CardContent>
@@ -171,8 +190,13 @@ export default function AdminDashboardPage() {
                   <AccordionContent className="px-4 pb-4">
                      <div className="mb-4">
                         <p className="font-semibold mb-1">
-                            Atendido por: <span className="font-normal">{order.orderedBy.type} ({order.orderedBy.name})</span>
+                            Pedido por: <span className="font-normal">{order.orderedBy.type} ({order.orderedBy.name})</span>
                         </p>
+                         {order.attendedBy && (
+                            <p className="font-semibold mb-1 text-sm">
+                                Atendido por: <span className="font-normal">{order.attendedBy}</span>
+                            </p>
+                        )}
                         <p className="text-sm text-muted-foreground">
                             <strong>Cliente:</strong> {order.customer.name}
                         </p>

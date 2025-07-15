@@ -29,9 +29,10 @@ export type Order = {
     total: number;
     status: OrderStatus;
     orderedBy: OrderedBy;
+    attendedBy?: string; // Name of the waiter or admin who last added a product
 };
 
-export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status' | 'items'> & {
+export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status' | 'items' | 'attendedBy'> & {
     items: Omit<OrderItem, 'addedAt'>[];
 };
 
@@ -57,7 +58,8 @@ const initialSimulatedOrders: Order[] = [
         ],
         total: 120000,
         status: 'En Preparación',
-        orderedBy: { type: 'Mesero', name: 'Ana López' }
+        orderedBy: { type: 'Mesero', name: 'Ana López' },
+        attendedBy: 'Ana López',
     },
     {
         id: 997,
@@ -133,6 +135,12 @@ class OrderStore {
             .filter(order => order.orderedBy.type === 'Mesero' && order.orderedBy.name === waiterName)
             .sort((a, b) => b.timestamp - a.timestamp);
     }
+    
+    public getOrdersByAttendedBy(userName: string): Order[] {
+        return this.orders
+            .filter(order => order.attendedBy === userName)
+            .sort((a, b) => b.timestamp - a.timestamp);
+    }
 
     public addOrder(payload: NewOrderPayload): number {
         const now = Date.now();
@@ -147,6 +155,7 @@ class OrderStore {
             id: this.nextOrderId++,
             timestamp: now,
             status: 'Pendiente',
+            attendedBy: payload.orderedBy.type === 'Mesero' ? payload.orderedBy.name : undefined,
         };
         this.orders = [newOrder, ...this.orders];
         this.broadcast();
@@ -160,7 +169,7 @@ class OrderStore {
         this.broadcast();
     }
     
-    public addProductToOrder(orderId: number, product: Omit<OrderItem, 'addedAt'>) {
+    public addProductToOrder(orderId: number, product: Omit<OrderItem, 'addedAt'>, attendedBy?: string) {
         this.orders = this.orders.map(order => {
             if (order.id === orderId) {
                 const existingItemIndex = order.items.findIndex(item => item.id === product.id);
@@ -178,7 +187,7 @@ class OrderStore {
                 const newTotal = newItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
                 const newStatus = (order.status === 'Completado' || order.status === 'Pagado') ? 'Pendiente' : order.status;
 
-                return { ...order, items: newItems, total: newTotal, status: newStatus, timestamp: now };
+                return { ...order, items: newItems, total: newTotal, status: newStatus, timestamp: now, attendedBy };
             }
             return order;
         });
@@ -248,8 +257,8 @@ export const updateOrderStatus = (orderId: number, status: OrderStatus) => {
     orderStoreInstance.updateOrderStatus(orderId, status);
 };
 
-export const addProductToOrder = (orderId: number, product: Omit<OrderItem, 'addedAt'>) => {
-    orderStoreInstance.addProductToOrder(orderId, product);
+export const addProductToOrder = (orderId: number, product: Omit<OrderItem, 'addedAt'>, attendedBy?: string) => {
+    orderStoreInstance.addProductToOrder(orderId, product, attendedBy);
 };
 
 export const getOrderById = (orderId: number): Order | undefined => {
@@ -262,6 +271,10 @@ export const getOrdersByCustomerPhone = (phone: string): Order[] => {
 
 export const getOrdersByWaiterName = (waiterName: string): Order[] => {
     return orderStoreInstance.getOrdersByWaiterName(waiterName);
+}
+
+export const getOrdersByAttendedBy = (userName: string): Order[] => {
+    return orderStoreInstance.getOrdersByAttendedBy(userName);
 }
 
 export const updateProductQuantityInOrder = (orderId: number, itemId: number, newQuantity: number) => {

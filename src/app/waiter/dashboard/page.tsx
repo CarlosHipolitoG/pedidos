@@ -109,7 +109,7 @@ export default function WaiterDashboardPage() {
     
     if (editingOrderId) {
         cart.forEach(item => {
-            addProductToOrder(editingOrderId, { ...item, quantity: item.quantity });
+            addProductToOrder(editingOrderId, { ...item, quantity: item.quantity }, waiterName);
         });
         toast({
             title: "¡Pedido Actualizado!",
