@@ -95,6 +95,7 @@ export default function AdminDashboardPage() {
       case 'En Preparación':
         return 'secondary';
       case 'Completado':
+      case 'Pagado':
         return 'default';
       default:
         return 'outline';
@@ -187,6 +188,7 @@ export default function AdminDashboardPage() {
                                     <SelectItem value="Pendiente">Pendiente</SelectItem>
                                     <SelectItem value="En Preparación">En Preparación</SelectItem>
                                     <SelectItem value="Completado">Completado</SelectItem>
+                                    <SelectItem value="Pagado">Pagado</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

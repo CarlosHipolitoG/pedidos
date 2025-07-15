@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { mockProducts, Product } from '@/lib/products';
-import { ShoppingCart, Search, Plus, Minus, Trash2, PackageCheck, CookingPot, History } from 'lucide-react';
+import { ShoppingCart, Search, Plus, Minus, Trash2, PackageCheck, CookingPot, History, CreditCard } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
@@ -42,7 +42,7 @@ export default function MenuPage() {
     const savedOrderId = localStorage.getItem('activeOrderId');
     if (savedOrderId) {
         const orderExists = getOrderById(parseInt(savedOrderId));
-        if(orderExists && orderExists.status !== 'Completado') {
+        if(orderExists && orderExists.status !== 'Completado' && orderExists.status !== 'Pagado') {
              setActiveOrderId(parseInt(savedOrderId));
         } else {
              localStorage.removeItem('activeOrderId');
@@ -152,6 +152,8 @@ export default function MenuPage() {
         return { icon: CookingPot, text: "¡Tu pedido se está preparando en la cocina!", color: "text-blue-500" };
       case 'Completado':
         return { icon: PackageCheck, text: "Tu pedido está listo. ¡Buen provecho!", color: "text-green-500" };
+       case 'Pagado':
+        return { icon: CreditCard, text: "Tu pedido ha sido pagado. ¡Gracias!", color: "text-green-500" };
       default:
         return { icon: History, text: "", color: "" };
     }
@@ -276,7 +278,7 @@ export default function MenuPage() {
             <CardHeader>
                 <CardTitle>Resumen de tu Pedido Activo</CardTitle>
                 <div className="flex items-center gap-4 pt-2">
-                    <Badge variant={activeOrder.status === 'Completado' ? 'default' : 'secondary'}>
+                    <Badge variant={activeOrder.status === 'Completado' || activeOrder.status === 'Pagado' ? 'default' : 'secondary'}>
                         {activeOrder.status}
                     </Badge>
                      {(() => {
@@ -305,7 +307,7 @@ export default function MenuPage() {
                     <span>${activeOrder.total.toLocaleString('es-CO')}</span>
                  </div>
             </CardContent>
-            {activeOrder.status === 'Completado' && (
+            {(activeOrder.status === 'Completado' || activeOrder.status === 'Pagado') && (
                  <CardFooter>
                     <Button onClick={handleFinishOrder} className="w-full">
                        Finalizar y Crear Nuevo Pedido

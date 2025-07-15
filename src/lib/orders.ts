@@ -17,7 +17,7 @@ export type CustomerInfo = {
     email?: string;
 };
 
-export type OrderStatus = 'Pendiente' | 'En Preparación' | 'Completado';
+export type OrderStatus = 'Pendiente' | 'En Preparación' | 'Completado' | 'Pagado';
 export type OrderedBy = { type: 'Cliente' | 'Mesero', name: string };
 
 export type Order = {
