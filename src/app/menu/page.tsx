@@ -199,7 +199,7 @@ export default function MenuPage() {
       if (!success) {
           toast({
               title: "No se puede eliminar",
-              description: "Este producto no se puede eliminar porque fue agregado hace más de 10 minutos.",
+              description: "Este producto no se puede eliminar porque fue agregado hace más de 5 minutos.",
               variant: "destructive",
           });
       }
@@ -352,7 +352,7 @@ export default function MenuPage() {
             <CardContent>
                  <div className="space-y-4">
                     {activeOrder.items.map(item => {
-                       const isLocked = (now - item.addedAt) > 10 * 60 * 1000;
+                       const isLocked = (now - item.addedAt) > 5 * 60 * 1000;
                        return (
                         <div key={`${item.id}-${item.addedAt}`} className="flex items-center gap-4">
                            <div className="flex-grow">
@@ -463,4 +463,3 @@ export default function MenuPage() {
     </div>
   );
 }
-

@@ -89,7 +89,7 @@ export default function MyOrdersPage() {
       if (!success) {
           toast({
               title: "No se puede eliminar",
-              description: "Este producto no se puede eliminar porque fue agregado hace más de 10 minutos.",
+              description: "Este producto no se puede eliminar porque fue agregado hace más de 5 minutos.",
               variant: "destructive",
           });
       }
@@ -185,7 +185,7 @@ export default function MyOrdersPage() {
                             </TableHeader>
                             <TableBody>
                               {order.items.map((item) => {
-                                const isLocked = (now - item.addedAt) > 10 * 60 * 1000;
+                                const isLocked = (now - item.addedAt) > 5 * 60 * 1000;
                                 return (
                                   <TableRow key={`${item.id}-${item.addedAt}`} className={cn(isLocked && "text-muted-foreground")}>
                                     <TableCell>{item.nombre}</TableCell>

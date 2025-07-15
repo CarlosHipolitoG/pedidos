@@ -43,7 +43,7 @@ const initialSimulatedOrders: Order[] = [
         customer: { name: "Cliente de Prueba", phone: "3000000000", email: "prueba@example.com" },
         items: [
             { id: 1, nombre: 'AGUA', precio: 4500, quantity: 2, addedAt: Date.now() - 8 * 60 * 1000 },
-            { id: 3, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 375', precio: 60000, quantity: 1, addedAt: Date.now() - 12 * 60 * 1000 }
+            { id: 3, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 375 ML', precio: 60000, quantity: 1, addedAt: Date.now() - 12 * 60 * 1000 }
         ],
         total: 69000,
         status: 'Pendiente',
@@ -54,7 +54,7 @@ const initialSimulatedOrders: Order[] = [
         timestamp: Date.now() - 15 * 60 * 1000, // 15 minutes ago
         customer: { name: "Maria Rodriguez", phone: "3101234567" },
         items: [
-            { id: 4, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 750', precio: 120000, quantity: 1, addedAt: Date.now() - 15 * 60 * 1000 }
+            { id: 4, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 750 ML', precio: 120000, quantity: 1, addedAt: Date.now() - 15 * 60 * 1000 }
         ],
         total: 120000,
         status: 'En Preparación',
@@ -66,7 +66,7 @@ const initialSimulatedOrders: Order[] = [
         timestamp: Date.now() - 30 * 60 * 1000, // 30 minutes ago
         customer: { name: "Carlos Gomez", phone: "3209876543" },
         items: [
-            { id: 12, nombre: 'AGUARDIENTE NÉCTAR DORADO 750 M', precio: 100000, quantity: 1, addedAt: Date.now() - 30 * 60 * 1000 },
+            { id: 12, nombre: 'AGUARDIENTE NECTAR DORADO 750 ML', precio: 100000, quantity: 1, addedAt: Date.now() - 30 * 60 * 1000 },
             { id: 2, nombre: 'AGUA GAS', precio: 4500, quantity: 4, addedAt: Date.now() - 30 * 60 * 1000 }
         ],
         total: 118000,
@@ -78,7 +78,7 @@ const initialSimulatedOrders: Order[] = [
         timestamp: Date.now() - 60 * 60 * 1000, // 1 hour ago
         customer: { name: "Cliente de Prueba", phone: "3000000000", email: "prueba@example.com" },
         items: [
-            { id: 5, nombre: 'AGUARDIENTE ANTIOQUEÑO ROJO 375', precio: 60000, quantity: 1, addedAt: Date.now() - 60 * 60 * 1000 },
+            { id: 5, nombre: 'AGUARDIENTE ANTIOQUEÑO ROJO 375 ML', precio: 60000, quantity: 1, addedAt: Date.now() - 60 * 60 * 1000 },
         ],
         total: 60000,
         status: 'Pagado',
@@ -201,10 +201,11 @@ class OrderStore {
                 if (itemIndex === -1) return order;
 
                 const item = order.items[itemIndex];
-                const isLocked = (Date.now() - item.addedAt) > 10 * 60 * 1000;
+                // Only apply 5-minute lock for customers
+                const isLocked = order.orderedBy.type === 'Cliente' && (Date.now() - item.addedAt) > 5 * 60 * 1000;
                 
                 if (isLocked && newQuantity < item.quantity) {
-                    console.warn("Cannot decrease quantity of a locked item.");
+                    console.warn("Cannot decrease quantity of a locked item for customers after 5 minutes.");
                     return order; // Do not update if item is locked and quantity is decreasing
                 }
 
@@ -227,10 +228,11 @@ class OrderStore {
                 if (itemIndex === -1) return order;
                 
                 const item = order.items[itemIndex];
-                const isLocked = (Date.now() - item.addedAt) > 10 * 60 * 1000;
+                // Only apply 5-minute lock for customers
+                const isLocked = order.orderedBy.type === 'Cliente' && (Date.now() - item.addedAt) > 5 * 60 * 1000;
                 
                 if (isLocked) {
-                    console.warn("Cannot remove a locked item.");
+                    console.warn("Cannot remove a locked item for customers after 5 minutes.");
                     success = false;
                     return order;
                 }
