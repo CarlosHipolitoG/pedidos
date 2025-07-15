@@ -95,7 +95,7 @@ export default function AdminDashboardPage() {
       case 'En Preparación':
         return 'secondary';
       case 'Completado':
-        return 'secondary';
+        return 'warning';
       case 'Pagado':
         return 'success';
       default:
