@@ -4,49 +4,68 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { useOrders, Order, OrderStatus, updateOrderStatus, addProductToOrder } from '@/lib/orders';
+import { useOrders, Order, OrderStatus, updateOrderStatus, addProductToOrder, OrderItem } from '@/lib/orders';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { mockProducts, Product } from '@/lib/products';
+import Image from 'next/image';
+import { useDebounce } from 'use-debounce';
 
 
 export default function AdminDashboardPage() {
   const { orders } = useOrders();
   const [highlightedProducts, setHighlightedProducts] = useState<Record<string, number[]>>({});
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+  const [debouncedSearchTerm] = useDebounce(productSearchTerm, 300);
 
   const handleStatusChange = (orderId: number, newStatus: OrderStatus) => {
     updateOrderStatus(orderId, newStatus);
   };
   
-  const handleAddProduct = (orderId: number) => {
-    // In a real scenario, this would open a dialog to select a product.
-    // For now, we'll add a dummy product to test the functionality.
-    const newProductId = Math.floor(Math.random() * 1000);
-    const dummyProduct = {
-        id: newProductId, 
-        nombre: "Producto Adicional",
-        precio: 10000,
-        quantity: 1,
+  const openAddProductModal = (order: Order) => {
+    setSelectedOrder(order);
+    setIsModalOpen(true);
+    setProductSearchTerm('');
+  };
+
+  const handleAddProduct = (product: Product) => {
+    if (!selectedOrder) return;
+
+    const newProduct: OrderItem = {
+      id: product.id,
+      nombre: product.nombre,
+      precio: product.precio,
+      quantity: 1,
     };
-    addProductToOrder(orderId, dummyProduct);
+    addProductToOrder(selectedOrder.id, newProduct);
 
     setHighlightedProducts(prev => ({
       ...prev,
-      [orderId]: [...(prev[orderId] || []), newProductId]
+      [selectedOrder.id]: [...(prev[selectedOrder.id] || []), newProduct.id]
     }));
+    
+    setIsModalOpen(false);
 
     setTimeout(() => {
         setHighlightedProducts(prev => ({
             ...prev,
-            [orderId]: (prev[orderId] || []).filter(id => id !== newProductId)
+            [selectedOrder.id]: (prev[selectedOrder.id] || []).filter(id => id !== newProduct.id)
         }));
     }, 2000); // Highlight for 2 seconds
   };
+
+  const filteredProducts = mockProducts.filter((product) =>
+    product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+  );
 
   const getStatusBadgeVariant = (status: OrderStatus) => {
     switch (status) {
@@ -149,7 +168,7 @@ export default function AdminDashboardPage() {
                             </Select>
                         </div>
 
-                         <Button variant="outline" size="sm" onClick={() => handleAddProduct(order.id)}>
+                         <Button variant="outline" size="sm" onClick={() => openAddProductModal(order)}>
                             <PlusCircle className="mr-2 h-4 w-4"/>
                             Adicionar Producto
                         </Button>
@@ -166,6 +185,54 @@ export default function AdminDashboardPage() {
           )}
         </CardContent>
       </Card>
+      
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
+            <DialogHeader>
+                <DialogTitle>Añadir Producto al Pedido #{selectedOrder?.id}</DialogTitle>
+                <DialogDescription>
+                    Busca y selecciona un producto para añadir al pedido.
+                </DialogDescription>
+            </DialogHeader>
+             <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Buscar productos..."
+                className="pl-10"
+                value={productSearchTerm}
+                onChange={(e) => setProductSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex-grow overflow-y-auto -mx-6 px-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {filteredProducts.map(product => (
+                        <Card key={product.id}>
+                            <CardContent className="p-4 flex flex-col gap-2">
+                                <Image 
+                                    src={product.imagen || 'https://placehold.co/100x100.png'}
+                                    alt={product.nombre}
+                                    width={100}
+                                    height={100}
+                                    className="rounded-md object-cover w-full h-24"
+                                    data-ai-hint="beverage drink"
+                                />
+                                <h3 className="font-semibold h-10">{product.nombre}</h3>
+                                <p className="text-sm text-muted-foreground">${product.precio.toLocaleString('es-CO')}</p>
+                                <Button 
+                                    size="sm" 
+                                    onClick={() => handleAddProduct(product)}
+                                    disabled={product.disponibilidad === 'PRODUCTO_AGOTADO'}
+                                >
+                                    {product.disponibilidad === 'PRODUCTO_AGOTADO' ? 'Agotado' : 'Agregar'}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
