@@ -379,7 +379,7 @@ export default function MenuPage() {
                                 size="icon"
                                 className="h-7 w-7"
                                 onClick={() => handleUpdateActiveOrderQuantity(item.id, item.quantity + 1)}
-                                disabled={activeOrder.status === 'Completado' || activeOrder.status === 'Pagado'}
+                                disabled={isLocked || activeOrder.status === 'Completado' || activeOrder.status === 'Pagado'}
                               >
                                 <Plus className="h-4 w-4" />
                               </Button>
@@ -463,3 +463,5 @@ export default function MenuPage() {
     </div>
   );
 }
+
+    

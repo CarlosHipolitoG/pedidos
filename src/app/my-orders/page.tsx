@@ -202,7 +202,7 @@ export default function MyOrdersPage() {
                                         <Button
                                           variant="outline" size="icon" className="h-7 w-7"
                                           onClick={() => handleUpdateQuantity(order.id, item.id, item.quantity + 1)}
-                                          disabled={order.status === 'Completado' || order.status === 'Pagado'}
+                                          disabled={isLocked || order.status === 'Completado' || order.status === 'Pagado'}
                                         >
                                           <Plus className="h-4 w-4" />
                                         </Button>
@@ -248,3 +248,5 @@ export default function MyOrdersPage() {
     </div>
   );
 }
+
+    

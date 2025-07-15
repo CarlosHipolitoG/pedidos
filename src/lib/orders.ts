@@ -179,7 +179,7 @@ class OrderStore {
                 if (existingItemIndex > -1) {
                     newItems = [...order.items];
                     newItems[existingItemIndex].quantity += product.quantity;
-                    newItems[existingItemIndex].addedAt = now;
+                    // We don't update addedAt here, so the original 5-minute timer is respected
                 } else {
                     newItems = [...order.items, { ...product, addedAt: now }];
                 }
@@ -204,9 +204,9 @@ class OrderStore {
                 // Only apply 5-minute lock for customers
                 const isLocked = order.orderedBy.type === 'Cliente' && (Date.now() - item.addedAt) > 5 * 60 * 1000;
                 
-                if (isLocked && newQuantity < item.quantity) {
-                    console.warn("Cannot decrease quantity of a locked item for customers after 5 minutes.");
-                    return order; // Do not update if item is locked and quantity is decreasing
+                if (isLocked) {
+                    console.warn("Cannot edit quantity of a locked item for customers after 5 minutes.");
+                    return order; // Do not update if item is locked
                 }
 
                 const newItems = [...order.items];
@@ -301,3 +301,5 @@ export function useOrders() {
 
     return { orders };
 }
+
+    
