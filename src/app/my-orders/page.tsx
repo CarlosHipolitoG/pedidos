@@ -1,34 +1,55 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Order, useOrders, getOrdersByCustomerPhone } from '@/lib/orders';
+import { Order, useOrders, getOrdersByCustomerPhone, updateProductQuantityInOrder, removeProductFromOrder } from '@/lib/orders';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, History, Package } from 'lucide-react';
+import { ArrowLeft, History, Package, Plus, Minus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
+import { useToast } from "@/hooks/use-toast";
+import { Separator } from '@/components/ui/separator';
 
 export default function MyOrdersPage() {
   const [phone, setPhone] = useState('');
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
   const [searched, setSearched] = useState(false);
+  const { orders } = useOrders();
   const router = useRouter();
+  const [now, setNow] = useState(Date.now());
+  const { toast } = useToast();
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    // This interval will re-render the component every 30 seconds
+    // to update the disabled state of the remove buttons.
+    const interval = setInterval(() => setNow(Date.now()), 30 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (searched && phone) {
+        handleSearch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orders]);
+
+  const handleSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
     const orders = getOrdersByCustomerPhone(phone);
     setFoundOrders(orders);
     setSearched(true);
   };
   
-  const handleSelectOrder = (orderId: number) => {
-    // We get the customer from the first order, assuming it's the same customer
+  const handleGoToMenu = (orderId: number) => {
     const customer = foundOrders[0]?.customer;
     if (customer) {
         localStorage.setItem('customerName', customer.name);
@@ -37,6 +58,25 @@ export default function MyOrdersPage() {
     }
     localStorage.setItem('activeOrderId', orderId.toString());
     router.push('/menu');
+  };
+
+  const handleUpdateQuantity = (orderId: number, itemId: number, newQuantity: number) => {
+      if (newQuantity <= 0) {
+          handleRemoveItem(orderId, itemId);
+      } else {
+          updateProductQuantityInOrder(orderId, itemId, newQuantity);
+      }
+  };
+
+  const handleRemoveItem = (orderId: number, itemId: number) => {
+      const success = removeProductFromOrder(orderId, itemId);
+      if (!success) {
+          toast({
+              title: "No se puede eliminar",
+              description: "Este producto no se puede eliminar porque fue agregado hace más de 10 minutos.",
+              variant: "destructive",
+          });
+      }
   };
 
   const getStatusBadgeVariant = (status: Order['status']) => {
@@ -62,7 +102,7 @@ export default function MyOrdersPage() {
                 Volver al Inicio
             </Link>
         </Button>
-      <Card className="w-full max-w-2xl mx-auto bg-card/80 backdrop-blur-sm">
+      <Card className="w-full max-w-4xl mx-auto bg-card/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-2xl text-center">Mis Pedidos</CardTitle>
           <CardDescription className="text-center">
@@ -91,27 +131,95 @@ export default function MyOrdersPage() {
           {searched && (
             <div>
               {foundOrders.length > 0 ? (
-                <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Pedidos de: {foundOrders[0].customer.name}</h3>
-                    {foundOrders.map(order => (
-                        <Card key={order.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4">
-                           <div className="mb-4 sm:mb-0">
-                             <p className="font-bold">Pedido #{order.id}</p>
-                             <p className="text-sm text-muted-foreground">
+                <>
+                  <h3 className="text-lg font-semibold mb-4">Pedidos de: {foundOrders[0].customer.name}</h3>
+                  <Accordion type="single" collapsible className="w-full">
+                    {foundOrders.map((order, index) => (
+                      <AccordionItem 
+                        key={order.id} 
+                        value={`item-${index}`} 
+                        className="border-border rounded-lg mb-2 bg-card"
+                      >
+                        <AccordionTrigger className="px-4 hover:no-underline">
+                          <div className="flex justify-between items-center w-full">
+                            <div className="text-left">
+                              <span className="font-bold text-lg">Pedido #{order.id}</span>
+                              <p className="text-sm text-muted-foreground">
                                 {format(new Date(order.timestamp), "d 'de' LLLL, h:mm a", { locale: es })}
-                             </p>
-                             <p className="font-semibold mt-2">${order.total.toLocaleString('es-CO')}</p>
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
+                              <span className="font-semibold text-lg">
+                                ${order.total.toLocaleString('es-CO')}
+                              </span>
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-4 pb-4">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Producto</TableHead>
+                                <TableHead className="text-center">Cantidad</TableHead>
+                                <TableHead>Agregado a las</TableHead>
+                                <TableHead className="text-right">Subtotal</TableHead>
+                                <TableHead className="text-right">Acción</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {order.items.map((item) => {
+                                const isLocked = (now - item.addedAt) > 10 * 60 * 1000;
+                                return (
+                                  <TableRow key={`${item.id}-${item.addedAt}`} className={cn(isLocked && "text-muted-foreground")}>
+                                    <TableCell>{item.nombre}</TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center justify-center gap-2">
+                                        <Button
+                                          variant="outline" size="icon" className="h-7 w-7"
+                                          onClick={() => handleUpdateQuantity(order.id, item.id, item.quantity - 1)}
+                                          disabled={isLocked}
+                                        >
+                                          <Minus className="h-4 w-4" />
+                                        </Button>
+                                        <span className="w-4 text-center">{item.quantity}</span>
+                                        <Button
+                                          variant="outline" size="icon" className="h-7 w-7"
+                                          onClick={() => handleUpdateQuantity(order.id, item.id, item.quantity + 1)}
+                                          disabled={order.status === 'Completado' || order.status === 'Pagado'}
+                                        >
+                                          <Plus className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>{format(new Date(item.addedAt), "h:mm a", { locale: es })}</TableCell>
+                                    <TableCell className="text-right">${(item.precio * item.quantity).toLocaleString('es-CO')}</TableCell>
+                                    <TableCell className="text-right">
+                                      <Button
+                                        variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"
+                                        onClick={() => handleRemoveItem(order.id, item.id)}
+                                        disabled={isLocked}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </TableCell>
+                                  </TableRow>
+                                )}
+                              )}
+                            </TableBody>
+                          </Table>
+                          <Separator className="my-4"/>
+                           <div className="mt-4 flex justify-end">
+                                <Button onClick={() => handleGoToMenu(order.id)} disabled={order.status === 'Pagado'}>
+                                    <Package className="mr-2 h-4 w-4" />
+                                    Añadir más productos
+                                </Button>
                            </div>
-                           <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
-                            <Badge variant={getStatusBadgeVariant(order.status)} className="mb-2">{order.status}</Badge>
-                            <Button onClick={() => handleSelectOrder(order.id)} className="w-full sm:w-auto">
-                                <Package className="mr-2 h-4 w-4" />
-                                Ver y Añadir Productos
-                            </Button>
-                           </div>
-                        </Card>
+                        </AccordionContent>
+                      </AccordionItem>
                     ))}
-                </div>
+                  </Accordion>
+                </>
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <p>No se encontraron pedidos asociados a ese número de celular.</p>
@@ -124,4 +232,3 @@ export default function MyOrdersPage() {
     </div>
   );
 }
-
