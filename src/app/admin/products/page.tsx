@@ -50,12 +50,19 @@ export default function AdminProductsPage() {
   const handleSaveProduct = () => {
     if (!editingProduct) return;
 
-    if ('id' in editingProduct && editingProduct.id) {
+    let productToSave = { ...editingProduct };
+
+    // If availability is set to available but stock is 0, set stock to 1
+    if (productToSave.disponibilidad === 'PRODUCTO_DISPONIBLE' && productToSave.existencias === 0) {
+        productToSave.existencias = 1;
+    }
+
+    if ('id' in productToSave && productToSave.id) {
       // Editing existing product
-      updateProduct(editingProduct.id, editingProduct as Product);
+      updateProduct(productToSave.id, productToSave as Product);
     } else {
       // Adding new product
-      addProduct(editingProduct as Omit<Product, 'id'>);
+      addProduct(productToSave as Omit<Product, 'id'>);
     }
     setIsModalOpen(false);
     setEditingProduct(null);
