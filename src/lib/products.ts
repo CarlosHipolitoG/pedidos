@@ -13,7 +13,7 @@ export type Product = {
   categoria: string;
 };
 
-const initialProducts: Product[] = [
+const initialProductsData: Product[] = [
     { id: 1, nombre: 'Cerveza Club Colombia', precio: 5000, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 100, categoria: 'Cervezas' },
     { id: 2, nombre: 'Cerveza Aguila Light', precio: 4500, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 80, categoria: 'Cervezas' },
     { id: 3, nombre: 'Margarita Clásica', precio: 15000, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 50, categoria: 'Cócteles' },
@@ -28,9 +28,9 @@ const initialProducts: Product[] = [
     { id: 12, nombre: 'Papas a la Francesa', precio: 8000, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 50, categoria: 'Comidas' },
 ];
 
+const PRODUCTS_STORAGE_KEY = 'holiday-friends-products';
+
 // --- Centralized State Management for Products ---
-// This is a singleton class that will hold the state of the products.
-// It ensures that all parts of the app are using the same data source.
 class ProductStore {
     private static instance: ProductStore;
     private products: Product[];
@@ -38,10 +38,38 @@ class ProductStore {
     private listeners: ((products: Product[]) => void)[] = [];
 
     private constructor() {
-        // Start with the initial list of products
-        this.products = initialProducts.map(p => ({...p}));
-        // Determine the next ID based on the initial products
+        this.products = this.loadFromStorage();
         this.nextProductId = this.products.reduce((maxId, product) => Math.max(product.id, maxId), 0) + 1;
+        
+        if (typeof window !== 'undefined') {
+            window.addEventListener('storage', this.handleStorageChange);
+        }
+    }
+    
+    private handleStorageChange = (event: StorageEvent) => {
+        if (event.key === PRODUCTS_STORAGE_KEY && event.newValue) {
+            this.products = JSON.parse(event.newValue);
+            this.broadcast();
+        }
+    }
+
+    private loadFromStorage(): Product[] {
+        if (typeof window === 'undefined') return initialProductsData;
+        const storedProducts = localStorage.getItem(PRODUCTS_STORAGE_KEY);
+        if (storedProducts) {
+            try {
+                return JSON.parse(storedProducts);
+            } catch (e) {
+                console.error("Failed to parse products from localStorage", e);
+                return initialProductsData;
+            }
+        }
+        return initialProductsData;
+    }
+
+    private saveToStorage() {
+        if (typeof window === 'undefined') return;
+        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(this.products));
     }
 
     public static getInstance(): ProductStore {
@@ -52,18 +80,22 @@ class ProductStore {
     }
 
     private broadcast() {
-        // Notify all subscribed components about the change
         this.listeners.forEach(listener => listener(this.products));
+        this.saveToStorage();
     }
 
     public subscribe(listener: (products: Product[]) => void): () => void {
         this.listeners.push(listener);
-        // Immediately provide the current list to the new subscriber
         listener(this.products);
-        // Return an unsubscribe function
         return () => {
             this.listeners = this.listeners.filter(l => l !== listener);
         };
+    }
+    
+    public destroy() {
+        if (typeof window !== 'undefined') {
+            window.removeEventListener('storage', this.handleStorageChange);
+        }
     }
 
     public getProducts(): Product[] {
@@ -92,7 +124,6 @@ class ProductStore {
     }
 }
 
-// Create and export a single instance of the store
 const productStoreInstance = ProductStore.getInstance();
 
 export const addProduct = (productData: Omit<Product, 'id'>): void => {
@@ -107,19 +138,17 @@ export const deleteProduct = (productId: number): void => {
     productStoreInstance.deleteProduct(productId);
 };
 
-// This is the custom hook that components will use to access and react to product changes.
 export function useProducts() {
     const [products, setProducts] = useState(productStoreInstance.getProducts());
 
     useEffect(() => {
-        // Subscribe to the store on component mount
         const unsubscribe = productStoreInstance.subscribe(newProducts => {
-            // When the store broadcasts a change, update the component's state
             setProducts([...newProducts]);
         });
-
-        // Unsubscribe on component unmount
-        return () => unsubscribe();
+        
+        return () => {
+            unsubscribe();
+        };
     }, []);
 
     return { products };

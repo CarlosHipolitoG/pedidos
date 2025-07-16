@@ -36,6 +36,8 @@ export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status' | 'items
     items: Omit<OrderItem, 'addedAt'>[];
 };
 
+const ORDERS_STORAGE_KEY = 'holiday-friends-orders';
+
 const initialSimulatedOrders: Order[] = [];
 
 // --- Centralized State Management ---
@@ -46,8 +48,38 @@ class OrderStore {
     private listeners: ((orders: Order[]) => void)[] = [];
 
     private constructor() {
-        this.orders = [...initialSimulatedOrders];
+        this.orders = this.loadFromStorage();
         this.nextOrderId = this.orders.reduce((maxId, order) => Math.max(order.id, maxId), 0) + 1;
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('storage', this.handleStorageChange);
+        }
+    }
+    
+    private handleStorageChange = (event: StorageEvent) => {
+        if (event.key === ORDERS_STORAGE_KEY && event.newValue) {
+            this.orders = JSON.parse(event.newValue);
+            this.broadcast();
+        }
+    }
+    
+    private loadFromStorage(): Order[] {
+        if (typeof window === 'undefined') return initialSimulatedOrders;
+        const storedOrders = localStorage.getItem(ORDERS_STORAGE_KEY);
+        if (storedOrders) {
+            try {
+                return JSON.parse(storedOrders);
+            } catch (e) {
+                console.error("Failed to parse orders from localStorage", e);
+                return initialSimulatedOrders;
+            }
+        }
+        return initialSimulatedOrders;
+    }
+
+    private saveToStorage() {
+        if (typeof window === 'undefined') return;
+        localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(this.orders));
     }
 
     public static getInstance(): OrderStore {
@@ -59,6 +91,7 @@ class OrderStore {
 
     private broadcast() {
         this.listeners.forEach(listener => listener(this.orders));
+        this.saveToStorage();
     }
 
     public subscribe(listener: (orders: Order[]) => void): () => void {
@@ -67,6 +100,12 @@ class OrderStore {
         return () => {
             this.listeners = this.listeners.filter(l => l !== listener);
         };
+    }
+    
+    public destroy() {
+        if (typeof window !== 'undefined') {
+            window.removeEventListener('storage', this.handleStorageChange);
+        }
     }
 
     public getOrders(): Order[] {
@@ -249,7 +288,9 @@ export function useOrders() {
             setOrders([...newOrders]);
         });
         
-        return () => unsubscribe();
+        return () => {
+            unsubscribe()
+        };
     }, []);
 
     return { orders };
