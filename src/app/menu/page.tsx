@@ -80,6 +80,10 @@ export default function MenuPage() {
   const categories = Object.keys(productsByCategory).sort();
 
   const handleAddToCart = (product: Product) => {
+    if (product.disponibilidad === 'PRODUCTO_AGOTADO') {
+      return; 
+    }
+    
     if (activeOrder) {
         addProductToOrder(activeOrder.id, { ...product, quantity: 1 });
         toast({

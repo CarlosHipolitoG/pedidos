@@ -69,13 +69,24 @@ export default function AdminProductsPage() {
 
   const handleInputChange = (field: keyof Product, value: string | number) => {
     if (editingProduct) {
+        let updatedProduct = { ...editingProduct, [field]: value };
+
         if (field === 'disponibilidad') {
             const newAvailability = value as Product['disponibilidad'];
-            const newStock = newAvailability === 'PRODUCTO_AGOTADO' ? 0 : editingProduct.existencias === 0 ? 1 : editingProduct.existencias;
-            setEditingProduct({ ...editingProduct, disponibilidad: newAvailability, existencias: newStock });
-        } else {
-            setEditingProduct({ ...editingProduct, [field]: value });
+            if (newAvailability === 'PRODUCTO_AGOTADO') {
+                updatedProduct.existencias = 0;
+            } else if (updatedProduct.existencias === 0) {
+                updatedProduct.existencias = 1; 
+            }
+        } else if (field === 'existencias') {
+            const newStock = Number(value);
+            if (newStock === 0) {
+                updatedProduct.disponibilidad = 'PRODUCTO_AGOTADO';
+            } else if (updatedProduct.disponibilidad === 'PRODUCTO_AGOTADO') {
+                updatedProduct.disponibilidad = 'PRODUCTO_DISPONIBLE';
+            }
         }
+        setEditingProduct(updatedProduct);
     }
   };
 
