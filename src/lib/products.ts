@@ -13,7 +13,20 @@ export type Product = {
   categoria: string;
 };
 
-const initialProducts: Product[] = [];
+const initialProducts: Product[] = [
+    { id: 1, nombre: 'Cerveza Club Colombia', precio: 5000, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 100, categoria: 'Cervezas' },
+    { id: 2, nombre: 'Cerveza Aguila Light', precio: 4500, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 80, categoria: 'Cervezas' },
+    { id: 3, nombre: 'Margarita Clásica', precio: 15000, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 50, categoria: 'Cócteles' },
+    { id: 4, nombre: 'Mojito Cubano', precio: 18000, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 40, categoria: 'Cócteles' },
+    { id: 5, nombre: 'Gaseosa Coca-Cola', precio: 3000, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 200, categoria: 'Bebidas sin Alcohol' },
+    { id: 6, nombre: 'Jugo de Mango', precio: 6000, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 60, categoria: 'Bebidas sin Alcohol' },
+    { id: 7, nombre: 'Nachos con Queso', precio: 12000, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 30, categoria: 'Comidas' },
+    { id: 8, nombre: 'Alitas BBQ', precio: 20000, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 25, categoria: 'Comidas' },
+    { id: 9, nombre: 'Cerveza Corona', precio: 7000, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 70, categoria: 'Cervezas' },
+    { id: 10, nombre: 'Piña Colada', precio: 16000, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 35, categoria: 'Cócteles' },
+    { id: 11, nombre: 'Agua con Gas', precio: 2500, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 150, categoria: 'Bebidas sin Alcohol' },
+    { id: 12, nombre: 'Papas a la Francesa', precio: 8000, imagen: 'https://placehold.co/600x400.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 50, categoria: 'Comidas' },
+];
 
 // --- Centralized State Management for Products ---
 // This is a singleton class that will hold the state of the products.
