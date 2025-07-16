@@ -182,7 +182,7 @@ export default function AdminDashboardPage() {
                     <div className="flex justify-between items-center w-full">
                       <div className="text-left">
                         <span className="font-bold text-lg">Pedido #{order.id}</span>
-                        <span className="font-bold text-lg block">{order.customer.name}</span>
+                        <span className="font-bold text-lg block">Cliente: {order.customer.name}</span>
                         <p className="text-sm text-muted-foreground">
                           {formattedDates[`order-${order.id}`] || 'Cargando fecha...'}
                         </p>
