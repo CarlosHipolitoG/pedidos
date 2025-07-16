@@ -182,6 +182,7 @@ export default function AdminDashboardPage() {
                     <div className="flex justify-between items-center w-full">
                       <div className="text-left">
                         <span className="font-bold text-lg">Pedido #{order.id}</span>
+                        <span className="font-bold text-lg block">{order.customer.name}</span>
                         <p className="text-sm text-muted-foreground">
                           {formattedDates[`order-${order.id}`] || 'Cargando fecha...'}
                         </p>
@@ -204,9 +205,6 @@ export default function AdminDashboardPage() {
                                 Atendido por: <span className="font-normal">{order.attendedBy}</span>
                             </p>
                         )}
-                        <p className="text-sm text-muted-foreground">
-                            <strong>Cliente:</strong> {order.customer.name}
-                        </p>
                         <p className="text-sm text-muted-foreground">
                             <strong>Celular:</strong> {order.customer.phone}
                         </p>
