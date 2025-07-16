@@ -52,11 +52,6 @@ export default function AdminProductsPage() {
 
     let productToSave = { ...editingProduct };
 
-    // If availability is set to available but stock is 0, set stock to 1
-    if (productToSave.disponibilidad === 'PRODUCTO_DISPONIBLE' && productToSave.existencias === 0) {
-        productToSave.existencias = 1;
-    }
-
     if ('id' in productToSave && productToSave.id) {
       // Editing existing product
       updateProduct(productToSave.id, productToSave as Product);
@@ -74,9 +69,16 @@ export default function AdminProductsPage() {
 
   const handleInputChange = (field: keyof Product, value: string | number) => {
     if (editingProduct) {
-      setEditingProduct({ ...editingProduct, [field]: value });
+        if (field === 'disponibilidad') {
+            const newAvailability = value as Product['disponibilidad'];
+            const newStock = newAvailability === 'PRODUCTO_AGOTADO' ? 0 : editingProduct.existencias === 0 ? 1 : editingProduct.existencias;
+            setEditingProduct({ ...editingProduct, disponibilidad: newAvailability, existencias: newStock });
+        } else {
+            setEditingProduct({ ...editingProduct, [field]: value });
+        }
     }
   };
+
 
   return (
     <div className="container mx-auto py-8">
