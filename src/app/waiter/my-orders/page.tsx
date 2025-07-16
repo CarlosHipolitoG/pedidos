@@ -149,6 +149,7 @@ export default function WaiterMyOrdersPage() {
                     <div className="flex justify-between items-center w-full">
                       <div className="text-left">
                         <span className="font-bold text-lg">Pedido #{order.id}</span>
+                        <span className="font-bold text-lg block">Cliente: {order.customer.name}</span>
                         <p className="text-sm text-muted-foreground">
                           {format(new Date(order.timestamp), "d 'de' LLLL, h:mm a", { locale: es })}
                         </p>
@@ -163,9 +164,6 @@ export default function WaiterMyOrdersPage() {
                   </AccordionTrigger>
                   <AccordionContent className="px-4 pb-4">
                     <div className="mb-4">
-                      <p className="text-sm text-muted-foreground">
-                        <strong>Cliente:</strong> {order.customer.name}
-                      </p>
                       <p className="text-sm text-muted-foreground">
                           <strong>Celular:</strong> {order.customer.phone}
                       </p>
