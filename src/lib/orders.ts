@@ -36,55 +36,7 @@ export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status' | 'items
     items: Omit<OrderItem, 'addedAt'>[];
 };
 
-const initialSimulatedOrders: Order[] = [
-    {
-        id: 999,
-        timestamp: Date.now() - 5 * 60 * 1000, // 5 minutes ago
-        customer: { name: "Cliente de Prueba", phone: "3000000000", email: "prueba@example.com" },
-        items: [
-            { id: 1, nombre: 'AGUA', precio: 4500, quantity: 2, addedAt: Date.now() - 8 * 60 * 1000 },
-            { id: 3, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 375 ML', precio: 60000, quantity: 1, addedAt: Date.now() - 12 * 60 * 1000 }
-        ],
-        total: 69000,
-        status: 'Pendiente',
-        orderedBy: { type: 'Cliente', name: 'Cliente de Prueba' }
-    },
-    {
-        id: 998,
-        timestamp: Date.now() - 15 * 60 * 1000, // 15 minutes ago
-        customer: { name: "Maria Rodriguez", phone: "3101234567" },
-        items: [
-            { id: 4, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 750 ML', precio: 120000, quantity: 1, addedAt: Date.now() - 15 * 60 * 1000 }
-        ],
-        total: 120000,
-        status: 'En Preparación',
-        orderedBy: { type: 'Mesero', name: 'Ana López' },
-        attendedBy: 'Ana López',
-    },
-    {
-        id: 997,
-        timestamp: Date.now() - 30 * 60 * 1000, // 30 minutes ago
-        customer: { name: "Carlos Gomez", phone: "3209876543" },
-        items: [
-            { id: 12, nombre: 'AGUARDIENTE NECTAR DORADO 750 ML', precio: 100000, quantity: 1, addedAt: Date.now() - 30 * 60 * 1000 },
-            { id: 2, nombre: 'AGUA GAS', precio: 4500, quantity: 4, addedAt: Date.now() - 30 * 60 * 1000 }
-        ],
-        total: 118000,
-        status: 'Completado',
-        orderedBy: { type: 'Cliente', name: 'Carlos Gomez' }
-    },
-    {
-        id: 996,
-        timestamp: Date.now() - 60 * 60 * 1000, // 1 hour ago
-        customer: { name: "Cliente de Prueba", phone: "3000000000", email: "prueba@example.com" },
-        items: [
-            { id: 5, nombre: 'AGUARDIENTE ANTIOQUEÑO ROJO 375 ML', precio: 60000, quantity: 1, addedAt: Date.now() - 60 * 60 * 1000 },
-        ],
-        total: 60000,
-        status: 'Pagado',
-        orderedBy: { type: 'Cliente', name: 'Cliente de Prueba' }
-    }
-];
+const initialSimulatedOrders: Order[] = [];
 
 // --- Centralized State Management ---
 class OrderStore {
