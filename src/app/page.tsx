@@ -30,12 +30,14 @@ export default function HomePage() {
     Autoplay({ delay: 3000, stopOnInteraction: true })
   );
 
-  const promotionalImages = [
-      { src: "https://placehold.co/1000x500.png", alt: "Promoción 1", hint: "promotion event" },
-      { src: "https://placehold.co/1000x500.png", alt: "Promoción 2", hint: "special offer" },
-      { src: "https://placehold.co/1000x500.png", alt: "Promoción 3", hint: "discount party" },
-      { src: "https://placehold.co/1000x500.png", alt: "Promoción 4", hint: "happy hour" },
-  ]
+  const promotionalImages = settings?.promotionalImages && settings.promotionalImages.length > 0 
+    ? settings.promotionalImages 
+    : [
+      { id: 1, src: "https://placehold.co/1000x500.png", alt: "Promoción 1", hint: "promotion event" },
+      { id: 2, src: "https://placehold.co/1000x500.png", alt: "Promoción 2", hint: "special offer" },
+      { id: 3, src: "https://placehold.co/1000x500.png", alt: "Promoción 3", hint: "discount party" },
+      { id: 4, src: "https://placehold.co/1000x500.png", alt: "Promoción 4", hint: "happy hour" },
+  ];
 
   useEffect(() => {
     setIsMounted(true);
@@ -58,7 +60,7 @@ export default function HomePage() {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
-        {isBannerVisible && (
+        {isMounted && isBannerVisible && promotionalImages.length > 0 && (
              <div className="absolute inset-x-0 top-10 z-20 px-4 flex justify-center">
                  <div className="relative w-full max-w-4xl">
                     <Carousel
@@ -68,16 +70,16 @@ export default function HomePage() {
                         onMouseLeave={() => autoplayPlugin.current.play()}
                     >
                         <CarouselContent>
-                            {promotionalImages.map((img, index) => (
-                                <CarouselItem key={index}>
-                                     <Card className="overflow-hidden">
-                                        <CardContent className="p-0">
+                            {promotionalImages.map((img) => (
+                                <CarouselItem key={img.id}>
+                                     <Card className="overflow-hidden bg-black/50">
+                                        <CardContent className="p-0 aspect-video md:aspect-[2/1] flex items-center justify-center">
                                             <Image
                                                 src={img.src}
                                                 alt={img.alt}
                                                 width={1000}
                                                 height={500}
-                                                className="aspect-[2/1] md:aspect-video object-cover"
+                                                className="w-full h-full object-contain"
                                                 data-ai-hint={img.hint}
                                             />
                                         </CardContent>
@@ -173,10 +175,12 @@ export default function HomePage() {
                             <Button
                                 variant="outline"
                                 className="w-full"
-                                onClick={() => router.push('/my-orders')}
+                                asChild
                             >
-                                <History className="mr-2 h-4 w-4" />
-                                Ver mis Pedidos Anteriores
+                                <Link href="/my-orders">
+                                    <History className="mr-2 h-4 w-4" />
+                                    Ver mis Pedidos Anteriores
+                                </Link>
                             </Button>
                         )}
                     </form>

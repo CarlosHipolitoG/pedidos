@@ -3,10 +3,18 @@
 
 import { useState, useEffect } from 'react';
 
+export type PromotionalImage = {
+  id: number;
+  src: string;
+  alt: string;
+  hint: string;
+};
+
 export type Settings = {
   barName: string;
   logoUrl: string;
   backgroundUrl: string;
+  promotionalImages: PromotionalImage[];
 };
 
 const SETTINGS_STORAGE_KEY = 'holiday-friends-settings';
@@ -14,7 +22,13 @@ const SETTINGS_STORAGE_KEY = 'holiday-friends-settings';
 const initialSettings: Settings = {
   barName: 'HOLIDAYS FRIENDS',
   logoUrl: 'https://placehold.co/80x80.png',
-  backgroundUrl: 'https://storage.googleapis.com/project-spark-b6b15e45/dc407172-5953-4565-a83a-48a58ca7694f.png'
+  backgroundUrl: 'https://storage.googleapis.com/project-spark-b6b15e45/dc407172-5953-4565-a83a-48a58ca7694f.png',
+  promotionalImages: [
+      { id: 1, src: "https://placehold.co/1000x500.png", alt: "Promoción 1", hint: "promotion event" },
+      { id: 2, src: "https://placehold.co/1000x500.png", alt: "Promoción 2", hint: "special offer" },
+      { id: 3, src: "https://placehold.co/1000x500.png", alt: "Promoción 3", hint: "discount party" },
+      { id: 4, src: "https://placehold.co/1000x500.png", alt: "Promoción 4", hint: "happy hour" },
+  ]
 };
 
 class SettingsStore {
@@ -45,7 +59,12 @@ class SettingsStore {
     const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (stored) {
       try {
-        return JSON.parse(stored);
+        const parsedSettings = JSON.parse(stored);
+        // Ensure promotionalImages is an array
+        if (!Array.isArray(parsedSettings.promotionalImages)) {
+          parsedSettings.promotionalImages = initialSettings.promotionalImages;
+        }
+        return { ...initialSettings, ...parsedSettings };
       } catch (e) {
         console.error("Failed to parse settings from localStorage", e);
         return initialSettings;
