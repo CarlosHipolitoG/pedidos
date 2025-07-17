@@ -120,9 +120,11 @@ export default function AdminSettingsPage() {
             <div className="space-y-2">
                 {(formState.promotionalImages || []).map((img) => (
                     <div key={img.id} className="flex items-center gap-2 p-2 border rounded-md">
-                        <img src={img.src} alt="preview" className="h-12 w-20 object-cover rounded-md"/>
-                        <p className="text-sm truncate flex-grow">{img.src}</p>
-                        <Button variant="destructive" size="icon" onClick={() => handleRemoveImage(img.id)}>
+                        <img src={img.src} alt="preview" className="h-12 w-12 object-cover rounded-md flex-shrink-0"/>
+                        <div className="flex-grow min-w-0">
+                          <p className="text-sm break-all">{img.src}</p>
+                        </div>
+                        <Button variant="destructive" size="icon" onClick={() => handleRemoveImage(img.id)} className="flex-shrink-0">
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
