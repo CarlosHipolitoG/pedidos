@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { validateUser } from '@/lib/users';
 
 export default function AdminPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('admin@example.com');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
@@ -61,7 +61,7 @@ export default function AdminPage() {
         <CardHeader>
           <CardTitle className="text-2xl text-center">Acceso de Administrador</CardTitle>
           <CardDescription className="text-center">
-            Ingresa tus credenciales para continuar
+            Ingresa tus credenciales para continuar. La contraseña por defecto es <span className="font-bold">admin123</span>
           </CardDescription>
         </CardHeader>
         <CardContent>
