@@ -59,7 +59,7 @@ export default function HomePage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
         {isBannerVisible && (
-             <div className="absolute inset-x-0 top-0 z-20 p-4 flex justify-center">
+             <div className="absolute inset-x-0 top-4 z-20 p-4 flex justify-center">
                  <div className="relative w-full max-w-4xl">
                     <Carousel
                         plugins={[autoplayPlugin.current]}
