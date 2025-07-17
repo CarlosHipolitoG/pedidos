@@ -47,6 +47,7 @@ export default function HomePage() {
   useEffect(() => {
     if (isBannerVisible && emblaApi) {
         emblaApi.reInit();
+        autoplayPlugin.current.play();
     }
   }, [isBannerVisible, emblaApi]);
 
@@ -67,7 +68,7 @@ export default function HomePage() {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
-        {isMounted && isBannerVisible && promotionalImages.length > 0 && (
+        {isBannerVisible && promotionalImages.length > 0 && (
              <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
                  <div className="relative w-full max-w-4xl">
                     <Carousel
@@ -89,6 +90,7 @@ export default function HomePage() {
                                                 className="object-contain"
                                                 data-ai-hint={img.hint}
                                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                priority={true}
                                             />
                                         </CardContent>
                                     </Card>
@@ -96,15 +98,15 @@ export default function HomePage() {
                             ))}
                         </CarouselContent>
                     </Carousel>
-                     <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-black/50 text-white hover:bg-black/70 hover:text-white rounded-full h-8 w-8 z-30"
-                        onClick={handleCloseBanner}
-                    >
-                        <X className="h-5 w-5" />
-                    </Button>
                  </div>
+                 <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute top-4 right-4 bg-black/50 text-white hover:bg-black/70 hover:text-white rounded-full h-8 w-8 z-30"
+                    onClick={handleCloseBanner}
+                >
+                    <X className="h-5 w-5" />
+                </Button>
              </div>
         )}
 
