@@ -35,10 +35,12 @@ export default function MenuPage() {
   const { products } = useProducts();
   const router = useRouter();
   const [now, setNow] = useState(Date.now());
+  const [isMounted, setIsMounted] = useState(false);
 
   const activeOrder = activeOrderId ? getOrderById(activeOrderId) : null;
 
   useEffect(() => {
+    setIsMounted(true);
     const savedCustomer: CustomerInfo = {
       name: localStorage.getItem('customerName') || '',
       phone: localStorage.getItem('customerPhone') || '',
@@ -429,7 +431,11 @@ export default function MenuPage() {
       )}
 
       <div className="space-y-8">
-        {categories.length > 0 ? (
+        {!isMounted ? (
+            <div className="text-center py-16 text-muted-foreground">
+                <p className="text-lg">Cargando menú...</p>
+            </div>
+        ) : categories.length > 0 ? (
           categories.map((category) => (
             <div key={category}>
               <h2 className="text-2xl font-bold mb-4 border-b pb-2">{category}</h2>
