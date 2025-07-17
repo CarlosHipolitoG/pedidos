@@ -19,8 +19,10 @@ export default function HomePage() {
   const [hasPreviousOrders, setHasPreviousOrders] = useState(false);
   const { settings } = useSettings();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     // Check if there is any customer data in localStorage to infer previous activity
     const storedPhone = localStorage.getItem('customerPhone');
     if (storedPhone) {
@@ -61,7 +63,7 @@ export default function HomePage() {
 
       <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm">
         <CardHeader className="items-center">
-            {settings.logoUrl && (
+            {isMounted && settings.logoUrl && (
                 <Image 
                     src={settings.logoUrl} 
                     alt="Logo" 
@@ -71,7 +73,7 @@ export default function HomePage() {
                     data-ai-hint="logo"
                 />
             )}
-          <CardTitle className="text-2xl text-center">¡Bienvenido a {settings.barName || 'HOLIDAYS FRIENDS'}!</CardTitle>
+          <CardTitle className="text-2xl text-center">¡Bienvenido a {isMounted ? settings.barName : '...'}!</CardTitle>
           <CardDescription className="text-center">
             Ingresa tus datos para comenzar o revisa tus pedidos anteriores.
           </CardDescription>
@@ -113,7 +115,7 @@ export default function HomePage() {
             <Button type="submit" className="w-full" disabled={!name || !phone}>
               Crear Nuevo Pedido
             </Button>
-            {hasPreviousOrders && (
+            {isMounted && hasPreviousOrders && (
                <Button
                 variant="outline"
                 className="w-full"
