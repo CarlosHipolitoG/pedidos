@@ -81,12 +81,13 @@ export default function HomePage() {
                             {promotionalImages.map((img) => (
                                 <CarouselItem key={img.id}>
                                      <Card className="overflow-hidden bg-transparent border-none">
-                                        <CardContent className="p-0 flex items-center justify-center aspect-square max-h-[80vh]">
+                                        <CardContent className="p-0 flex items-center justify-center max-h-[80vh]">
                                             <Image
                                                 src={img.src}
                                                 alt={img.alt}
-                                                fill
-                                                className="object-contain"
+                                                width={1000}
+                                                height={1000}
+                                                className="object-contain w-full h-auto"
                                                 data-ai-hint={img.hint}
                                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                             />
@@ -142,57 +143,55 @@ export default function HomePage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit}>
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Nombre Completo</Label>
-                                <Input
-                                    id="name"
-                                    type="text"
-                                    placeholder="Ej: Juan Pérez"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="phone">Número de Celular</Label>
-                                <Input
-                                    id="phone"
-                                    type="tel"
-                                    placeholder="Ej: 3001234567"
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Correo Electrónico (Opcional)</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="Para recibir tu factura"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
-                            </div>
-                            <div className="space-y-2 pt-4">
-                                <Button type="submit" className="w-full" disabled={!name || !phone}>
-                                    Crear Nuevo Pedido
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Nombre Completo</Label>
+                            <Input
+                                id="name"
+                                type="text"
+                                placeholder="Ej: Juan Pérez"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="phone">Número de Celular</Label>
+                            <Input
+                                id="phone"
+                                type="tel"
+                                placeholder="Ej: 3001234567"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Correo Electrónico (Opcional)</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="Para recibir tu factura"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2 pt-4">
+                            <Button type="submit" className="w-full" disabled={!name || !phone}>
+                                Crear Nuevo Pedido
+                            </Button>
+                            {isMounted && hasPreviousOrders && (
+                                <Button
+                                    variant="outline"
+                                    className="w-full"
+                                    asChild
+                                >
+                                    <Link href="/my-orders">
+                                        <History className="mr-2 h-4 w-4" />
+                                        Ver mis Pedidos Anteriores
+                                    </Link>
                                 </Button>
-                                {isMounted && hasPreviousOrders && (
-                                    <Button
-                                        variant="outline"
-                                        className="w-full"
-                                        asChild
-                                    >
-                                        <Link href="/my-orders">
-                                            <History className="mr-2 h-4 w-4" />
-                                            Ver mis Pedidos Anteriores
-                                        </Link>
-                                    </Button>
-                                )}
-                            </div>
+                            )}
                         </div>
                     </form>
                 </CardContent>
