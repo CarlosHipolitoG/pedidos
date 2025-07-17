@@ -3,18 +3,21 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Shield, Utensils, History } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useSettings } from '@/lib/settings';
 
 export default function HomePage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [hasPreviousOrders, setHasPreviousOrders] = useState(false);
+  const { settings } = useSettings();
   const router = useRouter();
 
   useEffect(() => {
@@ -57,8 +60,18 @@ export default function HomePage() {
       </div>
 
       <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">¡Bienvenido a HOLIDAYS FRIENDS!</CardTitle>
+        <CardHeader className="items-center">
+            {settings.logoUrl && (
+                <Image 
+                    src={settings.logoUrl} 
+                    alt="Logo" 
+                    width={80} 
+                    height={80} 
+                    className="rounded-full mb-4"
+                    data-ai-hint="logo"
+                />
+            )}
+          <CardTitle className="text-2xl text-center">¡Bienvenido a {settings.barName || 'HOLIDAYS FRIENDS'}!</CardTitle>
           <CardDescription className="text-center">
             Ingresa tus datos para comenzar o revisa tus pedidos anteriores.
           </CardDescription>

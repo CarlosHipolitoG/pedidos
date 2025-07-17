@@ -24,6 +24,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+    --dynamic-background-image: url('https://storage.googleapis.com/project-spark-b6b15e45/dc407172-5953-4565-a83a-48a58ca7694f.png');
   }
 
   .dark {
@@ -55,7 +56,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image: url('https://storage.googleapis.com/project-spark-b6b15e45/dc407172-5953-4565-a83a-48a58ca7694f.png');
+    background-image: var(--dynamic-background-image);
     background-color: hsla(var(--background), 0.9);
     background-blend-mode: multiply;
     background-repeat: no-repeat;

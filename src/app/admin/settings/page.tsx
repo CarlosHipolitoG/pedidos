@@ -1,0 +1,102 @@
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useSettings, updateSettings, Settings } from '@/lib/settings';
+import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, Save } from 'lucide-react';
+import Link from 'next/link';
+
+export default function AdminSettingsPage() {
+  const { settings } = useSettings();
+  const [formState, setFormState] = useState<Settings>({ barName: '', logoUrl: '', backgroundUrl: '' });
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (settings) {
+      setFormState(settings);
+    }
+  }, [settings]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormState(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSaveChanges = () => {
+    updateSettings(formState);
+    toast({
+      title: "Configuración Guardada",
+      description: "Los cambios se han guardado exitosamente.",
+    });
+  };
+
+  return (
+    <div className="container mx-auto py-8">
+      <div className="mb-4">
+        <Button variant="ghost" asChild>
+          <Link href="/admin/dashboard">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Volver al Panel Principal
+          </Link>
+        </Button>
+      </div>
+
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Configuración General</CardTitle>
+          <CardDescription>
+            Personaliza la apariencia y la información de tu negocio.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="barName">Nombre del Bar</Label>
+            <Input
+              id="barName"
+              value={formState.barName}
+              onChange={handleInputChange}
+              placeholder="Ej: HOLIDAYS FRIENDS"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="logoUrl">URL del Logotipo</Label>
+            <Input
+              id="logoUrl"
+              value={formState.logoUrl}
+              onChange={handleInputChange}
+              placeholder="https://ejemplo.com/logo.png"
+            />
+            {formState.logoUrl && (
+                <div className="p-4 bg-muted rounded-md flex justify-center">
+                    <img src={formState.logoUrl} alt="Vista previa del logo" className="h-20 w-20 object-contain rounded-full" />
+                </div>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="backgroundUrl">URL de la Imagen de Fondo</Label>
+            <Input
+              id="backgroundUrl"
+              value={formState.backgroundUrl}
+              onChange={handleInputChange}
+              placeholder="https://ejemplo.com/fondo.jpg"
+            />
+             {formState.backgroundUrl && (
+                <div className="p-4 bg-muted rounded-md flex justify-center">
+                    <img src={formState.backgroundUrl} alt="Vista previa del fondo" className="h-24 w-auto object-contain rounded-md" />
+                </div>
+            )}
+          </div>
+          <Button onClick={handleSaveChanges}>
+            <Save className="mr-2 h-4 w-4" />
+            Guardar Cambios
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
