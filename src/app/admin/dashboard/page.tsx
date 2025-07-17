@@ -11,7 +11,7 @@ import { es } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2 } from 'lucide-react';
+import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,7 @@ import { useProducts, Product } from '@/lib/products';
 import Image from 'next/image';
 import { useDebounce } from 'use-debounce';
 import Link from 'next/link';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 export default function AdminDashboardPage() {
@@ -119,6 +120,84 @@ export default function AdminDashboardPage() {
   };
 
   const totalSales = isMounted ? orders.reduce((sum, order) => sum + order.total, 0) : 0;
+  
+  const downloadCSV = (data: any[], filename: string) => {
+    if (!data.length) {
+      alert("No hay datos para generar el informe.");
+      return;
+    }
+    const headers = Object.keys(data[0]);
+    const csvContent = [
+      headers.join(','),
+      ...data.map(row => headers.map(header => `"${(row[header] ?? '').toString().replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `${filename}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const generateTotalSalesReport = () => {
+    const reportData = orders.map(order => ({
+      'ID Pedido': order.id,
+      'Fecha': format(new Date(order.timestamp), "yyyy-MM-dd HH:mm:ss"),
+      'Cliente': order.customer.name,
+      'Celular Cliente': order.customer.phone,
+      'Atendido Por': order.attendedBy || order.orderedBy.name,
+      'Tipo Venta': order.orderedBy.type,
+      'Estado': order.status,
+      'Total': order.total
+    }));
+    downloadCSV(reportData, 'informe-ventas-totales');
+  };
+
+  const generateProductSalesReport = () => {
+    const productSales: Record<number, { nombre: string; cantidad: number; total: number }> = {};
+
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (!productSales[item.id]) {
+          productSales[item.id] = { nombre: item.nombre, cantidad: 0, total: 0 };
+        }
+        productSales[item.id].cantidad += item.quantity;
+        productSales[item.id].total += item.precio * item.quantity;
+      });
+    });
+
+    const reportData = Object.values(productSales).map(p => ({
+      'Producto': p.nombre,
+      'Cantidad Vendida': p.cantidad,
+      'Total Ventas': p.total
+    })).sort((a,b) => b['Cantidad Vendida'] - a['Cantidad Vendida']);
+    downloadCSV(reportData, 'informe-ventas-por-producto');
+  };
+  
+  const generateInventoryReport = () => {
+    const productSales: Record<number, number> = {};
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        productSales[item.id] = (productSales[item.id] || 0) + item.quantity;
+      });
+    });
+
+    const reportData = products.map(product => ({
+      'ID Producto': product.id,
+      'Nombre': product.nombre,
+      'Categoría': product.categoria,
+      'Existencias Actuales': product.existencias,
+      'Cantidad Vendida': productSales[product.id] || 0,
+      'Disponibilidad': product.disponibilidad
+    })).sort((a, b) => a['ID Producto'] - b['ID Producto']);
+    downloadCSV(reportData, 'informe-inventario');
+  };
 
 
   return (
@@ -141,7 +220,7 @@ export default function AdminDashboardPage() {
         <CardHeader className="flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <CardTitle>
-                Pedidos Recibidos ({isMounted ? filteredOrders.length : '...'})
+                Pedidos Recibidos ({isMounted ? `(${filteredOrders.length})` : '...'})
               </CardTitle>
               <CardDescription>Los pedidos más recientes aparecen primero.</CardDescription>
             </div>
@@ -174,6 +253,25 @@ export default function AdminDashboardPage() {
                         Gestionar Productos
                     </Link>
                 </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                            <Download className="mr-2 h-4 w-4" />
+                            Descargar Informes
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem onClick={generateTotalSalesReport}>
+                            Informe de Ventas Totales
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={generateProductSalesReport}>
+                            Informe de Ventas por Producto
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onClick={generateInventoryReport}>
+                            Informe de Inventario
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </CardHeader>
         <CardContent>
