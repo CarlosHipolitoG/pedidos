@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ProductAvailability } from '@/components/product-availability';
 
 type CartItem = Product & { quantity: number };
 
@@ -345,11 +346,14 @@ export default function WaiterDashboardPage() {
                         className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
                         data-ai-hint="beverage drink"
                       />
-                       {product.disponibilidad === 'PRODUCTO_AGOTADO' && (
-                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                          <span className="text-white font-bold text-lg">AGOTADO</span>
-                        </div>
-                      )}
+                      <ProductAvailability
+                          product={product}
+                          renderOutOfStock={() => (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                              <span className="text-white font-bold text-lg">AGOTADO</span>
+                            </div>
+                          )}
+                        />
                     </div>
                     <CardHeader>
                       <CardTitle className="text-lg h-12 flex-grow">{product.nombre}</CardTitle>
@@ -360,14 +364,20 @@ export default function WaiterDashboardPage() {
                       </p>
                     </CardContent>
                     <CardFooter className="p-4 pt-0">
-                      <Button
-                        className="w-full"
-                        disabled={product.disponibilidad === 'PRODUCTO_AGOTADO' || isCustomerModalOpen}
-                        onClick={() => handleAddToCart(product)}
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Agregar al Pedido
-                      </Button>
+                       <ProductAvailability
+                          product={product}
+                          disabled={isCustomerModalOpen}
+                          renderButton={() => (
+                             <Button
+                                className="w-full"
+                                disabled={product.disponibilidad === 'PRODUCTO_AGOTADO' || isCustomerModalOpen}
+                                onClick={() => handleAddToCart(product)}
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Agregar al Pedido
+                              </Button>
+                          )}
+                        />
                     </CardFooter>
                   </Card>
                 ))}
