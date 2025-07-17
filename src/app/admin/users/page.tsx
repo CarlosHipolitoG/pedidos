@@ -62,7 +62,7 @@ export default function AdminUsersPage() {
       // Adding new user
       const tempPassword = addUser(editingUser as Omit<User, 'id' | 'password' | 'temporaryPassword'>);
       toast({ 
-          title: "Usuario Creado Exitosamente", 
+          title: "Usuario Registrado Exitosamente", 
           description: (
             <div>
                 <p>Usuario: {editingUser.name}</p>
@@ -101,14 +101,14 @@ export default function AdminUsersPage() {
       <Card>
         <CardHeader className="flex flex-row justify-between items-center">
             <div>
-                <CardTitle>Gestión de Usuarios</CardTitle>
+                <CardTitle>Registro y Gestión de Usuarios</CardTitle>
                 <CardDescription>
-                    Crea, edita y gestiona los perfiles de administradores y meseros.
+                    Registra, edita y gestiona los perfiles de administradores y meseros.
                 </CardDescription>
             </div>
             <Button onClick={() => openModal()}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Agregar Nuevo Usuario
+                Registrar Nuevo Usuario
             </Button>
         </CardHeader>
         <CardContent>
@@ -175,9 +175,9 @@ export default function AdminUsersPage() {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-                <DialogTitle>{editingUser?.id ? 'Editar Usuario' : 'Agregar Nuevo Usuario'}</DialogTitle>
+                <DialogTitle>{editingUser?.id ? 'Editar Usuario' : 'Registrar Nuevo Usuario'}</DialogTitle>
                 <DialogDescription>
-                    {editingUser?.id ? 'Modifica los detalles del usuario.' : 'Completa la información para crear un nuevo usuario.'}
+                    {editingUser?.id ? 'Modifica los detalles del usuario.' : 'Completa la información para registrar un nuevo usuario.'}
                 </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
