@@ -39,7 +39,7 @@ export default function AdminProductsPage() {
         nombre: '',
         precio: 0,
         existencias: 0,
-        disponibilidad: 'PRODUCTO_DISPONIBLE',
+        disponibilidad: 'PRODUCTO_AGOTADO',
         categoria: '',
         imagen: '',
       });
@@ -67,27 +67,27 @@ export default function AdminProductsPage() {
     deleteProduct(productId);
   };
 
-  const handleInputChange = (field: keyof Product, value: string | number) => {
-    if (editingProduct) {
-        let updatedProduct = { ...editingProduct, [field]: value };
+  const handleInputChange = (field: keyof Omit<Product, 'id'>, value: string | number) => {
+    if (!editingProduct) return;
 
-        if (field === 'disponibilidad') {
-            const newAvailability = value as Product['disponibilidad'];
-            if (newAvailability === 'PRODUCTO_AGOTADO') {
-                updatedProduct.existencias = 0;
-            } else if (updatedProduct.existencias === 0) {
-                updatedProduct.existencias = 1; 
-            }
-        } else if (field === 'existencias') {
-            const newStock = Number(value);
-            if (newStock === 0) {
-                updatedProduct.disponibilidad = 'PRODUCTO_AGOTADO';
-            } else if (updatedProduct.disponibilidad === 'PRODUCTO_AGOTADO') {
-                updatedProduct.disponibilidad = 'PRODUCTO_DISPONIBLE';
-            }
-        }
-        setEditingProduct(updatedProduct);
+    let updatedProduct = { ...editingProduct, [field]: value };
+
+    if (field === 'disponibilidad') {
+      const newAvailability = value as Product['disponibilidad'];
+      if (newAvailability === 'PRODUCTO_AGOTADO') {
+        updatedProduct.existencias = 0;
+      } else if (newAvailability === 'PRODUCTO_DISPONIBLE' && (updatedProduct.existencias === 0 || updatedProduct.existencias === undefined)) {
+        updatedProduct.existencias = 1; // Set stock to at least 1 when made available
+      }
+    } else if (field === 'existencias') {
+      const newStock = Number(value);
+      if (newStock === 0) {
+        updatedProduct.disponibilidad = 'PRODUCTO_AGOTADO';
+      } else if (newStock > 0 && updatedProduct.disponibilidad === 'PRODUCTO_AGOTADO') {
+        updatedProduct.disponibilidad = 'PRODUCTO_DISPONIBLE';
+      }
     }
+    setEditingProduct(updatedProduct);
   };
 
 
