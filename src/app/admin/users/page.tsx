@@ -56,11 +56,11 @@ export default function AdminUsersPage() {
     if (editingUser.id) {
       // Editing existing user
       const { id, ...updateData } = editingUser;
-      updateUser(id, updateData as Omit<User, 'id' | 'password' | 'temporaryPassword'>);
+      updateUser(id, updateData as Omit<User, 'id' | 'password_hash' | 'temporaryPassword'>);
        toast({ title: "Usuario Actualizado", description: `Los datos de ${editingUser.name} han sido actualizados.` });
     } else {
       // Adding new user
-      const tempPassword = addUser(editingUser as Omit<User, 'id' | 'password' | 'temporaryPassword'>);
+      const tempPassword = addUser(editingUser as Omit<User, 'id' | 'password_hash' | 'temporaryPassword'>);
       toast({ 
           title: "Usuario Registrado Exitosamente", 
           description: (

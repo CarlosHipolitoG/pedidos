@@ -23,7 +23,7 @@ export default function MyOrdersPage() {
   const [phone, setPhone] = useState('');
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
   const [searched, setSearched] = useState(false);
-  const { orders } = useOrders();
+  const { orders, isInitialized } = useOrders();
   const router = useRouter();
   const [now, setNow] = useState(Date.now());
   const { toast } = useToast();
@@ -46,23 +46,25 @@ export default function MyOrdersPage() {
     const storedPhone = localStorage.getItem('customerPhone');
     if (storedPhone) {
         setPhone(storedPhone);
-        const customerOrders = getOrdersByCustomerPhone(storedPhone).filter(
-            (order) => order.status !== 'Pagado'
-        );
-        setFoundOrders(customerOrders);
-        setSearched(true);
+        if (isInitialized) {
+            const customerOrders = getOrdersByCustomerPhone(storedPhone).filter(
+                (order) => order.status !== 'Pagado'
+            );
+            setFoundOrders(customerOrders);
+            setSearched(true);
+        }
     }
 
     return () => clearInterval(interval);
      // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isInitialized]);
 
   useEffect(() => {
-    if (searched && phone) {
+    if (searched && phone && isInitialized) {
         handleSearch();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orders, phone, searched]);
+  }, [orders, phone, searched, isInitialized]);
 
   
   const handleGoToMenu = (orderId: number) => {

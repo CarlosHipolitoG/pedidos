@@ -33,8 +33,8 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export default function AdminDashboardPage() {
-  const { orders } = useOrders();
-  const { products } = useProducts();
+  const { orders, isInitialized: isOrdersInitialized } = useOrders();
+  const { products, isInitialized: isProductsInitialized } = useProducts();
   const [highlightedProducts, setHighlightedProducts] = useState<Record<string, number[]>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -43,14 +43,11 @@ export default function AdminDashboardPage() {
   const [formattedDates, setFormattedDates] = useState<Record<string, string>>({});
   const [formattedItemDates, setFormattedItemDates] = useState<Record<string, string>>({});
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'Todos'>('Todos');
-  const [isMounted, setIsMounted] = useState(false);
+  
+  const isMountedAndInitialized = isOrdersInitialized && isProductsInitialized;
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isMounted) return;
+    if (!isMountedAndInitialized) return;
     const newFormattedDates: Record<string, string> = {};
     const newFormattedItemDates: Record<string, string> = {};
 
@@ -63,7 +60,7 @@ export default function AdminDashboardPage() {
     });
     setFormattedDates(newFormattedDates);
     setFormattedItemDates(newFormattedItemDates);
-  }, [orders, isMounted]);
+  }, [orders, isMountedAndInitialized]);
 
 
   const handleStatusChange = (orderId: number, newStatus: OrderStatus) => {
@@ -107,7 +104,7 @@ export default function AdminDashboardPage() {
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
   
-  const filteredOrders = isMounted ? orders.filter(order => {
+  const filteredOrders = isMountedAndInitialized ? orders.filter(order => {
     if (filterStatus === 'Todos') return true;
     return order.status === filterStatus;
   }) : [];
@@ -127,7 +124,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const totalSales = isMounted ? orders.reduce((sum, order) => sum + order.total, 0) : 0;
+  const totalSales = isMountedAndInitialized ? orders.reduce((sum, order) => sum + order.total, 0) : 0;
   
   const downloadCSV = (data: any[], filename: string) => {
     if (!data.length) {
@@ -221,7 +218,7 @@ export default function AdminDashboardPage() {
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold">Panel de Administrador</h1>
         <p className="text-muted-foreground">Aquí puedes ver y gestionar todos los pedidos del sistema.</p>
-        {isMounted && totalSales > 0 && (
+        {isMountedAndInitialized && totalSales > 0 && (
             <div className="text-center mt-4">
                 <p className="text-lg font-semibold flex items-center justify-center gap-2">
                     <DollarSign className="h-6 w-6 text-green-500"/>
@@ -236,7 +233,7 @@ export default function AdminDashboardPage() {
         <CardHeader className="flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <CardTitle>
-                Pedidos Recibidos {isMounted ? `(${filteredOrders.length})` : '...'}
+                Pedidos Recibidos {isMountedAndInitialized ? `(${filteredOrders.length})` : '...'}
               </CardTitle>
               <CardDescription>Los pedidos más recientes aparecen primero.</CardDescription>
             </div>
@@ -302,7 +299,7 @@ export default function AdminDashboardPage() {
             </div>
         </CardHeader>
         <CardContent>
-          {!isMounted ? (
+          {!isMountedAndInitialized ? (
              <div className="flex justify-center items-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
              </div>

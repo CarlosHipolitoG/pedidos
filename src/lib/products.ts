@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import {useAppStore, store} from './store';
 
 export type Product = {
   id: number;
@@ -13,7 +13,7 @@ export type Product = {
   categoria: string;
 };
 
-const initialProductsData: Product[] = [
+export const initialProductsData: Product[] = [
     { id: 1, nombre: 'AGUA', precio: 4500, imagen: 'https://avatars.mds.yandex.net/get-altay/1987173/2a000001747d295ce25615afd42a81cb6b9e/XXL_height', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 48, categoria: 'AGUA' },
     { id: 2, nombre: 'AGUA GAS', precio: 4500, imagen: 'https://images.squarespace-cdn.com/content/v1/55697ab8e4b084f6ac0581ef/1543993440671-4K5ZMHREJWHVDD8CHJMP/shutterstock_105912563-1.jpg', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 49, categoria: 'AGUA' },
     { id: 3, nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 375 ML', precio: 60000, imagen: 'https://i.pinimg.com/736x/4f/14/2d/4f142d8493f4082bf274bfd8af785708.jpg', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 4, categoria: 'AGUARDIENTE' },
@@ -106,138 +106,38 @@ const initialProductsData: Product[] = [
     { id: 90, nombre: 'CUBETAZO CERVEZA AGUILA', precio: 30000, imagen: 'https://i3.wp.com/dijf55il5e0d1.cloudfront.net/images/na/hubertplus/5315600/5782_main_1000.jpg?resize=758%2C758&ssl=1', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 10, categoria: 'CERVEZAS' },
 ];
 
-const PRODUCTS_STORAGE_KEY = 'holiday-friends-products';
-
-// --- Centralized State Management for Products ---
-class ProductStore {
-    private static instance: ProductStore;
-    private products: Product[];
-    private nextProductId: number;
-    private listeners: ((products: Product[]) => void)[] = [];
-
-    private constructor() {
-        this.products = this.loadFromStorage();
-        this.nextProductId = this.products.reduce((maxId, product) => Math.max(product.id, maxId), 0) + 1;
-        
-        if (typeof window !== 'undefined') {
-            window.addEventListener('storage', this.handleStorageChange);
-        }
-    }
-    
-    private handleStorageChange = (event: StorageEvent) => {
-        if (event.key === PRODUCTS_STORAGE_KEY && event.newValue) {
-            try {
-                this.products = JSON.parse(event.newValue);
-                this.broadcast(false); // Do not save again, just notify listeners
-            } catch(e) {
-                console.error("Failed to parse products from storage event", e);
-            }
-        }
-    }
-
-    private loadFromStorage(): Product[] {
-        if (typeof window === 'undefined') return initialProductsData;
-        const storedProducts = localStorage.getItem(PRODUCTS_STORAGE_KEY);
-        if (storedProducts) {
-            try {
-                // If there are stored products, use them.
-                return JSON.parse(storedProducts);
-            } catch (e) {
-                console.error("Failed to parse products from localStorage", e);
-                // If parsing fails, fall back to initial data.
-                return initialProductsData;
-            }
-        }
-        // If no products are in storage, initialize with initial data.
-        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProductsData));
-        return initialProductsData;
-    }
-
-    private saveToStorage() {
-        if (typeof window === 'undefined') return;
-        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(this.products));
-    }
-
-    public static getInstance(): ProductStore {
-        if (!ProductStore.instance) {
-            ProductStore.instance = new ProductStore();
-        }
-        return ProductStore.instance;
-    }
-
-    private broadcast(save = true) {
-        if (save) {
-            this.saveToStorage();
-        }
-        this.listeners.forEach(listener => listener(this.products));
-    }
-
-    public subscribe(listener: (products: Product[]) => void): () => void {
-        this.listeners.push(listener);
-        listener(this.products);
-        return () => {
-            this.listeners = this.listeners.filter(l => l !== listener);
-        };
-    }
-    
-    public destroy() {
-        if (typeof window !== 'undefined') {
-            window.removeEventListener('storage', this.handleStorageChange);
-        }
-    }
-
-    public getProducts(): Product[] {
-        return this.products;
-    }
-
-    public addProduct(productData: Omit<Product, 'id'>): void {
-        const newProduct: Product = {
-            ...productData,
-            id: this.nextProductId++,
-        };
-        this.products = [...this.products, newProduct].sort((a,b) => a.id - b.id);
-        this.broadcast();
-    }
-
-    public updateProduct(productId: number, updatedData: Partial<Omit<Product, 'id'>>): void {
-        this.products = this.products.map(product =>
-            product.id === productId ? { ...product, ...updatedData } : product
-        ).sort((a,b) => a.id - b.id);
-        this.broadcast();
-    }
-    
-    public deleteProduct(productId: number): void {
-        this.products = this.products.filter(product => product.id !== productId);
-        this.broadcast();
-    }
+// --- Hook to get products from the central store ---
+export function useProducts() {
+    const { state, isInitialized } = useAppStore();
+    return { products: state.products, isInitialized };
 }
 
-const productStoreInstance = ProductStore.getInstance();
+// --- Data Manipulation Functions ---
 
 export const addProduct = (productData: Omit<Product, 'id'>): void => {
-    productStoreInstance.addProduct(productData);
+    store.updateState(currentState => {
+        const nextProductId = (currentState.products.reduce((maxId, p) => Math.max(p.id, maxId), 0) || 0) + 1;
+        const newProduct: Product = {
+            ...productData,
+            id: nextProductId,
+        };
+        const products = [...currentState.products, newProduct].sort((a,b) => a.id - b.id);
+        return { ...currentState, products };
+    });
 };
 
 export const updateProduct = (productId: number, updatedData: Partial<Omit<Product, 'id'>>): void => {
-    productStoreInstance.updateProduct(productId, updatedData);
+    store.updateState(currentState => {
+        const products = currentState.products.map(p =>
+            p.id === productId ? { ...p, ...updatedData } : p
+        ).sort((a,b) => a.id - b.id);
+        return { ...currentState, products };
+    });
 };
 
 export const deleteProduct = (productId: number): void => {
-    productStoreInstance.deleteProduct(productId);
+    store.updateState(currentState => {
+        const products = currentState.products.filter(p => p.id !== productId);
+        return { ...currentState, products };
+    });
 };
-
-export function useProducts() {
-    const [products, setProducts] = useState(productStoreInstance.getProducts());
-
-    useEffect(() => {
-        const unsubscribe = productStoreInstance.subscribe(newProducts => {
-            setProducts([...newProducts]);
-        });
-        
-        return () => {
-            unsubscribe();
-        };
-    }, []);
-
-    return { products };
-}

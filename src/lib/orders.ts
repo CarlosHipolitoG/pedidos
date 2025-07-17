@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import {useAppStore, store} from './store';
+import {useMemo} from 'react';
 
 // Data types for orders
 export type OrderItem = {
@@ -36,111 +37,41 @@ export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status' | 'items
     items: Omit<OrderItem, 'addedAt'>[];
 };
 
-const ORDERS_STORAGE_KEY = 'holiday-friends-orders';
+// --- Hook to get orders from the central store ---
+export function useOrders() {
+    const { state, isInitialized } = useAppStore();
+    return { orders: state.orders, isInitialized };
+}
 
-const initialSimulatedOrders: Order[] = [];
+// --- Data Manipulation Functions ---
 
-// --- Centralized State Management ---
-class OrderStore {
-    private static instance: OrderStore;
-    private orders: Order[];
-    private nextOrderId: number;
-    private listeners: ((orders: Order[]) => void)[] = [];
+export function getOrderById(orderId: number): Order | undefined {
+    return store.getState().orders.find(order => order.id === orderId);
+}
 
-    private constructor() {
-        this.orders = this.loadFromStorage();
-        this.nextOrderId = this.orders.reduce((maxId, order) => Math.max(order.id, maxId), 0) + 1;
+export function getOrdersByCustomerPhone(phone: string): Order[] {
+    return store.getState().orders
+        .filter(order => order.customer.phone === phone)
+        .sort((a, b) => b.timestamp - a.timestamp);
+}
 
-        if (typeof window !== 'undefined') {
-            window.addEventListener('storage', this.handleStorageChange);
-        }
-    }
-    
-    private handleStorageChange = (event: StorageEvent) => {
-        if (event.key === ORDERS_STORAGE_KEY && event.newValue) {
-            try {
-                this.orders = JSON.parse(event.newValue);
-                this.broadcast(false); // Do not save again, just notify listeners
-            } catch(e) {
-                console.error("Failed to parse orders from storage event", e);
-            }
-        }
-    }
-    
-    private loadFromStorage(): Order[] {
-        if (typeof window === 'undefined') return initialSimulatedOrders;
-        const storedOrders = localStorage.getItem(ORDERS_STORAGE_KEY);
-        if (storedOrders) {
-            try {
-                return JSON.parse(storedOrders);
-            } catch (e) {
-                console.error("Failed to parse orders from localStorage", e);
-                return initialSimulatedOrders;
-            }
-        }
-        return initialSimulatedOrders;
-    }
+export function getOrdersByWaiterName(waiterName: string): Order[] {
+    return store.getState().orders
+        .filter(order => order.orderedBy.type === 'Mesero' && order.orderedBy.name === waiterName)
+        .sort((a, b) => b.timestamp - a.timestamp);
+}
 
-    private saveToStorage() {
-        if (typeof window === 'undefined') return;
-        localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(this.orders));
-    }
+export function getOrdersByAttendedBy(userName: string): Order[] {
+    return store.getState().orders
+        .filter(order => order.attendedBy === userName)
+        .sort((a, b) => b.timestamp - a.timestamp);
+}
 
-    public static getInstance(): OrderStore {
-        if (!OrderStore.instance) {
-            OrderStore.instance = new OrderStore();
-        }
-        return OrderStore.instance;
-    }
-
-    private broadcast(save = true) {
-        if (save) {
-            this.saveToStorage();
-        }
-        this.listeners.forEach(listener => listener(this.orders));
-    }
-
-    public subscribe(listener: (orders: Order[]) => void): () => void {
-        this.listeners.push(listener);
-        listener(this.orders);
-        return () => {
-            this.listeners = this.listeners.filter(l => l !== listener);
-        };
-    }
-    
-    public destroy() {
-        if (typeof window !== 'undefined') {
-            window.removeEventListener('storage', this.handleStorageChange);
-        }
-    }
-
-    public getOrders(): Order[] {
-        return this.orders;
-    }
-    
-    public getOrderById(orderId: number): Order | undefined {
-        return this.orders.find(order => order.id === orderId);
-    }
-
-    public getOrdersByCustomerPhone(phone: string): Order[] {
-        return this.orders
-            .filter(order => order.customer.phone === phone)
-            .sort((a, b) => b.timestamp - a.timestamp);
-    }
-
-    public getOrdersByWaiterName(waiterName: string): Order[] {
-        return this.orders
-            .filter(order => order.orderedBy.type === 'Mesero' && order.orderedBy.name === waiterName)
-            .sort((a, b) => b.timestamp - a.timestamp);
-    }
-    
-    public getOrdersByAttendedBy(userName: string): Order[] {
-        return this.orders
-            .filter(order => order.attendedBy === userName)
-            .sort((a, b) => b.timestamp - a.timestamp);
-    }
-
-    public addOrder(payload: NewOrderPayload): number {
+export function addOrder(payload: NewOrderPayload): number {
+    let newOrderId = 0;
+    store.updateState(currentState => {
+        const nextOrderId = (currentState.orders.reduce((maxId, order) => Math.max(order.id, maxId), 0) || 0) + 1;
+        newOrderId = nextOrderId;
         const now = Date.now();
         const itemsWithTimestamp: OrderItem[] = payload.items.map(item => ({
             ...item,
@@ -150,25 +81,32 @@ class OrderStore {
         const newOrder: Order = {
             ...payload,
             items: itemsWithTimestamp,
-            id: this.nextOrderId++,
+            id: nextOrderId,
             timestamp: now,
             status: 'Pendiente',
             attendedBy: payload.orderedBy.type === 'Mesero' ? payload.orderedBy.name : undefined,
         };
-        this.orders = [newOrder, ...this.orders];
-        this.broadcast();
-        return newOrder.id;
-    }
 
-    public updateOrderStatus(orderId: number, status: OrderStatus) {
-        this.orders = this.orders.map(order => 
+        return {
+            ...currentState,
+            orders: [newOrder, ...currentState.orders]
+        };
+    });
+    return newOrderId;
+}
+
+export function updateOrderStatus(orderId: number, status: OrderStatus) {
+    store.updateState(currentState => ({
+        ...currentState,
+        orders: currentState.orders.map(order =>
             order.id === orderId ? { ...order, status } : order
-        );
-        this.broadcast();
-    }
-    
-    public addProductToOrder(orderId: number, product: Omit<OrderItem, 'addedAt'>, attendedBy?: string) {
-        this.orders = this.orders.map(order => {
+        )
+    }));
+}
+
+export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'addedAt'>, attendedBy?: string) {
+    store.updateState(currentState => {
+        const newOrders = currentState.orders.map(order => {
             if (order.id === orderId) {
                 const existingItemIndex = order.items.findIndex(item => item.id === product.id);
                 let newItems;
@@ -177,7 +115,6 @@ class OrderStore {
                 if (existingItemIndex > -1) {
                     newItems = [...order.items];
                     newItems[existingItemIndex].quantity += product.quantity;
-                    // We don't update addedAt here, so the original 5-minute timer is respected
                 } else {
                     newItems = [...order.items, { ...product, addedAt: now }];
                 }
@@ -189,22 +126,23 @@ class OrderStore {
             }
             return order;
         });
-        this.broadcast();
-    }
-    
-    public updateProductQuantityInOrder(orderId: number, itemId: number, newQuantity: number) {
-        this.orders = this.orders.map(order => {
+        return { ...currentState, orders: newOrders };
+    });
+}
+
+export function updateProductQuantityInOrder(orderId: number, itemId: number, newQuantity: number) {
+    store.updateState(currentState => {
+        const newOrders = currentState.orders.map(order => {
             if (order.id === orderId) {
                 const itemIndex = order.items.findIndex(item => item.id === itemId);
                 if (itemIndex === -1) return order;
 
                 const item = order.items[itemIndex];
-                // Only apply 5-minute lock for customers
                 const isLocked = order.orderedBy.type === 'Cliente' && (Date.now() - item.addedAt) > 5 * 60 * 1000;
                 
                 if (isLocked) {
                     console.warn("Cannot edit quantity of a locked item for customers after 5 minutes.");
-                    return order; // Do not update if item is locked
+                    return order;
                 }
 
                 const newItems = [...order.items];
@@ -215,18 +153,19 @@ class OrderStore {
             }
             return order;
         });
-        this.broadcast();
-    }
+        return { ...currentState, orders: newOrders };
+    });
+}
 
-    public removeProductFromOrder(orderId: number, itemId: number): boolean {
-        let success = false;
-        this.orders = this.orders.map(order => {
+export function removeProductFromOrder(orderId: number, itemId: number): boolean {
+    let success = false;
+    store.updateState(currentState => {
+        const newOrders = currentState.orders.map(order => {
             if (order.id === orderId) {
                 const itemIndex = order.items.findIndex(item => item.id === itemId);
                 if (itemIndex === -1) return order;
                 
                 const item = order.items[itemIndex];
-                // Only apply 5-minute lock for customers
                 const isLocked = order.orderedBy.type === 'Cliente' && (Date.now() - item.addedAt) > 5 * 60 * 1000;
                 
                 if (isLocked) {
@@ -242,70 +181,14 @@ class OrderStore {
             }
             return order;
         });
-        this.broadcast();
-        return success;
-    }
-
-    public deleteOrder(orderId: number): void {
-        this.orders = this.orders.filter(order => order.id !== orderId);
-        this.broadcast();
-    }
+        return { ...currentState, orders: newOrders };
+    });
+    return success;
 }
 
-const orderStoreInstance = OrderStore.getInstance();
-
-export const addOrder = (payload: NewOrderPayload): number => {
-    return orderStoreInstance.addOrder(payload);
-};
-
-export const updateOrderStatus = (orderId: number, status: OrderStatus) => {
-    orderStoreInstance.updateOrderStatus(orderId, status);
-};
-
-export const addProductToOrder = (orderId: number, product: Omit<OrderItem, 'addedAt'>, attendedBy?: string) => {
-    orderStoreInstance.addProductToOrder(orderId, product, attendedBy);
-};
-
-export const getOrderById = (orderId: number): Order | undefined => {
-    return orderStoreInstance.getOrderById(orderId);
-};
-
-export const getOrdersByCustomerPhone = (phone: string): Order[] => {
-    return orderStoreInstance.getOrdersByCustomerPhone(phone);
-}
-
-export const getOrdersByWaiterName = (waiterName: string): Order[] => {
-    return orderStoreInstance.getOrdersByWaiterName(waiterName);
-}
-
-export const getOrdersByAttendedBy = (userName: string): Order[] => {
-    return orderStoreInstance.getOrdersByAttendedBy(userName);
-}
-
-export const updateProductQuantityInOrder = (orderId: number, itemId: number, newQuantity: number) => {
-    orderStoreInstance.updateProductQuantityInOrder(orderId, itemId, newQuantity);
-};
-
-export const removeProductFromOrder = (orderId: number, itemId: number): boolean => {
-    return orderStoreInstance.removeProductFromOrder(orderId, itemId);
-};
-
-export const deleteOrder = (orderId: number): void => {
-    orderStoreInstance.deleteOrder(orderId);
-}
-
-export function useOrders() {
-    const [orders, setOrders] = useState(orderStoreInstance.getOrders());
-
-    useEffect(() => {
-        const unsubscribe = orderStoreInstance.subscribe(newOrders => {
-            setOrders([...newOrders]);
-        });
-        
-        return () => {
-            unsubscribe();
-        };
-    }, []);
-
-    return { orders };
+export function deleteOrder(orderId: number): void {
+    store.updateState(currentState => ({
+        ...currentState,
+        orders: currentState.orders.filter(order => order.id !== orderId)
+    }));
 }

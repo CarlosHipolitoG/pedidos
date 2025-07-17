@@ -10,18 +10,19 @@ import { useSettings, updateSettings, Settings, PromotionalImage } from '@/lib/s
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save, PlusCircle, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminSettingsPage() {
-  const { settings } = useSettings();
+  const { settings, isInitialized } = useSettings();
   const [formState, setFormState] = useState<Settings>({ barName: '', logoUrl: '', backgroundUrl: '', promotionalImages: [] });
   const [newImageUrl, setNewImageUrl] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
-    if (settings) {
+    if (isInitialized && settings) {
       setFormState(settings);
     }
-  }, [settings]);
+  }, [settings, isInitialized]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -57,6 +58,26 @@ export default function AdminSettingsPage() {
         promotionalImages: (prev.promotionalImages || []).filter(img => img.id !== id)
     }));
   };
+
+  if (!isInitialized) {
+    return (
+        <div className="container mx-auto py-8">
+            <Card className="max-w-2xl mx-auto">
+                <CardHeader>
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-4 w-full mt-2" />
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                </CardContent>
+            </Card>
+        </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8">

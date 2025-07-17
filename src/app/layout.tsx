@@ -5,11 +5,9 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { useSettings, Settings } from "@/lib/settings";
+import { useSettings } from "@/lib/settings";
 import { useEffect, useState } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useDataSync } from "@/lib/store";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,15 +19,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { settings } = useSettings();
-  const [isMounted, setIsMounted] = useState(false);
+  const { settings, isInitialized } = useSettings();
+  
+  // This custom hook will periodically sync data from the server
+  useDataSync();
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted && settings) {
+    if (isInitialized && settings) {
       document.title = settings.barName || 'Holidays Friends';
       
       const body = document.body;
@@ -40,7 +36,7 @@ export default function RootLayout({
           body.style.setProperty('--dynamic-background-image', `url('https://storage.googleapis.com/project-spark-b6b15e45/dc407172-5953-4565-a83a-48a58ca7694f.png')`);
       }
     }
-  }, [settings, isMounted]);
+  }, [settings, isInitialized]);
 
   return (
     <html lang="en">

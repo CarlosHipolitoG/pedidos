@@ -16,12 +16,10 @@ import { cn } from '@/lib/utils';
 export default function AdminMyOrdersPage() {
   const [adminName, setAdminName] = useState<string>('');
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
-  const { orders } = useOrders(); 
+  const { orders, isInitialized } = useOrders(); 
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
     const storedName = localStorage.getItem('userName');
     if (storedName) {
       setAdminName(storedName);
@@ -29,15 +27,14 @@ export default function AdminMyOrdersPage() {
   }, []);
 
   useEffect(() => {
-    if (adminName) {
+    if (adminName && isInitialized) {
       const adminOrders = getOrdersByAttendedBy(adminName);
       setFoundOrders(adminOrders);
     }
-  }, [adminName, orders]); 
+  }, [adminName, orders, isInitialized]); 
 
   const handleEditOrder = (order: Order) => {
     // Admin doesn't have an "editing mode" like waiters, they edit from the main dash
-    // We can just scroll to the order in the main dashboard.
     // For now, let's just navigate to the dashboard. A more complex implementation could pass the ID.
     router.push('/admin/dashboard');
   };
@@ -75,7 +72,7 @@ export default function AdminMyOrdersPage() {
           <CardDescription className="text-center">
             Aquí están todos los pedidos en los que has intervenido como <span className="font-semibold">{adminName}</span>.
           </CardDescription>
-           {isMounted && totalSales > 0 && (
+           {isInitialized && totalSales > 0 && (
             <div className="text-center mt-4">
                 <p className="text-lg font-semibold flex items-center justify-center gap-2">
                     <DollarSign className="h-6 w-6 text-green-500"/>

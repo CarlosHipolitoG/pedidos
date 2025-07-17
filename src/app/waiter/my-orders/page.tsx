@@ -23,8 +23,8 @@ import { useDebounce } from 'use-debounce';
 export default function WaiterMyOrdersPage() {
   const [waiterName, setWaiterName] = useState<string | null>(null);
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
-  const { orders } = useOrders();
-  const { products } = useProducts();
+  const { orders, isInitialized: isOrdersInitialized } = useOrders();
+  const { products, isInitialized: isProductsInitialized } = useProducts();
   const router = useRouter();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,7 +45,7 @@ export default function WaiterMyOrdersPage() {
   }, [router]);
 
   useEffect(() => {
-    if (waiterName) {
+    if (waiterName && isOrdersInitialized) {
       const waiterOrders = getOrdersByWaiterName(waiterName);
       setFoundOrders(waiterOrders);
 
@@ -57,7 +57,7 @@ export default function WaiterMyOrdersPage() {
       });
       setFormattedItemDates(newFormattedItemDates);
     }
-  }, [waiterName, orders]);
+  }, [waiterName, orders, isOrdersInitialized]);
 
   const openAddProductModal = (order: Order) => {
     setSelectedOrder(order);
@@ -249,7 +249,7 @@ export default function WaiterMyOrdersPage() {
                                 <Button 
                                     size="sm" 
                                     onClick={() => handleAddProduct(product)}
-                                    disabled={product.disponibilidad === 'PRODUCTO_AGOTADO'}
+                                    disabled={!isProductsInitialized || product.disponibilidad === 'PRODUCTO_AGOTADO'}
                                 >
                                     {product.disponibilidad === 'PRODUCTO_AGOTADO' ? 'Agotado' : 'Agregar'}
                                 </Button>

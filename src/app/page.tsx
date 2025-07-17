@@ -22,9 +22,8 @@ export default function HomePage() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [hasPreviousOrders, setHasPreviousOrders] = useState(false);
-  const { settings } = useSettings();
+  const { settings, isInitialized: isSettingsInitialized } = useSettings();
   const router = useRouter();
-  const [isMounted, setIsMounted] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(true);
   const [emblaApi, setEmblaApi] = useState<CarouselApi | undefined>(undefined);
   const [promotionalImages, setPromotionalImages] = useState<PromotionalImage[]>([]);
@@ -34,7 +33,6 @@ export default function HomePage() {
   );
 
   useEffect(() => {
-    setIsMounted(true);
     const storedPhone = localStorage.getItem('customerPhone');
     if (storedPhone) {
       setHasPreviousOrders(true);
@@ -42,10 +40,10 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (settings?.promotionalImages) {
+    if (isSettingsInitialized && settings?.promotionalImages) {
         setPromotionalImages(settings.promotionalImages);
     }
-  }, [settings]);
+  }, [isSettingsInitialized, settings]);
 
   useEffect(() => {
     if (isBannerVisible && emblaApi) {
@@ -101,15 +99,15 @@ export default function HomePage() {
                             ))}
                         </CarouselContent>
                     </Carousel>
+                     <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="absolute top-0 right-0 mt-4 mr-4 bg-black/50 text-white hover:bg-black/70 hover:text-white rounded-full h-8 w-8 z-10"
+                        onClick={handleCloseBanner}
+                    >
+                        <X className="h-5 w-5" />
+                    </Button>
                 </div>
-                <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="absolute top-4 right-4 bg-black/50 text-white hover:bg-black/70 hover:text-white rounded-full h-8 w-8"
-                    onClick={handleCloseBanner}
-                >
-                    <X className="h-5 w-5" />
-                </Button>
             </div>
         )}
 
@@ -130,7 +128,7 @@ export default function HomePage() {
             <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm">
                 <CardHeader>
                     <div className="flex flex-col items-center">
-                        {!isMounted ? (
+                        {!isSettingsInitialized ? (
                             <Skeleton className="h-20 w-20 rounded-full mb-4" />
                         ) : (
                             settings.logoUrl && (
@@ -145,7 +143,7 @@ export default function HomePage() {
                             )
                         )}
                         <CardTitle className="text-2xl text-center">
-                            {!isMounted ? (
+                            {!isSettingsInitialized ? (
                                <Skeleton className="h-8 w-48" />
                             ) : (
                                 `¡Bienvenido a ${settings.barName}!`
@@ -195,7 +193,7 @@ export default function HomePage() {
                                 <Button type="submit" className="w-full" disabled={!name || !phone}>
                                     Crear Nuevo Pedido
                                 </Button>
-                                {isMounted && hasPreviousOrders && (
+                                {isSettingsInitialized && hasPreviousOrders && (
                                     <Button
                                         variant="outline"
                                         className="w-full"
