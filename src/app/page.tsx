@@ -97,15 +97,15 @@ export default function HomePage() {
                             ))}
                         </CarouselContent>
                     </Carousel>
+                     <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-black/50 text-white hover:bg-black/70 hover:text-white rounded-full h-8 w-8 z-30"
+                        onClick={handleCloseBanner}
+                    >
+                        <X className="h-5 w-5" />
+                    </Button>
                  </div>
-                 <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="absolute top-4 right-4 bg-black/50 text-white hover:bg-black/70 hover:text-white rounded-full h-8 w-8 z-30"
-                    onClick={handleCloseBanner}
-                >
-                    <X className="h-5 w-5" />
-                </Button>
              </div>
         )}
 
