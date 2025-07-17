@@ -125,7 +125,7 @@ export default function HomePage() {
             <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm">
                 <CardHeader>
                     <div className="flex flex-col items-center">
-                        {isMounted && settings.logoUrl && (
+                        {settings.logoUrl && (
                             <Image 
                                 src={settings.logoUrl} 
                                 alt="Logo" 
@@ -135,62 +135,64 @@ export default function HomePage() {
                                 data-ai-hint="logo"
                             />
                         )}
-                        <CardTitle className="text-2xl text-center">¡Bienvenido a {isMounted ? settings.barName : '...'}!</CardTitle>
+                        <CardTitle className="text-2xl text-center">¡Bienvenido a {settings.barName}!</CardTitle>
                         <CardDescription className="text-center">
                             Ingresa tus datos para comenzar o revisa tus pedidos anteriores.
                         </CardDescription>
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Nombre Completo</Label>
-                            <Input
-                                id="name"
-                                type="text"
-                                placeholder="Ej: Juan Pérez"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="phone">Número de Celular</Label>
-                            <Input
-                                id="phone"
-                                type="tel"
-                                placeholder="Ej: 3001234567"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Correo Electrónico (Opcional)</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="Para recibir tu factura"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2 pt-4">
-                            <Button type="submit" className="w-full" disabled={!name || !phone}>
-                                Crear Nuevo Pedido
-                            </Button>
-                            {isMounted && hasPreviousOrders && (
-                                <Button
-                                    variant="outline"
-                                    className="w-full"
-                                    asChild
-                                >
-                                    <Link href="/my-orders">
-                                        <History className="mr-2 h-4 w-4" />
-                                        Ver mis Pedidos Anteriores
-                                    </Link>
+                    <form onSubmit={handleSubmit}>
+                        <div className="space-y-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="name">Nombre Completo</Label>
+                                <Input
+                                    id="name"
+                                    type="text"
+                                    placeholder="Ej: Juan Pérez"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="phone">Número de Celular</Label>
+                                <Input
+                                    id="phone"
+                                    type="tel"
+                                    placeholder="Ej: 3001234567"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Correo Electrónico (Opcional)</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="Para recibir tu factura"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2 pt-4">
+                                <Button type="submit" className="w-full" disabled={!name || !phone}>
+                                    Crear Nuevo Pedido
                                 </Button>
-                            )}
+                                {isMounted && hasPreviousOrders && (
+                                    <Button
+                                        variant="outline"
+                                        className="w-full"
+                                        asChild
+                                    >
+                                        <Link href="/my-orders">
+                                            <History className="mr-2 h-4 w-4" />
+                                            Ver mis Pedidos Anteriores
+                                        </Link>
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </form>
                 </CardContent>
@@ -199,3 +201,4 @@ export default function HomePage() {
     </div>
   );
 }
+
