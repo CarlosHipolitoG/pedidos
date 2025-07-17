@@ -58,8 +58,12 @@ class OrderStore {
     
     private handleStorageChange = (event: StorageEvent) => {
         if (event.key === ORDERS_STORAGE_KEY && event.newValue) {
-            this.orders = JSON.parse(event.newValue);
-            this.broadcast();
+            try {
+                this.orders = JSON.parse(event.newValue);
+                this.broadcast(false); // Do not save again, just notify listeners
+            } catch(e) {
+                console.error("Failed to parse orders from storage event", e);
+            }
         }
     }
     
@@ -89,9 +93,11 @@ class OrderStore {
         return OrderStore.instance;
     }
 
-    private broadcast() {
+    private broadcast(save = true) {
+        if (save) {
+            this.saveToStorage();
+        }
         this.listeners.forEach(listener => listener(this.orders));
-        this.saveToStorage();
     }
 
     public subscribe(listener: (orders: Order[]) => void): () => void {
