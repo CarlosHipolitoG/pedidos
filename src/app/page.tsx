@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Shield, Utensils, History, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useSettings, PromotionalImage } from '@/lib/settings';
+import { useSettings } from '@/lib/settings';
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
 import { cn } from '@/lib/utils';
@@ -52,11 +52,15 @@ export default function HomePage() {
       router.push('/menu');
     }
   };
+  
+  const handleCloseBanner = () => {
+    setIsBannerVisible(false);
+  }
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
         {isMounted && isBannerVisible && promotionalImages.length > 0 && (
-             <div className="absolute inset-x-0 top-10 z-20 px-4 flex justify-center">
+             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
                  <div className="relative w-full max-w-4xl">
                     <Carousel
                         plugins={[autoplayPlugin.current]}
@@ -67,8 +71,8 @@ export default function HomePage() {
                         <CarouselContent>
                             {promotionalImages.map((img) => (
                                 <CarouselItem key={img.id}>
-                                     <Card className="overflow-hidden bg-black/50">
-                                        <CardContent className="p-0 aspect-video md:aspect-[2/1] flex items-center justify-center">
+                                     <Card className="overflow-hidden bg-black/50 border-none">
+                                        <CardContent className="p-0 flex items-center justify-center">
                                             <Image
                                                 src={img.src}
                                                 alt={img.alt}
@@ -87,7 +91,7 @@ export default function HomePage() {
                         variant="ghost" 
                         size="icon" 
                         className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70 hover:text-white rounded-full h-8 w-8 z-30"
-                        onClick={() => setIsBannerVisible(false)}
+                        onClick={handleCloseBanner}
                     >
                         <X className="h-5 w-5" />
                     </Button>
@@ -95,10 +99,7 @@ export default function HomePage() {
              </div>
         )}
 
-        <div className={cn(
-            "absolute top-4 right-4 flex gap-4",
-            "z-30" 
-        )}>
+        <div className={cn("absolute top-4 right-4 flex gap-4 z-20")}>
             <Link href="/waiter" passHref>
                 <Button variant="ghost" size="icon" aria-label="Waiter Login">
                     <Utensils className="h-6 w-6 text-foreground" />
@@ -111,7 +112,7 @@ export default function HomePage() {
             </Link>
         </div>
 
-        <div className="z-10 relative mt-4">
+        <div className="z-10 relative">
             <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm">
                 <CardHeader className="items-center">
                     {isMounted && settings.logoUrl && (
@@ -130,57 +131,55 @@ export default function HomePage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit}>
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Nombre Completo</Label>
-                                <Input
-                                    id="name"
-                                    type="text"
-                                    placeholder="Ej: Juan Pérez"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="phone">Número de Celular</Label>
-                                <Input
-                                    id="phone"
-                                    type="tel"
-                                    placeholder="Ej: 3001234567"
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Correo Electrónico (Opcional)</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="Para recibir tu factura"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
-                            </div>
-                            <div className="space-y-2 pt-4">
-                                <Button type="submit" className="w-full" disabled={!name || !phone}>
-                                    Crear Nuevo Pedido
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Nombre Completo</Label>
+                            <Input
+                                id="name"
+                                type="text"
+                                placeholder="Ej: Juan Pérez"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="phone">Número de Celular</Label>
+                            <Input
+                                id="phone"
+                                type="tel"
+                                placeholder="Ej: 3001234567"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Correo Electrónico (Opcional)</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="Para recibir tu factura"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2 pt-4">
+                            <Button type="submit" className="w-full" disabled={!name || !phone}>
+                                Crear Nuevo Pedido
+                            </Button>
+                            {isMounted && hasPreviousOrders && (
+                                <Button
+                                    variant="outline"
+                                    className="w-full"
+                                    asChild
+                                >
+                                    <Link href="/my-orders">
+                                        <History className="mr-2 h-4 w-4" />
+                                        Ver mis Pedidos Anteriores
+                                    </Link>
                                 </Button>
-                                {isMounted && hasPreviousOrders && (
-                                    <Button
-                                        variant="outline"
-                                        className="w-full"
-                                        asChild
-                                    >
-                                        <Link href="/my-orders">
-                                            <History className="mr-2 h-4 w-4" />
-                                            Ver mis Pedidos Anteriores
-                                        </Link>
-                                    </Button>
-                                )}
-                            </div>
+                            )}
                         </div>
                     </form>
                 </CardContent>
