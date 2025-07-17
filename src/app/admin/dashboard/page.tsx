@@ -310,44 +310,46 @@ export default function AdminDashboardPage() {
                   value={`item-${index}`} 
                   className="border-border rounded-lg mb-2 bg-card"
                 >
-                  <AccordionTrigger className="px-4 hover:no-underline">
-                    <div className="flex justify-between items-center w-full">
-                      <div className="text-left">
-                        <span className="font-bold text-lg">Pedido #{order.id}</span>
-                        <span className="font-bold text-lg block">Cliente: {order.customer.name}</span>
-                        <p className="text-sm text-muted-foreground">
-                          {formattedDates[`order-${order.id}`] || 'Cargando fecha...'}
-                        </p>
+                  <div className="flex justify-between items-center w-full px-4">
+                    <AccordionTrigger className="flex-grow hover:no-underline">
+                      <div className="flex justify-between items-center w-full">
+                        <div className="text-left">
+                          <span className="font-bold text-lg">Pedido #{order.id}</span>
+                          <span className="font-bold text-lg block">Cliente: {order.customer.name}</span>
+                          <p className="text-sm text-muted-foreground">
+                            {formattedDates[`order-${order.id}`] || 'Cargando fecha...'}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                           <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
+                           <span className="font-semibold text-lg">
+                             ${order.total.toLocaleString('es-CO')}
+                           </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                         <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
-                         <span className="font-semibold text-lg">
-                           ${order.total.toLocaleString('es-CO')}
-                         </span>
-                         <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
-                                    <Trash2 className="h-5 w-5 text-destructive" />
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                                <AlertDialogHeader>
-                                <AlertDialogTitle>¿Estás seguro de que quieres eliminar el pedido #{order.id}?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Esta acción no se puede deshacer. Se eliminará el pedido permanentemente.
-                                </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>
-                                    Eliminar Pedido
-                                </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
+                    </AccordionTrigger>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+                              <Trash2 className="h-5 w-5 text-destructive" />
+                          </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                          <AlertDialogHeader>
+                          <AlertDialogTitle>¿Estás seguro de que quieres eliminar el pedido #{order.id}?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                              Esta acción no se puede deshacer. Se eliminará el pedido permanentemente.
+                          </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>
+                              Eliminar Pedido
+                          </AlertDialogAction>
+                          </AlertDialogFooter>
+                      </AlertDialogContent>
+                  </AlertDialog>
+                  </div>
                   <AccordionContent className="px-4 pb-4">
                      <div className="mb-4">
                         <p className="font-semibold mb-1">
