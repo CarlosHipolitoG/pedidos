@@ -139,7 +139,9 @@ export default function AdminDashboardPage() {
       <Card>
         <CardHeader className="flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <CardTitle>Pedidos Recibidos ({filteredOrders.length})</CardTitle>
+              <CardTitle>
+                Pedidos Recibidos ({isMounted ? filteredOrders.length : '...'})
+              </CardTitle>
               <CardDescription>Los pedidos más recientes aparecen primero.</CardDescription>
             </div>
              <div className="flex items-center gap-2 flex-wrap">
@@ -322,3 +324,5 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
+    
