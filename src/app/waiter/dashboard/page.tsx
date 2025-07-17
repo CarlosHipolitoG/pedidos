@@ -8,11 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useProducts, Product } from '@/lib/products';
-import { ShoppingCart, Search, Plus, Minus, Trash2, UserPlus, LogOut, PackagePlus, History, Edit } from 'lucide-react';
+import { ShoppingCart, Search, Plus, Minus, Trash2, UserPlus, LogOut, PackagePlus, History } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
-import { addOrder, NewOrderPayload, addProductToOrder, getOrderById } from '@/lib/orders';
+import { addOrder, NewOrderPayload } from '@/lib/orders';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
@@ -35,7 +35,7 @@ export default function WaiterDashboardPage() {
   const { products } = useProducts();
 
   useEffect(() => {
-    const name = localStorage.getItem('waiterName');
+    const name = localStorage.getItem('userName');
     if (!name) {
       router.push('/waiter');
     } else {
@@ -148,7 +148,8 @@ export default function WaiterDashboardPage() {
   }
 
   const handleLogout = () => {
-      localStorage.removeItem('waiterName');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userEmail');
       router.push('/waiter');
   }
 

@@ -11,7 +11,7 @@ import { es } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download, Settings, Trash2 } from 'lucide-react';
+import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download, Settings, Trash2, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
 export default function AdminDashboardPage() {
@@ -55,10 +54,8 @@ export default function AdminDashboardPage() {
     const newFormattedItemDates: Record<string, string> = {};
 
     orders.forEach(order => {
-        // Format order creation date
         newFormattedDates[`order-${order.id}`] = format(new Date(order.timestamp), "d 'de' LLLL, h:mm a", { locale: es });
         
-        // Format item added dates
         order.items.forEach(item => {
             newFormattedItemDates[`item-${order.id}-${item.id}-${item.addedAt}`] = format(new Date(item.addedAt), "h:mm a", { locale: es });
         });
@@ -87,8 +84,8 @@ export default function AdminDashboardPage() {
       precio: product.precio,
       quantity: 1,
     };
-    // Let's assume the admin name is "Admin" for now
-    addProductToOrder(selectedOrder.id, newProduct, 'Admin');
+    const adminName = localStorage.getItem('userName') || 'Admin';
+    addProductToOrder(selectedOrder.id, newProduct, adminName);
 
     setHighlightedProducts(prev => ({
       ...prev,
@@ -269,6 +266,12 @@ export default function AdminDashboardPage() {
                     <Link href="/admin/products">
                         <ListOrdered className="mr-2 h-4 w-4" />
                         Gestionar Productos
+                    </Link>
+                </Button>
+                <Button variant="outline" asChild>
+                    <Link href="/admin/users">
+                        <Users className="mr-2 h-4 w-4" />
+                        Gestionar Usuarios
                     </Link>
                 </Button>
                 <DropdownMenu>

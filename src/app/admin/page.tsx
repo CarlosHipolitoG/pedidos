@@ -9,19 +9,36 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User, Utensils } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { validateUser } from '@/lib/users';
 
 export default function AdminPage() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username && password) {
-      // For now, we'll just log the data and navigate.
-      // In the future, this would authenticate the admin.
-      console.log({ username, password });
-      router.push('/admin/dashboard');
+    setError('');
+    const result = validateUser(email, password, 'admin');
+
+    if (result.success) {
+      localStorage.setItem('userName', result.user!.name);
+      localStorage.setItem('userEmail', result.user!.email);
+      
+      if (result.isTemporaryPassword) {
+        toast({
+          title: 'Contraseña Temporal',
+          description: 'Por favor, actualiza tu contraseña para continuar.',
+        });
+        router.push('/change-password');
+      } else {
+        router.push('/admin/dashboard');
+      }
+    } else {
+      setError(result.message);
     }
   };
 
@@ -50,13 +67,13 @@ export default function AdminPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Nombre de Usuario</Label>
+              <Label htmlFor="email">Correo Electrónico</Label>
               <Input
-                id="username"
-                type="text"
-                placeholder="Ej: admin"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="admin@ejemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -71,8 +88,12 @@ export default function AdminPage() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={!username || !password}>
+            {error && <p className="text-sm font-medium text-destructive">{error}</p>}
+            <Button type="submit" className="w-full" disabled={!email || !password}>
               Iniciar Sesión
+            </Button>
+            <Button variant="link" className="w-full" asChild>
+                <Link href="/forgot-password">¿Olvidaste tu contraseña?</Link>
             </Button>
           </form>
         </CardContent>

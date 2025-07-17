@@ -9,19 +9,36 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Shield, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { validateUser } from '@/lib/users';
 
 export default function WaiterPage() {
-  const [name, setName] = useState('');
-  const [cedula, setCedula] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && cedula) {
-      // In a real app, this would be proper authentication.
-      // For this simulation, we'll use localStorage.
-      localStorage.setItem('waiterName', name);
-      router.push('/waiter/dashboard');
+    setError('');
+    const result = validateUser(email, password, 'waiter');
+
+    if (result.success) {
+      localStorage.setItem('userName', result.user!.name);
+      localStorage.setItem('userEmail', result.user!.email);
+
+      if (result.isTemporaryPassword) {
+        toast({
+          title: 'Contraseña Temporal',
+          description: 'Por favor, actualiza tu contraseña para continuar.',
+        });
+        router.push('/change-password');
+      } else {
+        router.push('/waiter/dashboard');
+      }
+    } else {
+      setError(result.message);
     }
   };
 
@@ -50,29 +67,33 @@ export default function WaiterPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre Completo</Label>
+              <Label htmlFor="email">Correo Electrónico</Label>
               <Input
-                id="name"
-                type="text"
-                placeholder="Ej: Ana López"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="mesero@ejemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="cedula">Cédula</Label>
+              <Label htmlFor="password">Contraseña</Label>
               <Input
-                id="cedula"
-                type="text"
-                placeholder="Ej: 1234567890"
-                value={cedula}
-                onChange={(e) => setCedula(e.target.value)}
+                id="password"
+                type="password"
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={!name || !cedula}>
+            {error && <p className="text-sm font-medium text-destructive">{error}</p>}
+            <Button type="submit" className="w-full" disabled={!email || !password}>
               Iniciar Sesión
+            </Button>
+             <Button variant="link" className="w-full" asChild>
+                <Link href="/forgot-password">¿Olvidaste tu contraseña?</Link>
             </Button>
           </form>
         </CardContent>

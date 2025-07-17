@@ -9,7 +9,7 @@ import { Order, useOrders, getOrdersByWaiterName, addProductToOrder, OrderItem }
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, UserCircle, Edit, DollarSign, PlusCircle, Search } from 'lucide-react';
+import { ArrowLeft, DollarSign, PlusCircle, Search } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -36,7 +36,7 @@ export default function WaiterMyOrdersPage() {
 
 
   useEffect(() => {
-    const name = localStorage.getItem('waiterName');
+    const name = localStorage.getItem('userName');
     if (!name) {
       router.push('/waiter');
     } else {

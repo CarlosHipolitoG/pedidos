@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 export default function AdminMyOrdersPage() {
-  const [adminName, setAdminName] = useState<string>('Admin'); // Assuming admin is always 'Admin'
+  const [adminName, setAdminName] = useState<string>('');
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
   const { orders } = useOrders(); 
   const router = useRouter();
@@ -22,6 +22,10 @@ export default function AdminMyOrdersPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    const storedName = localStorage.getItem('userName');
+    if (storedName) {
+      setAdminName(storedName);
+    }
   }, []);
 
   useEffect(() => {
