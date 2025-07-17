@@ -31,10 +31,10 @@ export default function HomePage() {
   );
 
   const promotionalImages = [
-      { src: "https://placehold.co/1200x600.png", alt: "Promoción 1", hint: "promotion event" },
-      { src: "https://placehold.co/1200x600.png", alt: "Promoción 2", hint: "special offer" },
-      { src: "https://placehold.co/1200x600.png", alt: "Promoción 3", hint: "discount party" },
-      { src: "https://placehold.co/1200x600.png", alt: "Promoción 4", hint: "happy hour" },
+      { src: "https://placehold.co/1000x500.png", alt: "Promoción 1", hint: "promotion event" },
+      { src: "https://placehold.co/1000x500.png", alt: "Promoción 2", hint: "special offer" },
+      { src: "https://placehold.co/1000x500.png", alt: "Promoción 3", hint: "discount party" },
+      { src: "https://placehold.co/1000x500.png", alt: "Promoción 4", hint: "happy hour" },
   ]
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export default function HomePage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
         {isBannerVisible && (
-             <div className="absolute inset-x-0 top-4 z-20 p-4 flex justify-center">
+             <div className="absolute inset-x-0 top-10 z-20 p-4 flex justify-center">
                  <div className="relative w-full max-w-4xl">
                     <Carousel
                         plugins={[autoplayPlugin.current]}
@@ -75,8 +75,8 @@ export default function HomePage() {
                                             <Image
                                                 src={img.src}
                                                 alt={img.alt}
-                                                width={1200}
-                                                height={600}
+                                                width={1000}
+                                                height={500}
                                                 className="aspect-video object-cover"
                                                 data-ai-hint={img.hint}
                                             />
