@@ -434,7 +434,7 @@ export default function MenuPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {productsByCategory[category].map((product) => (
                   <Card key={product.id} className="flex flex-col overflow-hidden group">
-                    <CardHeader className="p-0 relative">
+                    <div className="relative">
                       <Image
                         src={product.imagen || 'https://placehold.co/600x400.png'}
                         alt={product.nombre}
@@ -448,9 +448,11 @@ export default function MenuPage() {
                           <span className="text-white font-bold text-lg">AGOTADO</span>
                         </div>
                       )}
+                    </div>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex-grow h-12">{product.nombre}</CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-grow p-4 flex flex-col">
-                      <CardTitle className="text-lg mb-2 flex-grow">{product.nombre}</CardTitle>
+                    <CardContent className="flex-grow p-6 pt-0 flex flex-col">
                       <p className="text-xl font-semibold text-primary">
                         ${product.precio.toLocaleString('es-CO')}
                       </p>
