@@ -68,7 +68,7 @@ export default function HomePage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
         {isMounted && isBannerVisible && promotionalImages.length > 0 && (
-             <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 pt-16">
+             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
                  <div className="relative w-full max-w-4xl">
                     <Carousel
                         setApi={setEmblaApi}
