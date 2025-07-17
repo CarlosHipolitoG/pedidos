@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Shield, Utensils, History, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useSettings } from '@/lib/settings';
+import { useSettings, PromotionalImage } from '@/lib/settings';
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
 import { cn } from '@/lib/utils';
@@ -32,12 +32,7 @@ export default function HomePage() {
 
   const promotionalImages = settings?.promotionalImages && settings.promotionalImages.length > 0 
     ? settings.promotionalImages 
-    : [
-      { id: 1, src: "https://placehold.co/1000x500.png", alt: "Promoción 1", hint: "promotion event" },
-      { id: 2, src: "https://placehold.co/1000x500.png", alt: "Promoción 2", hint: "special offer" },
-      { id: 3, src: "https://placehold.co/1000x500.png", alt: "Promoción 3", hint: "discount party" },
-      { id: 4, src: "https://placehold.co/1000x500.png", alt: "Promoción 4", hint: "happy hour" },
-  ];
+    : [];
 
   useEffect(() => {
     setIsMounted(true);
@@ -78,7 +73,7 @@ export default function HomePage() {
                                                 src={img.src}
                                                 alt={img.alt}
                                                 width={1000}
-                                                height={500}
+                                                height={1000}
                                                 className="w-full h-full object-contain"
                                                 data-ai-hint={img.hint}
                                             />

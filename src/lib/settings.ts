@@ -24,10 +24,10 @@ const initialSettings: Settings = {
   logoUrl: 'https://placehold.co/80x80.png',
   backgroundUrl: 'https://storage.googleapis.com/project-spark-b6b15e45/dc407172-5953-4565-a83a-48a58ca7694f.png',
   promotionalImages: [
-      { id: 1, src: "https://placehold.co/1000x500.png", alt: "Promoción 1", hint: "promotion event" },
-      { id: 2, src: "https://placehold.co/1000x500.png", alt: "Promoción 2", hint: "special offer" },
-      { id: 3, src: "https://placehold.co/1000x500.png", alt: "Promoción 3", hint: "discount party" },
-      { id: 4, src: "https://placehold.co/1000x500.png", alt: "Promoción 4", hint: "happy hour" },
+      { id: 1, src: "https://placehold.co/1000x1000.png", alt: "Promoción 1", hint: "promotion event" },
+      { id: 2, src: "https://placehold.co/1000x1000.png", alt: "Promoción 2", hint: "special offer" },
+      { id: 3, src: "https://placehold.co/1000x1000.png", alt: "Promoción 3", hint: "discount party" },
+      { id: 4, src: "https://placehold.co/1000x1000.png", alt: "Promoción 4", hint: "happy hour" },
   ]
 };
 
