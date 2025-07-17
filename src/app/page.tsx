@@ -97,7 +97,7 @@ export default function HomePage() {
 
         <div className={cn(
             "absolute top-4 right-4 flex gap-4",
-            isBannerVisible ? 'z-30' : 'z-10'
+            "z-30" 
         )}>
             <Link href="/waiter" passHref>
                 <Button variant="ghost" size="icon" aria-label="Waiter Login">
@@ -163,21 +163,23 @@ export default function HomePage() {
                                 onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
-                        <Button type="submit" className="w-full" disabled={!name || !phone}>
-                            Crear Nuevo Pedido
-                        </Button>
-                        {isMounted && hasPreviousOrders && (
-                            <Button
-                                variant="outline"
-                                className="w-full"
-                                asChild
-                            >
-                                <Link href="/my-orders">
-                                    <History className="mr-2 h-4 w-4" />
-                                    Ver mis Pedidos Anteriores
-                                </Link>
+                        <div className="space-y-2">
+                            <Button type="submit" className="w-full" disabled={!name || !phone}>
+                                Crear Nuevo Pedido
                             </Button>
-                        )}
+                            {isMounted && hasPreviousOrders && (
+                                <Button
+                                    variant="outline"
+                                    className="w-full"
+                                    asChild
+                                >
+                                    <Link href="/my-orders">
+                                        <History className="mr-2 h-4 w-4" />
+                                        Ver mis Pedidos Anteriores
+                                    </Link>
+                                </Button>
+                            )}
+                        </div>
                     </form>
                 </CardContent>
             </Card>
