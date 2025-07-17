@@ -81,14 +81,14 @@ export default function HomePage() {
                             {promotionalImages.map((img) => (
                                 <CarouselItem key={img.id}>
                                      <Card className="overflow-hidden bg-transparent border-none">
-                                        <CardContent className="p-0 flex items-center justify-center">
+                                        <CardContent className="p-0 flex items-center justify-center aspect-square max-h-[80vh]">
                                             <Image
                                                 src={img.src}
                                                 alt={img.alt}
-                                                width={1000}
-                                                height={1000}
-                                                className="w-full h-full object-contain"
+                                                fill
+                                                className="object-contain"
                                                 data-ai-hint={img.hint}
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                             />
                                         </CardContent>
                                     </Card>
@@ -100,7 +100,7 @@ export default function HomePage() {
                  <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70 hover:text-white rounded-full h-8 w-8 z-30"
+                    className="absolute top-4 right-4 bg-black/50 text-white hover:bg-black/70 hover:text-white rounded-full h-8 w-8 z-30"
                     onClick={handleCloseBanner}
                 >
                     <X className="h-5 w-5" />
@@ -142,8 +142,8 @@ export default function HomePage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                         <div className="space-y-4">
+                    <form onSubmit={handleSubmit}>
+                        <div className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Nombre Completo</Label>
                                 <Input

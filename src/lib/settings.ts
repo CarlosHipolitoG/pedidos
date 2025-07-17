@@ -21,13 +21,13 @@ const SETTINGS_STORAGE_KEY = 'holiday-friends-settings';
 
 const initialSettings: Settings = {
   barName: 'HOLIDAYS FRIENDS',
-  logoUrl: 'https://placehold.co/80x80.png',
+  logoUrl: 'https://storage.googleapis.com/project-spark-b6b15e45/c015b678-9e5c-4467-8566-3c0a4c079237.png',
   backgroundUrl: 'https://storage.googleapis.com/project-spark-b6b15e45/dc407172-5953-4565-a83a-48a58ca7694f.png',
   promotionalImages: [
-      { id: 1, src: "https://placehold.co/1000x1000.png", alt: "Promoción 1", hint: "promotion event" },
-      { id: 2, src: "https://placehold.co/1000x1000.png", alt: "Promoción 2", hint: "special offer" },
-      { id: 3, src: "https://placehold.co/1000x1000.png", alt: "Promoción 3", hint: "discount party" },
-      { id: 4, src: "https://placehold.co/1000x1000.png", alt: "Promoción 4", hint: "happy hour" },
+      { id: 1, src: "https://storage.googleapis.com/project-spark-b6b15e45/c015b678-9e5c-4467-8566-3c0a4c079237.png", alt: "Promoción 1", hint: "promotion event" },
+      { id: 2, src: "https://storage.googleapis.com/project-spark-b6b15e45/f8365f57-631d-4475-a083-207d5781a7b4.png", alt: "Promoción 2", hint: "special offer" },
+      { id: 3, src: "https://storage.googleapis.com/project-spark-b6b15e45/dc407172-5953-4565-a83a-48a58ca7694f.png", alt: "Promoción 3", hint: "discount party" },
+      { id: 4, src: "https://storage.googleapis.com/project-spark-b6b15e45/05459f37-64cd-4e89-9a7c-1795c6439167.png", alt: "Promoción 4", hint: "happy hour" },
   ]
 };
 
