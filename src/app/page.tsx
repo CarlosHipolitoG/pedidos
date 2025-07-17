@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Shield, Utensils, History, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useSettings } from '@/lib/settings';
+import { useSettings, PromotionalImage } from '@/lib/settings';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
 import { cn } from '@/lib/utils';
@@ -27,14 +27,11 @@ export default function HomePage() {
   const [isMounted, setIsMounted] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(true);
   const [emblaApi, setEmblaApi] = useState<CarouselApi | undefined>(undefined);
+  const [promotionalImages, setPromotionalImages] = useState<PromotionalImage[]>([]);
 
   const autoplayPlugin = useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true })
   );
-
-  const promotionalImages = settings?.promotionalImages && settings.promotionalImages.length > 0 
-    ? settings.promotionalImages 
-    : [];
 
   useEffect(() => {
     setIsMounted(true);
@@ -42,14 +39,17 @@ export default function HomePage() {
     if (storedPhone) {
       setHasPreviousOrders(true);
     }
-  }, []);
+    if (settings?.promotionalImages) {
+        setPromotionalImages(settings.promotionalImages);
+    }
+  }, [settings]);
 
   useEffect(() => {
     if (isBannerVisible && emblaApi) {
         emblaApi.reInit();
         autoplayPlugin.current.play();
     }
-  }, [isBannerVisible, emblaApi]);
+  }, [isBannerVisible, emblaApi, promotionalImages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
