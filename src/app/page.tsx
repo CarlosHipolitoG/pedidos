@@ -46,7 +46,6 @@ export default function HomePage() {
 
   useEffect(() => {
     if (isBannerVisible && emblaApi) {
-        // When the banner becomes visible, re-initialize embla to ensure it sizes correctly.
         emblaApi.reInit();
     }
   }, [isBannerVisible, emblaApi]);
