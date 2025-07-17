@@ -59,7 +59,7 @@ export default function HomePage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
         {isBannerVisible && (
-             <div className="absolute inset-x-0 top-10 z-20 p-4 flex justify-center">
+             <div className="absolute inset-x-0 top-10 z-20 px-4 flex justify-center">
                  <div className="relative w-full max-w-4xl">
                     <Carousel
                         plugins={[autoplayPlugin.current]}
@@ -77,7 +77,7 @@ export default function HomePage() {
                                                 alt={img.alt}
                                                 width={1000}
                                                 height={500}
-                                                className="aspect-video object-cover"
+                                                className="aspect-[2/1] md:aspect-video object-cover"
                                                 data-ai-hint={img.hint}
                                             />
                                         </CardContent>
@@ -114,7 +114,7 @@ export default function HomePage() {
             </Link>
         </div>
 
-        <div className="z-10 relative">
+        <div className="z-10 relative mt-4">
             <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm">
                 <CardHeader className="items-center">
                     {isMounted && settings.logoUrl && (
