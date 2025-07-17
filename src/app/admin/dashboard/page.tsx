@@ -188,14 +188,19 @@ export default function AdminDashboardPage() {
       });
     });
 
-    const reportData = products.map(product => ({
-      'ID Producto': product.id,
-      'Nombre': product.nombre,
-      'Categoría': product.categoria,
-      'Existencias Actuales': product.existencias,
-      'Cantidad Vendida': productSales[product.id] || 0,
-      'Disponibilidad': product.disponibilidad
-    })).sort((a, b) => a['ID Producto'] - b['ID Producto']);
+    const reportData = products.map(product => {
+      const cantidadVendida = productSales[product.id] || 0;
+      const existenciasActuales = product.existencias;
+      return {
+        'ID Producto': product.id,
+        'Nombre': product.nombre,
+        'Categoría': product.categoria,
+        'Existencias Actuales': existenciasActuales,
+        'Cantidad Vendida': cantidadVendida,
+        'Existencias Disponibles': existenciasActuales - cantidadVendida,
+        'Disponibilidad': product.disponibilidad
+      };
+    }).sort((a, b) => a['ID Producto'] - b['ID Producto']);
     downloadCSV(reportData, 'informe-inventario');
   };
 
@@ -220,7 +225,7 @@ export default function AdminDashboardPage() {
         <CardHeader className="flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <CardTitle>
-                Pedidos Recibidos ({isMounted ? `(${filteredOrders.length})` : '...'})
+                Pedidos Recibidos {isMounted ? `(${filteredOrders.length})` : '...'}
               </CardTitle>
               <CardDescription>Los pedidos más recientes aparecen primero.</CardDescription>
             </div>
