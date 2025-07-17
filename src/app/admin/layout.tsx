@@ -16,7 +16,7 @@ export default function AdminLayout({
   return (
     <div>
       {isDemoNoticeVisible && (
-        <Alert className="fixed top-0 left-0 right-0 z-50 m-2 sm:m-4 max-w-2xl mx-auto bg-card/90 backdrop-blur-sm">
+        <Alert className="fixed bottom-4 right-4 z-50 w-full max-w-md bg-card/90 backdrop-blur-sm">
           <Info className="h-4 w-4" />
           <AlertTitle>Aviso Importante</AlertTitle>
           <AlertDescription>
@@ -34,7 +34,7 @@ export default function AdminLayout({
           </Button>
         </Alert>
       )}
-      <div className={isDemoNoticeVisible ? 'pt-24' : ''}>
+      <div>
         {children}
       </div>
     </div>
