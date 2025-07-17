@@ -72,7 +72,7 @@ export default function HomePage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
         {isBannerVisible && promotionalImages.length > 0 && (
-            <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+             <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
                 <div className="relative w-full max-w-4xl">
                     <Carousel
                         setApi={setEmblaApi}
@@ -84,7 +84,7 @@ export default function HomePage() {
                         <CarouselContent>
                             {promotionalImages.map((img) => (
                                 <CarouselItem key={img.id}>
-                                     <Card className="overflow-hidden bg-transparent border-none">
+                                    <Card className="overflow-hidden bg-transparent border-none">
                                         <CardContent className="relative p-0 aspect-square flex items-center justify-center max-h-[80vh]">
                                             <Image
                                                 src={img.src}
@@ -102,7 +102,7 @@ export default function HomePage() {
                         </CarouselContent>
                     </Carousel>
                 </div>
-                 <Button 
+                <Button 
                     variant="ghost" 
                     size="icon" 
                     className="absolute top-4 right-4 bg-black/50 text-white hover:bg-black/70 hover:text-white rounded-full h-8 w-8"
