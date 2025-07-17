@@ -69,36 +69,38 @@ export default function HomePage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
         {isBannerVisible && promotionalImages.length > 0 && (
-             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-                 <div className="relative w-full max-w-4xl">
-                    <Carousel
-                        setApi={setEmblaApi}
-                        plugins={[autoplayPlugin.current]}
-                        className="w-full"
-                        onMouseEnter={() => autoplayPlugin.current.stop()}
-                        onMouseLeave={() => autoplayPlugin.current.play()}
-                    >
-                        <CarouselContent>
-                            {promotionalImages.map((img) => (
-                                <CarouselItem key={img.id}>
-                                     <Card className="overflow-hidden bg-transparent border-none">
-                                        <CardContent className="relative p-0 aspect-square flex items-center justify-center max-h-[80vh]">
-                                            <Image
-                                                src={img.src}
-                                                alt={img.alt}
-                                                fill={true}
-                                                className="object-contain"
-                                                data-ai-hint={img.hint}
-                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                                priority={true}
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                </CarouselItem>
-                            ))}
-                        </CarouselContent>
-                    </Carousel>
-                 </div>
+            <div className="fixed inset-0 bg-black/60 z-50 p-4">
+                <div className="relative w-full h-full flex items-center justify-center">
+                    <div className="relative w-full max-w-4xl">
+                        <Carousel
+                            setApi={setEmblaApi}
+                            plugins={[autoplayPlugin.current]}
+                            className="w-full"
+                            onMouseEnter={() => autoplayPlugin.current.stop()}
+                            onMouseLeave={() => autoplayPlugin.current.play()}
+                        >
+                            <CarouselContent>
+                                {promotionalImages.map((img) => (
+                                    <CarouselItem key={img.id}>
+                                         <Card className="overflow-hidden bg-transparent border-none">
+                                            <CardContent className="relative p-0 aspect-square flex items-center justify-center max-h-[80vh]">
+                                                <Image
+                                                    src={img.src}
+                                                    alt={img.alt}
+                                                    fill={true}
+                                                    className="object-contain"
+                                                    data-ai-hint={img.hint}
+                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                    priority={true}
+                                                />
+                                            </CardContent>
+                                        </Card>
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                        </Carousel>
+                    </div>
+                </div>
                  <Button 
                     variant="ghost" 
                     size="icon" 
@@ -107,7 +109,7 @@ export default function HomePage() {
                 >
                     <X className="h-5 w-5" />
                 </Button>
-             </div>
+            </div>
         )}
 
         <div className={cn("absolute top-4 right-4 flex gap-4 z-20")}>
