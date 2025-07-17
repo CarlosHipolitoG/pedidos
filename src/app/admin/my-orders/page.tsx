@@ -18,6 +18,11 @@ export default function AdminMyOrdersPage() {
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
   const { orders } = useOrders(); 
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (adminName) {
@@ -66,7 +71,7 @@ export default function AdminMyOrdersPage() {
           <CardDescription className="text-center">
             Aquí están todos los pedidos en los que has intervenido como <span className="font-semibold">{adminName}</span>.
           </CardDescription>
-           {totalSales > 0 && (
+           {isMounted && totalSales > 0 && (
             <div className="text-center mt-4">
                 <p className="text-lg font-semibold flex items-center justify-center gap-2">
                     <DollarSign className="h-6 w-6 text-green-500"/>

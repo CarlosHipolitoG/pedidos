@@ -32,7 +32,11 @@ export default function AdminDashboardPage() {
   const [formattedDates, setFormattedDates] = useState<Record<string, string>>({});
   const [formattedItemDates, setFormattedItemDates] = useState<Record<string, string>>({});
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'Todos'>('Todos');
+  const [isMounted, setIsMounted] = useState(false);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const newFormattedDates: Record<string, string> = {};
@@ -121,7 +125,7 @@ export default function AdminDashboardPage() {
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold">Panel de Administrador</h1>
         <p className="text-muted-foreground">Aquí puedes ver y gestionar todos los pedidos del sistema.</p>
-        {totalSales > 0 && (
+        {isMounted && totalSales > 0 && (
             <div className="text-center mt-4">
                 <p className="text-lg font-semibold flex items-center justify-center gap-2">
                     <DollarSign className="h-6 w-6 text-green-500"/>
