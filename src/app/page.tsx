@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Shield, Utensils, History, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSettings } from '@/lib/settings';
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
 import { cn } from '@/lib/utils';
 
@@ -25,6 +25,7 @@ export default function HomePage() {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(true);
+  const [emblaApi, setEmblaApi] = useState<CarouselApi | undefined>(undefined);
 
   const autoplayPlugin = useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true })
@@ -41,6 +42,13 @@ export default function HomePage() {
       setHasPreviousOrders(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (isBannerVisible && emblaApi) {
+        // When the banner becomes visible, re-initialize embla to ensure it sizes correctly.
+        emblaApi.reInit();
+    }
+  }, [isBannerVisible, emblaApi]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +71,7 @@ export default function HomePage() {
              <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 pt-16">
                  <div className="relative w-full max-w-4xl">
                     <Carousel
+                        setApi={setEmblaApi}
                         plugins={[autoplayPlugin.current]}
                         className="w-full"
                         onMouseEnter={() => autoplayPlugin.current.stop()}
@@ -114,21 +123,23 @@ export default function HomePage() {
 
         <div className="z-10 relative mt-4">
             <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm">
-                <CardHeader className="items-center">
-                    {isMounted && settings.logoUrl && (
-                        <Image 
-                            src={settings.logoUrl} 
-                            alt="Logo" 
-                            width={80} 
-                            height={80} 
-                            className="rounded-full mb-4"
-                            data-ai-hint="logo"
-                        />
-                    )}
-                    <CardTitle className="text-2xl text-center">¡Bienvenido a {isMounted ? settings.barName : '...'}!</CardTitle>
-                    <CardDescription className="text-center">
-                        Ingresa tus datos para comenzar o revisa tus pedidos anteriores.
-                    </CardDescription>
+                <CardHeader>
+                    <div className="flex flex-col items-center">
+                        {isMounted && settings.logoUrl && (
+                            <Image 
+                                src={settings.logoUrl} 
+                                alt="Logo" 
+                                width={80} 
+                                height={80} 
+                                className="rounded-full mb-4"
+                                data-ai-hint="logo"
+                            />
+                        )}
+                        <CardTitle className="text-2xl text-center">¡Bienvenido a {isMounted ? settings.barName : '...'}!</CardTitle>
+                        <CardDescription className="text-center">
+                            Ingresa tus datos para comenzar o revisa tus pedidos anteriores.
+                        </CardDescription>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
