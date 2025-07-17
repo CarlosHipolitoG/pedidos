@@ -130,7 +130,7 @@ export default function HomePage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="name">Nombre Completo</Label>
                             <Input
@@ -163,7 +163,7 @@ export default function HomePage() {
                                 onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 pt-4">
                             <Button type="submit" className="w-full" disabled={!name || !phone}>
                                 Crear Nuevo Pedido
                             </Button>
