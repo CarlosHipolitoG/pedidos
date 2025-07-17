@@ -5,13 +5,13 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { useOrders, Order, OrderStatus, updateOrderStatus, addProductToOrder, OrderItem } from '@/lib/orders';
+import { useOrders, Order, OrderStatus, updateOrderStatus, addProductToOrder, OrderItem, deleteOrder } from '@/lib/orders';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download, Settings } from 'lucide-react';
+import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download, Settings, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,17 @@ import Image from 'next/image';
 import { useDebounce } from 'use-debounce';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function AdminDashboardPage() {
   const { orders } = useOrders();
@@ -204,6 +214,9 @@ export default function AdminDashboardPage() {
     downloadCSV(reportData, 'informe-inventario');
   };
 
+  const handleDeleteOrder = (orderId: number) => {
+    deleteOrder(orderId);
+  };
 
   return (
     <div className="container mx-auto py-8">
@@ -311,6 +324,27 @@ export default function AdminDashboardPage() {
                          <span className="font-semibold text-lg">
                            ${order.total.toLocaleString('es-CO')}
                          </span>
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+                                    <Trash2 className="h-5 w-5 text-destructive" />
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>¿Estás seguro de que quieres eliminar el pedido #{order.id}?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Esta acción no se puede deshacer. Se eliminará el pedido permanentemente.
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>
+                                    Eliminar Pedido
+                                </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   </AccordionTrigger>

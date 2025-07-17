@@ -239,6 +239,11 @@ class OrderStore {
         this.broadcast();
         return success;
     }
+
+    public deleteOrder(orderId: number): void {
+        this.orders = this.orders.filter(order => order.id !== orderId);
+        this.broadcast();
+    }
 }
 
 const orderStoreInstance = OrderStore.getInstance();
@@ -279,6 +284,9 @@ export const removeProductFromOrder = (orderId: number, itemId: number): boolean
     return orderStoreInstance.removeProductFromOrder(orderId, itemId);
 };
 
+export const deleteOrder = (orderId: number): void => {
+    orderStoreInstance.deleteOrder(orderId);
+}
 
 export function useOrders() {
     const [orders, setOrders] = useState(orderStoreInstance.getOrders());
