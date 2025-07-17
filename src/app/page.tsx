@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Shield, Utensils, History } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSettings } from '@/lib/settings';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 export default function HomePage() {
   const [name, setName] = useState('');
@@ -52,6 +52,7 @@ export default function HomePage() {
     <>
       <Dialog open={isBannerOpen} onOpenChange={setIsBannerOpen}>
         <DialogContent className="sm:max-w-[625px] p-0 border-0">
+           <DialogTitle className="sr-only">Promoción</DialogTitle>
           <Image
             src="https://placehold.co/600x800.png"
             alt="Promotional Banner"
