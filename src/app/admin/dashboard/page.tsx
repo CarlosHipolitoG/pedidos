@@ -11,7 +11,7 @@ import { es } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered } from 'lucide-react';
+import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -39,6 +39,7 @@ export default function AdminDashboardPage() {
   }, []);
 
   useEffect(() => {
+    if (!isMounted) return;
     const newFormattedDates: Record<string, string> = {};
     const newFormattedItemDates: Record<string, string> = {};
 
@@ -53,7 +54,7 @@ export default function AdminDashboardPage() {
     });
     setFormattedDates(newFormattedDates);
     setFormattedItemDates(newFormattedItemDates);
-  }, [orders]);
+  }, [orders, isMounted]);
 
 
   const handleStatusChange = (orderId: number, newStatus: OrderStatus) => {
@@ -97,10 +98,10 @@ export default function AdminDashboardPage() {
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
   
-  const filteredOrders = orders.filter(order => {
+  const filteredOrders = isMounted ? orders.filter(order => {
     if (filterStatus === 'Todos') return true;
     return order.status === filterStatus;
-  });
+  }) : [];
 
   const getStatusBadgeVariant = (status: OrderStatus) => {
     switch (status) {
@@ -117,7 +118,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
+  const totalSales = isMounted ? orders.reduce((sum, order) => sum + order.total, 0) : 0;
 
 
   return (
@@ -176,7 +177,11 @@ export default function AdminDashboardPage() {
             </div>
         </CardHeader>
         <CardContent>
-          {filteredOrders.length > 0 ? (
+          {!isMounted ? (
+             <div className="flex justify-center items-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+             </div>
+          ) : filteredOrders.length > 0 ? (
             <Accordion type="single" collapsible className="w-full" defaultValue={filteredOrders.length > 0 ? "item-0" : undefined}>
               {filteredOrders.map((order, index) => (
                 <AccordionItem 
@@ -324,5 +329,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
-    
