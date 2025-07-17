@@ -86,7 +86,7 @@ export default function HomePage() {
                                                 src={img.src}
                                                 alt={img.alt}
                                                 width={1000}
-                                                height={500}
+                                                height={1000}
                                                 className="w-full h-full object-contain"
                                                 data-ai-hint={img.hint}
                                             />
