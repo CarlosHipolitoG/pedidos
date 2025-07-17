@@ -14,6 +14,7 @@ import { useSettings } from '@/lib/settings';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 export default function HomePage() {
@@ -125,17 +126,27 @@ export default function HomePage() {
             <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm">
                 <CardHeader>
                     <div className="flex flex-col items-center">
-                        {settings.logoUrl && (
-                            <Image 
-                                src={settings.logoUrl} 
-                                alt="Logo" 
-                                width={80} 
-                                height={80} 
-                                className="rounded-full mb-4"
-                                data-ai-hint="logo"
-                            />
+                        {!isMounted ? (
+                            <Skeleton className="h-20 w-20 rounded-full mb-4" />
+                        ) : (
+                            settings.logoUrl && (
+                                <Image 
+                                    src={settings.logoUrl} 
+                                    alt="Logo" 
+                                    width={80} 
+                                    height={80} 
+                                    className="rounded-full mb-4"
+                                    data-ai-hint="logo"
+                                />
+                            )
                         )}
-                        <CardTitle className="text-2xl text-center">¡Bienvenido a {settings.barName}!</CardTitle>
+                        <CardTitle className="text-2xl text-center">
+                            {!isMounted ? (
+                               <Skeleton className="h-8 w-48" />
+                            ) : (
+                                `¡Bienvenido a ${settings.barName}!`
+                            )}
+                        </CardTitle>
                         <CardDescription className="text-center">
                             Ingresa tus datos para comenzar o revisa tus pedidos anteriores.
                         </CardDescription>
@@ -201,4 +212,3 @@ export default function HomePage() {
     </div>
   );
 }
-
