@@ -50,7 +50,7 @@ const initialProductsData: Product[] = [
     { id: 34, nombre: 'CORONITA', precio: 7000, imagen: 'https://mambodelivery.vtexassets.com/arquivos/ids/212265/7891149108749--1-.jpg?v=638537270586500000', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 50, categoria: 'CERVEZAS' },
     { id: 35, nombre: 'COSTEÑA', precio: 4500, imagen: 'https://upload.wikimedia.org/wikipedia/commons/f/fd/Botella-350-sin-collarin-cerveza-colombiana.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 105, categoria: 'CERVEZAS' },
     { id: 36, nombre: 'COSTEÑA VERDE', precio: 4500, imagen: 'https://cdn.forbes.co/2020/07/Botela-coste%C3%B1a-bacana.jpg', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 70, categoria: 'CERVEZAS' },
-    { id: 37, nombre: 'CUBETAZO CERVEZA', precio: 30000, imagen: 'https://i3.wp.com/dijf55il5e0d1.cloudfront.net/images/na/hubertplus/5315600/5782_main_1000.jpg?resize=758%2C758&ssl=1', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 10, categoria: 'CERVEZAS' },
+    { id: 37, nombre: 'CUBETAZO CERVEZA POKER', precio: 30000, imagen: 'https://i3.wp.com/dijf55il5e0d1.cloudfront.net/images/na/hubertplus/5315600/5782_main_1000.jpg?resize=758%2C758&ssl=1', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 10, categoria: 'CERVEZAS' },
     { id: 38, nombre: 'DETODITO PERSONAL', precio: 4000, imagen: 'https://mir-s3-cdn-cf.behance.net/projects/max_808/410816114036869.Y3JvcCw4MDgsNjMyLDAsMA.jpg', disponibilidad: 'PRODUCTO_AGOTADO', existencias: 0, categoria: 'SNACKS' },
     { id: 39, nombre: 'DETODITO FAMILIAR', precio: 13000, imagen: 'https://i.pinimg.com/originals/b9/fe/e9/b9fee93357182dac049043ecf3d2d7a4.png', disponibilidad: 'PRODUCTO_AGOTADO', existencias: 0, categoria: 'SNACKS' },
     { id: 40, nombre: 'DORITOS PERSONAL', precio: 3000, imagen: 'https://i.ytimg.com/vi/G83w1GNW200/maxresdefault.jpg', disponibilidad: 'PRODUCTO_AGOTADO', existencias: 0, categoria: 'SNACKS' },
@@ -103,6 +103,7 @@ const initialProductsData: Product[] = [
     { id: 87, nombre: 'WHISKY RED LABEL SELLO ROJO 700 ML', precio: 160000, imagen: 'https://www.naughtygrapett.com/wp-content/uploads/2021/09/Johnnie_Walker_Red_Label_Scotch_Whisky_750ml_11440002_1-min.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 3, categoria: 'WHISKY' },
     { id: 88, nombre: 'WHISKY SPECIAL 350 ML', precio: 90000, imagen: 'https://drinkcentral.co/wp-content/uploads/2023/03/WHISKY-SOMETHING-SPECIAL-MEDIA-350ml.webp', disponibilidad: 'PRODUCTO_AGOTADO', existencias: 0, categoria: 'WHISKY' },
     { id: 89, nombre: 'WHISKY SPECIAL 750 ML', precio: 150000, imagen: 'https://vivanda.vtexassets.com/arquivos/ids/469581/36450.jpg?v=638379342449670000', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 1, categoria: 'WHISKY' },
+    { id: 90, nombre: 'CUBETAZO CERVEZA AGUILA', precio: 30000, imagen: 'https://i3.wp.com/dijf55il5e0d1.cloudfront.net/images/na/hubertplus/5315600/5782_main_1000.jpg?resize=758%2C758&ssl=1', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 10, categoria: 'CERVEZAS' },
 ];
 
 const PRODUCTS_STORAGE_KEY = 'holiday-friends-products';
