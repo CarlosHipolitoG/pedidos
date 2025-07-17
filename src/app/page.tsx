@@ -81,13 +81,12 @@ export default function HomePage() {
                             {promotionalImages.map((img) => (
                                 <CarouselItem key={img.id}>
                                      <Card className="overflow-hidden bg-transparent border-none">
-                                        <CardContent className="p-0 flex items-center justify-center max-h-[80vh]">
+                                        <CardContent className="relative p-0 aspect-square flex items-center justify-center max-h-[80vh]">
                                             <Image
                                                 src={img.src}
                                                 alt={img.alt}
-                                                width={1000}
-                                                height={1000}
-                                                className="object-contain w-full h-auto"
+                                                fill={true}
+                                                className="object-contain"
                                                 data-ai-hint={img.hint}
                                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                             />
