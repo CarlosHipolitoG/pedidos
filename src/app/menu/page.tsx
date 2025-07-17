@@ -91,7 +91,7 @@ export default function MenuPage() {
     }
     
     if (activeOrder) {
-        addProductToOrder(activeOrder.id, { ...product, quantity: 1 });
+        addProductToOrder(activeOrder.id, { ...product, quantity: 1 }, customerInfo?.name);
         toast({
             title: "Producto agregado",
             description: `${product.nombre} se ha añadido a tu pedido.`,
@@ -214,6 +214,8 @@ export default function MenuPage() {
           });
       }
   };
+  
+  const shouldShowActiveOrder = activeOrder && activeOrder.status !== 'Pagado';
 
   return (
     <div className="container mx-auto py-8">
@@ -240,7 +242,7 @@ export default function MenuPage() {
             </Link>
           </Button>
         </div>
-        {!activeOrder && (
+        {!shouldShowActiveOrder && (
             <Sheet>
             <SheetTrigger asChild>
                 <Button size="lg" className="relative">
@@ -340,7 +342,7 @@ export default function MenuPage() {
         )}
       </header>
 
-      {activeOrder && (
+      {shouldShowActiveOrder && activeOrder && (
         <Card className="mb-8 bg-card/90 backdrop-blur-sm border-primary/20">
             <CardHeader>
                 <CardTitle>Tu Pedido Activo (#{activeOrder.id})</CardTitle>
@@ -416,7 +418,7 @@ export default function MenuPage() {
                     <span>${activeOrder.total.toLocaleString('es-CO')}</span>
                  </div>
             </CardContent>
-            {(activeOrder.status === 'Completado' || activeOrder.status === 'Pagado') && (
+            {activeOrder.status === 'Completado' && (
                  <CardFooter>
                     <Button onClick={handleFinishOrder} className="w-full">
                        Finalizar y Crear Nuevo Pedido
