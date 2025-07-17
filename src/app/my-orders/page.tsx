@@ -28,16 +28,27 @@ export default function MyOrdersPage() {
   const [now, setNow] = useState(Date.now());
   const { toast } = useToast();
 
+  const handleSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!phone) return;
+    const customerOrders = getOrdersByCustomerPhone(phone).filter(
+      (order) => order.status !== 'Pagado'
+    );
+    setFoundOrders(customerOrders);
+    setSearched(true);
+    // save phone for future sessions
+    localStorage.setItem('customerPhone', phone);
+  };
+  
   useEffect(() => {
-    // This interval will re-render the component every 30 seconds
-    // to update the disabled state of the remove buttons.
     const interval = setInterval(() => setNow(Date.now()), 30 * 1000);
     
-    // Auto-search if phone is in localStorage
     const storedPhone = localStorage.getItem('customerPhone');
     if (storedPhone) {
         setPhone(storedPhone);
-        const customerOrders = getOrdersByCustomerPhone(storedPhone);
+        const customerOrders = getOrdersByCustomerPhone(storedPhone).filter(
+            (order) => order.status !== 'Pagado'
+        );
         setFoundOrders(customerOrders);
         setSearched(true);
     }
@@ -47,26 +58,15 @@ export default function MyOrdersPage() {
   }, []);
 
   useEffect(() => {
-    // This effect will re-run the search whenever the global order list changes
-    // ensuring the view is always up-to-date.
     if (searched && phone) {
         handleSearch();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orders]);
+  }, [orders, phone, searched]);
 
-  const handleSearch = (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!phone) return;
-    const customerOrders = getOrdersByCustomerPhone(phone);
-    setFoundOrders(customerOrders);
-    setSearched(true);
-    // save phone for future sessions
-    localStorage.setItem('customerPhone', phone);
-  };
   
   const handleGoToMenu = (orderId: number) => {
-    const customer = foundOrders[0]?.customer;
+    const customer = foundOrders.find(o => o.id === orderId)?.customer;
     if (customer) {
         localStorage.setItem('customerName', customer.name);
         localStorage.setItem('customerPhone', customer.phone);
@@ -122,7 +122,7 @@ export default function MyOrdersPage() {
         <CardHeader>
           <CardTitle className="text-2xl text-center">Mis Pedidos</CardTitle>
           <CardDescription className="text-center">
-            Ingresa tu número de celular para ver tu historial de pedidos.
+            Ingresa tu número de celular para ver tu historial de pedidos activos.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -238,7 +238,7 @@ export default function MyOrdersPage() {
                 </>
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
-                  <p>No se encontraron pedidos asociados a ese número de celular.</p>
+                  <p>No se encontraron pedidos activos o pendientes para este número.</p>
                 </div>
               )}
             </div>
@@ -248,5 +248,3 @@ export default function MyOrdersPage() {
     </div>
   );
 }
-
-    
