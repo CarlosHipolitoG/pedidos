@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { User, Utensils, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { validateUser } from '@/lib/users';
+import { validateUser, useUsers } from '@/lib/users';
 
 export default function AdminPage() {
   const [email, setEmail] = useState('admin@example.com');
@@ -18,6 +18,7 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const router = useRouter();
   const { toast } = useToast();
+  const { isInitialized: usersInitialized } = useUsers();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +95,7 @@ export default function AdminPage() {
               />
             </div>
             {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-            <Button type="submit" className="w-full" disabled={!email || !password}>
+            <Button type="submit" className="w-full" disabled={!email || !password || !usersInitialized}>
               Iniciar Sesión
             </Button>
             <Button variant="link" className="w-full" asChild>

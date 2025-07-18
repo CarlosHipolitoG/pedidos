@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Shield, User, Utensils } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { validateUser } from '@/lib/users';
+import { validateUser, useUsers } from '@/lib/users';
 
 export default function WaiterPage() {
   const [email, setEmail] = useState('');
@@ -18,6 +18,7 @@ export default function WaiterPage() {
   const [error, setError] = useState('');
   const router = useRouter();
   const { toast } = useToast();
+  const { isInitialized: usersInitialized } = useUsers();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +95,7 @@ export default function WaiterPage() {
               />
             </div>
             {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-            <Button type="submit" className="w-full" disabled={!email || !password}>
+            <Button type="submit" className="w-full" disabled={!email || !password || !usersInitialized}>
               Iniciar Sesión
             </Button>
              <Button variant="link" className="w-full" asChild>
