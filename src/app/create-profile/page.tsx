@@ -29,6 +29,7 @@ export default function CreateProfilePage() {
   const [cedula, setCedula] = useState('');
   const [birthDate, setBirthDate] = useState<Date | undefined>();
   const [address, setAddress] = useState('');
+  const [emergencyContact, setEmergencyContact] = useState('');
   const [commentCategory, setCommentCategory] = useState<CommentCategory | undefined>();
   const [comment, setComment] = useState('');
   
@@ -58,6 +59,7 @@ export default function CreateProfilePage() {
         cedula,
         birthDate: birthDate ? birthDate.toISOString() : undefined,
         address,
+        emergencyContact,
         commentCategory,
         comment,
     });
@@ -104,6 +106,10 @@ export default function CreateProfilePage() {
                   <Label htmlFor="phone">Número de Celular</Label>
                   <Input id="phone" type="tel" placeholder="Ej: 3001234567" value={phone} onChange={(e) => setPhone(e.target.value)} required />
               </div>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="emergencyContact">Contacto de Emergencia (Opcional)</Label>
+                <Input id="emergencyContact" type="tel" placeholder="Número de contacto" value={emergencyContact} onChange={(e) => setEmergencyContact(e.target.value)} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="email">Correo Electrónico</Label>

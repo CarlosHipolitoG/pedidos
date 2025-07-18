@@ -18,6 +18,7 @@ export type User = {
   cedula?: string;
   birthDate?: string;
   address?: string;
+  emergencyContact?: string;
   commentCategory?: CommentCategory;
   comment?: string;
 };
