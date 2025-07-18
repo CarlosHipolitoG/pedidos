@@ -4,13 +4,14 @@
 import {useAppStore, store} from './store';
 
 // Simplified user types
-export type UserRole = 'admin' | 'waiter';
+export type UserRole = 'admin' | 'waiter' | 'client';
 
 export type User = {
   id: number;
   name: string;
   email: string;
-  password_hash: string; // Storing a "hash" for simulation
+  phone?: string;
+  password_hash?: string; // Storing a "hash" for simulation, optional for clients
   role: UserRole;
   temporaryPassword?: boolean;
 };
@@ -52,25 +53,44 @@ export function useUsers() {
 // --- Data Manipulation Functions ---
 
 const getUserByEmail = (email: string): User | undefined => {
+    if (!email) return undefined;
     const users = store.getState().users || [];
     return users.find(user => user.email.toLowerCase() === email.toLowerCase());
 }
 
-export const addUser = (userData: Omit<User, 'id' | 'password_hash' | 'temporaryPassword'>): string => {
-    const tempPassword = Math.random().toString(36).slice(-8);
+export const addUser = (userData: Omit<User, 'id' | 'password_hash' | 'temporaryPassword'> & { password_hash?: string; temporaryPassword?: boolean; }): { newUser: User, tempPassword?: string } => {
+    let tempPassword: string | undefined;
+    let newUser: User | null = null;
+    
     store.updateState(currentState => {
         const currentUsers = currentState.users || [];
         const nextUserId = (currentUsers.reduce((maxId, u) => Math.max(u.id, maxId), 0) || 0) + 1;
-        const newUser: User = {
-            ...userData,
-            id: nextUserId,
-            password_hash: simpleHash(tempPassword),
-            temporaryPassword: true,
-        };
-        const users = [...currentUsers, newUser].sort((a, b) => a.id - b.id);
+        
+        let finalUserData: User;
+
+        if (userData.role === 'client') {
+            finalUserData = {
+                ...userData,
+                id: nextUserId,
+                password_hash: undefined,
+                temporaryPassword: false,
+            };
+        } else {
+            tempPassword = Math.random().toString(36).slice(-8);
+            finalUserData = {
+                ...userData,
+                id: nextUserId,
+                password_hash: simpleHash(tempPassword),
+                temporaryPassword: true,
+            };
+        }
+        
+        newUser = finalUserData;
+        const users = [...currentUsers, finalUserData].sort((a, b) => a.id - b.id);
         return { ...currentState, users };
     });
-    return tempPassword;
+
+    return { newUser: newUser!, tempPassword };
 };
 
 export const updateUser = (userId: number, updatedData: Partial<Omit<User, 'id' | 'password_hash' | 'temporaryPassword'>>): void => {
@@ -98,7 +118,7 @@ export const validateUser = (email: string, password_plaintext: string, required
         return { success: false, message: 'El usuario no tiene el rol requerido.' };
     }
     // Bypassing password validation as requested, but keeping the structure
-    // if (!simpleCompare(password_plaintext, user.password_hash)) {
+    // if (!user.password_hash || !simpleCompare(password_plaintext, user.password_hash)) {
     //     return { success: false, message: 'Contraseña incorrecta.' };
     // }
     return { success: true, user, isTemporaryPassword: !!user.temporaryPassword };
@@ -125,13 +145,13 @@ export const updateUserPassword = (email: string, newPassword_plaintext: string)
     return success;
 };
 
-export const getUserFromStorage = (email: string): { email: string, role: UserRole, password: string, temporaryPassword?: boolean } | null => {
+export const getUserFromStorage = (email: string): { email: string, role: UserRole, password?: string, temporaryPassword?: boolean } | null => {
     const user = getUserByEmail(email);
     if(!user) return null;
     return {
         email: user.email,
         role: user.role,
-        password: user.password_hash.replace('hashed_',''),
+        password: user.password_hash ? user.password_hash.replace('hashed_','') : undefined,
         temporaryPassword: user.temporaryPassword
     };
 }

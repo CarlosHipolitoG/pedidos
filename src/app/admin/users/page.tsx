@@ -42,6 +42,7 @@ export default function AdminUsersPage() {
         name: '',
         email: '',
         role: 'waiter',
+        phone: '',
       });
     }
     setIsModalOpen(true);
@@ -60,18 +61,22 @@ export default function AdminUsersPage() {
        toast({ title: "Usuario Actualizado", description: `Los datos de ${editingUser.name} han sido actualizados.` });
     } else {
       // Adding new user
-      const tempPassword = addUser(editingUser as Omit<User, 'id' | 'password_hash' | 'temporaryPassword'>);
-      toast({ 
-          title: "Usuario Registrado Exitosamente", 
-          description: (
-            <div>
-                <p>Usuario: {editingUser.name}</p>
-                <p>Contraseña Temporal: <span className="font-bold">{tempPassword}</span></p>
-                <p className="text-xs mt-2">Por favor, comparte esta contraseña de forma segura.</p>
-            </div>
-          ),
-          duration: 15000 
-      });
+      const result = addUser(editingUser as Omit<User, 'id' | 'password_hash' | 'temporaryPassword'>);
+      if (result.tempPassword) {
+        toast({ 
+            title: "Usuario Registrado Exitosamente", 
+            description: (
+              <div>
+                  <p>Usuario: {editingUser.name}</p>
+                  <p>Contraseña Temporal: <span className="font-bold">{result.tempPassword}</span></p>
+                  <p className="text-xs mt-2">Por favor, comparte esta contraseña de forma segura.</p>
+              </div>
+            ),
+            duration: 15000 
+        });
+      } else {
+         toast({ title: "Cliente Registrado", description: `${editingUser.name} ha sido añadido como cliente.` });
+      }
     }
     setIsModalOpen(false);
     setEditingUser(null);
@@ -86,6 +91,15 @@ export default function AdminUsersPage() {
     if (!editingUser) return;
     setEditingUser(prev => ({ ...prev, [field]: value }));
   };
+  
+  const getRoleBadgeVariant = (role: User['role']) => {
+      switch(role) {
+          case 'admin': return 'default';
+          case 'waiter': return 'secondary';
+          case 'client': return 'outline';
+          default: return 'outline';
+      }
+  }
 
   return (
     <div className="container mx-auto py-8">
@@ -103,7 +117,7 @@ export default function AdminUsersPage() {
             <div>
                 <CardTitle>Registro y Gestión de Usuarios</CardTitle>
                 <CardDescription>
-                    Registra, edita y gestiona los perfiles de administradores y meseros.
+                    Registra, edita y gestiona los perfiles de administradores, meseros y clientes.
                 </CardDescription>
             </div>
             <Button onClick={() => openModal()}>
@@ -117,6 +131,7 @@ export default function AdminUsersPage() {
               <TableRow>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Celular</TableHead>
                 <TableHead>Rol</TableHead>
                 <TableHead>Contraseña</TableHead>
                 <TableHead className="text-center">Acciones</TableHead>
@@ -127,16 +142,19 @@ export default function AdminUsersPage() {
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
+                   <TableCell>{user.phone || 'N/A'}</TableCell>
                   <TableCell>
-                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>{user.role}</Badge>
+                    <Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
                   </TableCell>
                   <TableCell>
                     {user.temporaryPassword ? (
                         <span className="flex items-center text-amber-600">
                              <KeyRound className="h-4 w-4 mr-2" /> Temporal
                         </span>
-                    ) : (
+                    ) : user.role !== 'client' ? (
                        <span className="text-green-600">Definitiva</span>
+                    ) : (
+                       <span className="text-muted-foreground">N/A</span>
                     )}
                   </TableCell>
                   <TableCell className="text-center space-x-2">
@@ -190,18 +208,23 @@ export default function AdminUsersPage() {
                     <Input id="email" type="email" value={editingUser?.email || ''} onChange={(e) => handleInputChange('email', e.target.value)} />
                 </div>
                 <div className="space-y-2">
+                    <Label htmlFor="phone">Número de Celular</Label>
+                    <Input id="phone" type="tel" value={editingUser?.phone || ''} onChange={(e) => handleInputChange('phone', e.target.value)} />
+                </div>
+                <div className="space-y-2">
                     <Label htmlFor="role">Rol</Label>
                      <Select value={editingUser?.role} onValueChange={(value) => handleInputChange('role', value)}>
                         <SelectTrigger id="role">
                             <SelectValue placeholder="Seleccionar rol" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="waiter">Mesero</SelectItem>
                             <SelectItem value="admin">Administrador</SelectItem>
+                            <SelectItem value="waiter">Mesero</SelectItem>
+                            <SelectItem value="client">Cliente</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
-                {!editingUser?.id && (
+                {!editingUser?.id && editingUser?.role !== 'client' && (
                      <p className="text-sm text-muted-foreground">Se generará una contraseña temporal para este usuario.</p>
                 )}
             </div>

@@ -15,6 +15,8 @@ import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/com
 import Autoplay from "embla-carousel-autoplay"
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { addUser, getUserFromStorage } from '@/lib/users';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function HomePage() {
@@ -27,6 +29,7 @@ export default function HomePage() {
   const [isBannerVisible, setIsBannerVisible] = useState(true);
   const [emblaApi, setEmblaApi] = useState<CarouselApi | undefined>(undefined);
   const [promotionalImages, setPromotionalImages] = useState<PromotionalImage[]>([]);
+  const { toast } = useToast();
 
   const autoplayPlugin = useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true })
@@ -55,6 +58,20 @@ export default function HomePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name && phone) {
+      const existingUser = getUserFromStorage(email);
+      if (!existingUser) {
+        addUser({
+            name: name,
+            email: email,
+            phone: phone,
+            role: 'client'
+        });
+        toast({
+            title: "¡Perfil Creado!",
+            description: "Tu perfil ha sido creado exitosamente. ¡Bienvenido!"
+        });
+      }
+
       localStorage.setItem('customerName', name);
       localStorage.setItem('customerPhone', phone);
       localStorage.setItem('customerEmail', email);
@@ -197,7 +214,7 @@ export default function HomePage() {
                             </div>
                             <div className="space-y-2 pt-4">
                                 <Button type="submit" className="w-full" disabled={!name || !phone}>
-                                    Crear Nuevo Pedido
+                                    Crear mi Perfil y Pedir
                                 </Button>
                                 {isSettingsInitialized && hasPreviousOrders && (
                                     <Button
