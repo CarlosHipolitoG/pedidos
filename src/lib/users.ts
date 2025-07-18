@@ -44,7 +44,8 @@ export function useUsers() {
 // --- Data Manipulation Functions ---
 
 const getUserByEmail = (email: string): User | undefined => {
-    return store.getState().users.find(user => user.email.toLowerCase() === email.toLowerCase());
+    const users = store.getState().users;
+    return (users || []).find(user => user.email.toLowerCase() === email.toLowerCase());
 }
 
 export const addUser = (userData: Omit<User, 'id' | 'password_hash' | 'temporaryPassword'>): string => {
