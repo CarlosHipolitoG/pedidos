@@ -47,7 +47,7 @@ export default function AdminDashboardPage() {
   const isMountedAndInitialized = isOrdersInitialized && isProductsInitialized;
 
   useEffect(() => {
-    if (!isMountedAndInitialized) return;
+    if (!isMountedAndInitialized || !orders) return;
     const newFormattedDates: Record<string, string> = {};
     const newFormattedItemDates: Record<string, string> = {};
 
@@ -100,11 +100,11 @@ export default function AdminDashboardPage() {
     }, 2000); // Highlight for 2 seconds
   };
 
-  const filteredProducts = products.filter((product) =>
+  const filteredProducts = (products || []).filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
   
-  const filteredOrders = isMountedAndInitialized ? orders.filter(order => {
+  const filteredOrders = isMountedAndInitialized ? (orders || []).filter(order => {
     if (filterStatus === 'Todos') return true;
     return order.status === filterStatus;
   }) : [];
@@ -124,7 +124,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const totalSales = isMountedAndInitialized ? orders.reduce((sum, order) => sum + order.total, 0) : 0;
+  const totalSales = isMountedAndInitialized && orders ? orders.reduce((sum, order) => sum + order.total, 0) : 0;
   
   const downloadCSV = (data: any[], filename: string) => {
     if (!data.length) {
@@ -151,7 +151,7 @@ export default function AdminDashboardPage() {
   };
 
   const generateTotalSalesReport = () => {
-    const reportData = orders.map(order => ({
+    const reportData = (orders || []).map(order => ({
       'ID Pedido': order.id,
       'Fecha': format(new Date(order.timestamp), "yyyy-MM-dd HH:mm:ss"),
       'Cliente': order.customer.name,
@@ -167,7 +167,7 @@ export default function AdminDashboardPage() {
   const generateProductSalesReport = () => {
     const productSales: Record<number, { nombre: string; cantidad: number; total: number }> = {};
 
-    orders.forEach(order => {
+    (orders || []).forEach(order => {
       order.items.forEach(item => {
         if (!productSales[item.id]) {
           productSales[item.id] = { nombre: item.nombre, cantidad: 0, total: 0 };
@@ -187,13 +187,13 @@ export default function AdminDashboardPage() {
   
   const generateInventoryReport = () => {
     const productSales: Record<number, number> = {};
-    orders.forEach(order => {
+    (orders || []).forEach(order => {
       order.items.forEach(item => {
         productSales[item.id] = (productSales[item.id] || 0) + item.quantity;
       });
     });
 
-    const reportData = products.map(product => {
+    const reportData = (products || []).map(product => {
       const cantidadVendida = productSales[product.id] || 0;
       const existenciasActuales = product.existencias;
       return {
