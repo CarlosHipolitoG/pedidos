@@ -15,8 +15,8 @@ import { useAppStore } from '@/lib/store';
 
 
 export default function AdminPage() {
-  const [email, setEmail] = useState('temp.admin@example.com');
-  const [password, setPassword] = useState('tempadmin123');
+  const [email, setEmail] = useState('admin@example.com');
+  const [password, setPassword] = useState('admin123');
   const router = useRouter();
   const { toast } = useToast();
   const { isInitialized } = useAppStore();
