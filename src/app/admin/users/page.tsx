@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useUsers, User, addUser, updateUser, deleteUser, UserRole } from '@/lib/users';
-import { ArrowLeft, PlusCircle, Edit, Trash2, KeyRound } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Edit, Trash2, KeyRound, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -48,6 +48,14 @@ export default function AdminUsersPage() {
     setIsModalOpen(true);
   };
 
+  const handleCopyUrl = (url: string) => {
+    navigator.clipboard.writeText(url);
+    toast({
+      title: "URL Copiada",
+      description: "El enlace de acceso ha sido copiado al portapapeles.",
+    });
+  };
+
   const handleSaveUser = () => {
     if (!editingUser || !editingUser.name || !editingUser.email || !editingUser.role) {
         toast({ title: "Error", description: "Todos los campos son requeridos.", variant: "destructive" });
@@ -62,17 +70,30 @@ export default function AdminUsersPage() {
     } else {
       // Adding new user
       const result = addUser(editingUser as Omit<User, 'id' | 'password_hash' | 'temporaryPassword'>);
-      if (result.tempPassword) {
+      if (result.tempPassword && result.newUser) {
+        const baseUrl = window.location.origin;
+        const loginPath = result.newUser.role === 'admin' ? '/admin' : '/waiter';
+        const loginUrl = `${baseUrl}${loginPath}`;
+        
         toast({ 
             title: "Usuario Registrado Exitosamente", 
             description: (
               <div>
-                  <p>Usuario: {editingUser.name}</p>
+                  <p>Usuario: {result.newUser.name}</p>
                   <p>Contraseña Temporal: <span className="font-bold">{result.tempPassword}</span></p>
-                  <p className="text-xs mt-2">Por favor, comparte esta contraseña de forma segura.</p>
+                  <div className="mt-2">
+                    <p className="text-xs">Enlace de acceso:</p>
+                    <div className="flex items-center gap-2">
+                      <a href={loginUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline break-all">{loginUrl}</a>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopyUrl(loginUrl)}>
+                        <Copy className="h-4 w-4"/>
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-xs mt-2">Por favor, comparte esta información de forma segura.</p>
               </div>
             ),
-            duration: 15000 
+            duration: 20000 
         });
       } else {
          toast({ title: "Cliente Registrado", description: `${editingUser.name} ha sido añadido como cliente.` });
