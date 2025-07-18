@@ -40,6 +40,14 @@ export const initialUsersData: User[] = [
     password_hash: simpleHash('password123'),
     role: 'waiter',
     temporaryPassword: true
+  },
+  {
+    id: 3,
+    name: 'Admin Temporal',
+    email: 'temp.admin@example.com',
+    password_hash: simpleHash('tempadmin123'),
+    role: 'admin',
+    temporaryPassword: true
   }
 ];
 
