@@ -65,11 +65,11 @@ export default function AdminUsersPage() {
     if (editingUser.id) {
       // Editing existing user
       const { id, ...updateData } = editingUser;
-      updateUser(id, updateData as Omit<User, 'id' | 'password_hash' | 'temporaryPassword'>);
+      updateUser(id, updateData as Omit<User, 'id' | 'password' | 'temporaryPassword'>);
        toast({ title: "Usuario Actualizado", description: `Los datos de ${editingUser.name} han sido actualizados.` });
     } else {
       // Adding new user
-      const result = addUser(editingUser as Omit<User, 'id' | 'password_hash' | 'temporaryPassword'>);
+      const result = addUser(editingUser as Omit<User, 'id' | 'password' | 'temporaryPassword'>);
       if (result.tempPassword && result.newUser) {
         const baseUrl = window.location.origin;
         const loginPath = result.newUser.role === 'admin' ? '/admin' : '/waiter';

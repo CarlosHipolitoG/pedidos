@@ -12,7 +12,7 @@ export type User = {
   name: string;
   email: string;
   phone?: string;
-  password_hash?: string; // Storing a "hash" for simulation, optional for clients
+  password?: string; // Storing a "hash" for simulation, optional for clients
   role: UserRole;
   temporaryPassword?: boolean;
   cedula?: string;
@@ -23,21 +23,13 @@ export type User = {
   comment?: string;
 };
 
-// This is NOT secure for production. For demo purposes only.
-const simpleHash = (s: string): string => {
-  return 'hashed_' + s;
-};
-const simpleCompare = (s: string, hash: string): boolean => {
-  return 'hashed_' + s === hash;
-};
-
 // Initial admin user. The password is 'admin123'.
 export const initialUsersData: User[] = [
   {
     id: 1,
     name: 'Admin Principal',
     email: 'admin@example.com',
-    password_hash: simpleHash('admin123'),
+    password: 'admin123',
     role: 'admin',
     temporaryPassword: false
   },
@@ -45,7 +37,7 @@ export const initialUsersData: User[] = [
     id: 2,
     name: 'Juan Mesero',
     email: 'mesero@example.com',
-    password_hash: simpleHash('password123'),
+    password: 'password123',
     role: 'waiter',
     temporaryPassword: true
   },
@@ -79,7 +71,7 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User, tempPasswo
             finalUserData = {
                 ...userData,
                 id: nextUserId,
-                password_hash: undefined,
+                password: undefined,
                 temporaryPassword: false,
             };
         } else {
@@ -87,7 +79,7 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User, tempPasswo
             finalUserData = {
                 ...userData,
                 id: nextUserId,
-                password_hash: simpleHash(tempPassword),
+                password: tempPassword,
                 temporaryPassword: true,
             };
         }
@@ -100,7 +92,7 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User, tempPasswo
     return { newUser: newUser!, tempPassword };
 };
 
-export const updateUser = (userId: number, updatedData: Partial<Omit<User, 'id' | 'password_hash' | 'temporaryPassword'>>): void => {
+export const updateUser = (userId: number, updatedData: Partial<Omit<User, 'id' | 'password' | 'temporaryPassword'>>): void => {
     store.updateState(currentState => {
         const users = currentState.users.map(user =>
             user.id === userId ? { ...user, ...updatedData } : user
@@ -124,8 +116,7 @@ export const validateUser = (email: string, password_plaintext: string, required
     if (requiredRole && user.role !== requiredRole) {
         return { success: false, message: 'El usuario no tiene el rol requerido.' };
     }
-    // Bypassing password validation as requested, but keeping the structure
-    if (user.role !== 'client' && (!user.password_hash || !simpleCompare(password_plaintext, user.password_hash))) {
+    if (user.role !== 'client' && user.password !== password_plaintext) {
          return { success: false, message: 'Contraseña incorrecta.' };
     }
     return { success: true, user, isTemporaryPassword: !!user.temporaryPassword };
@@ -143,7 +134,7 @@ export const updateUserPassword = (email: string, newPassword_plaintext: string)
         const newUsers = [...currentState.users];
         newUsers[userIndex] = {
             ...newUsers[userIndex],
-            password_hash: simpleHash(newPassword_plaintext),
+            password: newPassword_plaintext,
             temporaryPassword: false
         };
         success = true;
@@ -152,13 +143,8 @@ export const updateUserPassword = (email: string, newPassword_plaintext: string)
     return success;
 };
 
-export const getUserFromStorage = (email: string): { email: string; role: UserRole; password?: string; temporaryPassword?: boolean; } | null => {
+export const getUserFromStorage = (email: string): User | null => {
     const user = getUserByEmail(email);
     if(!user) return null;
-    return {
-        email: user.email,
-        role: user.role,
-        password: user.password_hash ? user.password_hash.replace('hashed_','') : undefined,
-        temporaryPassword: user.temporaryPassword
-    };
+    return user;
 }

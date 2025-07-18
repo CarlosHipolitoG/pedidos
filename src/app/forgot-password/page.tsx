@@ -39,9 +39,11 @@ export default function ForgotPasswordPage() {
                 description: "Contacta a tu administrador para que te asigne una nueva contraseña.",
                 variant: "destructive"
             });
-        } else {
+        } else if (user.password) {
             setFoundPassword(user.password);
             setIsAlertOpen(true);
+        } else {
+             setError('Este usuario no tiene una contraseña asignada.');
         }
     } else {
       setError('No se encontró ningún usuario con ese correo electrónico.');

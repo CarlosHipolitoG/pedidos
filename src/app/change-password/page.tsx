@@ -9,14 +9,14 @@ import { Label } from '@/components/ui/label';
 import { KeyRound, LogIn } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { updateUserPassword, getUserFromStorage } from '@/lib/users';
+import { updateUserPassword, getUserFromStorage, User } from '@/lib/users';
 
 export default function ChangePasswordPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [userEmail, setUserEmail] = useState('');
-  const [userRole, setUserRole] = useState<'admin' | 'waiter' | null>(null);
+  const [userRole, setUserRole] = useState<User['role'] | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
