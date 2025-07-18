@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Info, X } from 'lucide-react';
@@ -11,7 +11,14 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isDemoNoticeVisible, setIsDemoNoticeVisible] = useState(true);
+  const [isDemoNoticeVisible, setIsDemoNoticeVisible] = useState(false);
+
+  useEffect(() => {
+    // Only show the notice on the client-side after mounting
+    // to prevent hydration errors.
+    setIsDemoNoticeVisible(true);
+  }, []);
+
 
   return (
     <div>
