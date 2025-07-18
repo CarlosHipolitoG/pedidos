@@ -58,23 +58,26 @@ export default function HomePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name && phone) {
-      const existingUser = getUserFromStorage(email);
-      if (!existingUser) {
-        addUser({
-            name: name,
-            email: email,
-            phone: phone,
-            role: 'client'
-        });
-        toast({
-            title: "¡Perfil Creado!",
-            description: "Tu perfil ha sido creado exitosamente. ¡Bienvenido!"
-        });
+      // Create a profile only if an email is provided
+      if (email) {
+          const existingUser = getUserFromStorage(email);
+          if (!existingUser) {
+            addUser({
+                name: name,
+                email: email,
+                phone: phone,
+                role: 'client'
+            });
+            toast({
+                title: "¡Perfil Creado!",
+                description: "Tu perfil ha sido creado. ¡Bienvenido!"
+            });
+          }
       }
 
       localStorage.setItem('customerName', name);
       localStorage.setItem('customerPhone', phone);
-      localStorage.setItem('customerEmail', email);
+      localStorage.setItem('customerEmail', email); // Save email even if empty
       localStorage.removeItem('activeOrderId');
       router.push('/menu');
     }
@@ -203,18 +206,18 @@ export default function HomePage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Correo Electrónico (Opcional)</Label>
+                                <Label htmlFor="email">Correo Electrónico (Para crear tu perfil)</Label>
                                 <Input
                                     id="email"
                                     type="email"
-                                    placeholder="Para recibir tu factura"
+                                    placeholder="Opcional: para recibir tu factura"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                 />
                             </div>
                             <div className="space-y-2 pt-4">
                                 <Button type="submit" className="w-full" disabled={!name || !phone}>
-                                    Crear mi Perfil y Pedir
+                                    Ver el Menú
                                 </Button>
                                 {isSettingsInitialized && hasPreviousOrders && (
                                     <Button
