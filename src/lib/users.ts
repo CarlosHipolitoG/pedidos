@@ -41,14 +41,6 @@ export const initialUsersData: User[] = [
     role: 'waiter',
     temporaryPassword: true
   },
-  {
-    id: 3,
-    name: 'Admin Temporal',
-    email: 'temp.admin@example.com',
-    password_hash: simpleHash('tempadmin123'),
-    role: 'admin',
-    temporaryPassword: true
-  }
 ];
 
 // --- Hook to use users from the central store ---
@@ -105,9 +97,10 @@ export const validateUser = (email: string, password_plaintext: string, required
     if (requiredRole && user.role !== requiredRole) {
         return { success: false, message: 'El usuario no tiene el rol requerido.' };
     }
-    if (!simpleCompare(password_plaintext, user.password_hash)) {
-        return { success: false, message: 'Contraseña incorrecta.' };
-    }
+    // Bypassing password validation as requested, but keeping the structure
+    // if (!simpleCompare(password_plaintext, user.password_hash)) {
+    //     return { success: false, message: 'Contraseña incorrecta.' };
+    // }
     return { success: true, user, isTemporaryPassword: !!user.temporaryPassword };
 };
 
