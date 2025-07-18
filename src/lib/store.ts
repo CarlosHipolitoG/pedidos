@@ -143,33 +143,3 @@ export function useAppStore() {
 
   return { state, isInitialized };
 }
-
-// A hook that polls the server for updates to ensure sync
-// This is a fallback for cases where another browser/device updates the data.
-// In a real production app, you would use WebSockets for this.
-export function useDataSync() {
-    const POLLING_INTERVAL = 5000; // Poll every 5 seconds
-
-    const fetchAndUpdate = useCallback(async () => {
-        try {
-            // Only fetch if the window is focused to save resources
-            if (document.hasFocus()) {
-                const response = await fetch('/api/data');
-                if (!response.ok) return;
-                const serverData = await response.json();
-                
-                // Only update if the data is actually different
-                if (JSON.stringify(serverData) !== JSON.stringify(store.getState())) {
-                     store.updateState(currentState => ({ ...serverData }));
-                }
-            }
-        } catch (error) {
-            // console.error("Polling failed:", error);
-        }
-    }, []);
-
-    useEffect(() => {
-        const intervalId = setInterval(fetchAndUpdate, POLLING_INTERVAL);
-        return () => clearInterval(intervalId);
-    }, [fetchAndUpdate]);
-}

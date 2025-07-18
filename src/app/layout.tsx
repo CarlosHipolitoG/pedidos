@@ -28,9 +28,6 @@ export default function RootLayout({
     setIsMounted(true);
   }, []);
   
-  // This custom hook will periodically sync data from the server - we removed it because it was causing issues.
-  // useDataSync();
-
   useEffect(() => {
     if (isSettingsInitialized && settings) {
       document.title = settings.barName || 'Holidays Friends';
