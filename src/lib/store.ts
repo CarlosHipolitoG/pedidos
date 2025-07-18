@@ -114,6 +114,10 @@ class AppStore {
       await this.initialize();
     }
   }
+
+  public getIsInitialized(): boolean {
+      return this.isInitialized;
+  }
 }
 
 export const store = AppStore.getInstance();
@@ -121,17 +125,26 @@ export const store = AppStore.getInstance();
 // A generic hook to subscribe to the store's state
 export function useAppStore() {
   const [state, setState] = useState(store.getState());
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(store.getIsInitialized());
 
   useEffect(() => {
-    store.ensureInitialized().then(() => setIsInitialized(true));
-
-    const unsubscribe = store.subscribe(newState => {
-      setState(newState);
+    const handleStoreChange = (newState: AppData) => {
+        setState(newState);
+        if (!isInitialized && store.getIsInitialized()) {
+            setIsInitialized(true);
+        }
+    };
+    
+    // Ensure we are initialized when the component mounts
+    store.ensureInitialized().then(() => {
+        // The state might have been initialized while we were waiting
+        handleStoreChange(store.getState());
     });
 
+    const unsubscribe = store.subscribe(handleStoreChange);
+
     return unsubscribe;
-  }, []);
+  }, [isInitialized]);
 
   return { state, isInitialized };
 }

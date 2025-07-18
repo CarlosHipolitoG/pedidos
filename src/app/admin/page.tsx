@@ -47,18 +47,18 @@ export default function AdminPage() {
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4">
       <div className="absolute top-4 right-4 flex gap-2">
         <Link href="/" passHref>
-          <Button variant="ghost" size="icon" aria-label="Client Login">
-            <User className="h-5 w-5 text-foreground" />
+          <Button variant="ghost" size="icon" aria-label="Client Login" className="text-white bg-black/50 hover:bg-black/70 hover:text-white">
+            <User className="h-5 w-5" />
           </Button>
         </Link>
         <Link href="/waiter" passHref>
-          <Button variant="ghost" size="icon" aria-label="Waiter Login">
-            <Utensils className="h-5 w-5 text-foreground" />
+          <Button variant="ghost" size="icon" aria-label="Waiter Login" className="text-white bg-black/50 hover:bg-black/70 hover:text-white">
+            <Utensils className="h-5 w-5" />
           </Button>
         </Link>
          <Link href="/admin" passHref>
-          <Button variant="ghost" size="icon" aria-label="Admin Login">
-            <Shield className="h-5 w-5 text-foreground" />
+          <Button variant="ghost" size="icon" aria-label="Admin Login" className="text-white bg-black/50 hover:bg-black/70 hover:text-white">
+            <Shield className="h-5 w-5" />
           </Button>
         </Link>
       </div>
