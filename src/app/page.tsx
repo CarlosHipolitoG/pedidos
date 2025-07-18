@@ -133,11 +133,15 @@ export default function HomePage() {
         <div className="z-10 relative mt-4">
             <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm">
                 <CardHeader>
-                    <div className="flex flex-col items-center">
-                        {!isSettingsInitialized ? (
+                    {!isSettingsInitialized || !settings ? (
+                        <div className="flex flex-col items-center">
                             <Skeleton className="h-20 w-20 rounded-full mb-4" />
-                        ) : (
-                            settings.logoUrl && (
+                            <Skeleton className="h-8 w-48" />
+                            <Skeleton className="h-4 w-64 mt-2" />
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center">
+                            {settings.logoUrl && (
                                 <Image 
                                     src={settings.logoUrl} 
                                     alt="Logo" 
@@ -146,19 +150,15 @@ export default function HomePage() {
                                     className="rounded-full mb-4"
                                     data-ai-hint="logo"
                                 />
-                            )
-                        )}
-                        <CardTitle className="text-2xl text-center">
-                            {!isSettingsInitialized ? (
-                               <Skeleton className="h-8 w-48" />
-                            ) : (
-                                `¡Bienvenido a ${settings.barName}!`
                             )}
-                        </CardTitle>
-                        <CardDescription className="text-center">
-                            Ingresa tus datos para comenzar o revisa tus pedidos anteriores.
-                        </CardDescription>
-                    </div>
+                            <CardTitle className="text-2xl text-center">
+                                {`¡Bienvenido a ${settings.barName}!`}
+                            </CardTitle>
+                            <CardDescription className="text-center">
+                                Ingresa tus datos para comenzar o revisa tus pedidos anteriores.
+                            </CardDescription>
+                        </div>
+                    )}
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit}>
