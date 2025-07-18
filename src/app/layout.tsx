@@ -7,7 +7,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { useSettings } from "@/lib/settings";
 import { useEffect } from "react";
-import { useDataSync, useAppStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { Loader2 } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -20,11 +20,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { isInitialized: isStoreInitialized } = useAppStore();
+  const { isInitialized } = useAppStore();
   const { settings, isInitialized: isSettingsInitialized } = useSettings();
   
-  // This custom hook will periodically sync data from the server
-  useDataSync();
+  // This custom hook will periodically sync data from the server - we removed it because it was causing issues.
+  // useDataSync();
 
   useEffect(() => {
     if (isSettingsInitialized && settings) {
@@ -43,8 +43,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {!isStoreInitialized ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+        {!isInitialized ? (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-background/80 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-2 text-foreground">
               <Loader2 className="h-8 w-8 animate-spin" />
               <p>Cargando datos...</p>

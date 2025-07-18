@@ -15,6 +15,9 @@ let serverDataStore = {
   settings: initialSettings,
 };
 
+// A simple lock to prevent race conditions during writes
+let isWriting = false;
+
 /**
  * Handles GET requests to fetch the current state of all data.
  */
@@ -27,16 +30,25 @@ export async function GET() {
  * The entire data object is sent in the body of the request.
  */
 export async function POST(request: NextRequest) {
+  // Wait if a write operation is already in progress
+  while (isWriting) {
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  
+  isWriting = true;
+
   try {
     const newData = await request.json();
     // Basic validation to ensure we're not overwriting with garbage
     if (newData && newData.products && newData.users && newData.orders && newData.settings) {
       serverDataStore = newData;
-      return NextResponse.json({status: 'success', data: serverDataStore});
+      return NextResponse.json({status: 'success'});
     } else {
       return NextResponse.json({status: 'error', message: 'Invalid data structure'}, {status: 400});
     }
   } catch (error) {
     return NextResponse.json({status: 'error', message: 'Failed to parse request body'}, {status: 500});
+  } finally {
+    isWriting = false;
   }
 }

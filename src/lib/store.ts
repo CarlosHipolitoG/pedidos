@@ -128,22 +128,18 @@ export function useAppStore() {
   const [isInitialized, setIsInitialized] = useState(() => store.getIsInitialized());
 
   useEffect(() => {
+    store.ensureInitialized().then(() => {
+      setIsInitialized(store.getIsInitialized());
+      setState(store.getState());
+    });
+    
     const unsubscribe = store.subscribe((newState) => {
         setState(newState);
-        if (!isInitialized && store.getIsInitialized()) {
-            setIsInitialized(true);
-        }
-    });
-
-    // Ensure we are initialized when the component mounts
-    // This handles the case where the component mounts after initialization is complete
-    store.ensureInitialized().then(() => {
-        setState(store.getState());
         setIsInitialized(store.getIsInitialized());
     });
 
     return unsubscribe;
-  }, [isInitialized]); // Depend on isInitialized to re-check if needed
+  }, []);
 
   return { state, isInitialized };
 }
@@ -156,13 +152,16 @@ export function useDataSync() {
 
     const fetchAndUpdate = useCallback(async () => {
         try {
-            const response = await fetch('/api/data');
-            if (!response.ok) return;
-            const serverData = await response.json();
-            
-            // Simple check to see if data is different before forcing an update
-            if (JSON.stringify(serverData) !== JSON.stringify(store.getState())) {
-                 store.updateState(currentState => ({ ...currentState, ...serverData }));
+            // Only fetch if the window is focused to save resources
+            if (document.hasFocus()) {
+                const response = await fetch('/api/data');
+                if (!response.ok) return;
+                const serverData = await response.json();
+                
+                // Only update if the data is actually different
+                if (JSON.stringify(serverData) !== JSON.stringify(store.getState())) {
+                     store.updateState(currentState => ({ ...serverData }));
+                }
             }
         } catch (error) {
             // console.error("Polling failed:", error);
