@@ -96,7 +96,7 @@ export default function WaiterPage() {
             </div>
             {error && <p className="text-sm font-medium text-destructive">{error}</p>}
             <Button type="submit" className="w-full" disabled={!email || !password || !usersInitialized}>
-              Iniciar Sesión
+              {usersInitialized ? 'Iniciar Sesión' : 'Cargando...'}
             </Button>
              <Button variant="link" className="w-full" asChild>
                 <Link href="/forgot-password">¿Olvidaste tu contraseña?</Link>
