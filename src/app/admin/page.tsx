@@ -24,6 +24,13 @@ export default function AdminPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Temporalily bypass login for direct access
+    localStorage.setItem('userName', 'Admin Temporal');
+    localStorage.setItem('userEmail', 'admin@example.com');
+    router.push('/admin/dashboard');
+
+    /*
     if (!isInitialized) return;
 
     const validation = validateUser(email, password, 'admin');
@@ -49,6 +56,7 @@ export default function AdminPage() {
         variant: 'destructive',
       });
     }
+    */
   };
 
   return (
@@ -107,13 +115,9 @@ export default function AdminPage() {
                 autoComplete="current-password"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={!isInitialized || !email || !password}>
-               {!isInitialized ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <LogIn className="mr-2 h-4 w-4" />
-                )}
-              {isInitialized ? 'Iniciar Sesión' : 'Cargando...'}
+            <Button type="submit" className="w-full">
+               <LogIn className="mr-2 h-4 w-4" />
+              Iniciar Sesión
             </Button>
           </form>
         </CardContent>
