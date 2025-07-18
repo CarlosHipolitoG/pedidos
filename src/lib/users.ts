@@ -50,14 +50,15 @@ const getUserByEmail = (email: string): User | undefined => {
 export const addUser = (userData: Omit<User, 'id' | 'password_hash' | 'temporaryPassword'>): string => {
     const tempPassword = Math.random().toString(36).slice(-8);
     store.updateState(currentState => {
-        const nextUserId = (currentState.users.reduce((maxId, u) => Math.max(u.id, maxId), 0) || 0) + 1;
+        const currentUsers = currentState.users || [];
+        const nextUserId = (currentUsers.reduce((maxId, u) => Math.max(u.id, maxId), 0) || 0) + 1;
         const newUser: User = {
             ...userData,
             id: nextUserId,
             password_hash: simpleHash(tempPassword),
             temporaryPassword: true,
         };
-        const users = [...currentState.users, newUser].sort((a, b) => a.id - b.id);
+        const users = [...currentUsers, newUser].sort((a, b) => a.id - b.id);
         return { ...currentState, users };
     });
     return tempPassword;
