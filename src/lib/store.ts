@@ -124,27 +124,26 @@ export const store = AppStore.getInstance();
 
 // A generic hook to subscribe to the store's state
 export function useAppStore() {
-  const [state, setState] = useState(store.getState());
-  const [isInitialized, setIsInitialized] = useState(store.getIsInitialized());
+  const [state, setState] = useState(() => store.getState());
+  const [isInitialized, setIsInitialized] = useState(() => store.getIsInitialized());
 
   useEffect(() => {
-    const handleStoreChange = (newState: AppData) => {
+    const unsubscribe = store.subscribe((newState) => {
         setState(newState);
         if (!isInitialized && store.getIsInitialized()) {
             setIsInitialized(true);
         }
-    };
-    
-    // Ensure we are initialized when the component mounts
-    store.ensureInitialized().then(() => {
-        // The state might have been initialized while we were waiting
-        handleStoreChange(store.getState());
     });
 
-    const unsubscribe = store.subscribe(handleStoreChange);
+    // Ensure we are initialized when the component mounts
+    // This handles the case where the component mounts after initialization is complete
+    store.ensureInitialized().then(() => {
+        setState(store.getState());
+        setIsInitialized(store.getIsInitialized());
+    });
 
     return unsubscribe;
-  }, [isInitialized]);
+  }, [isInitialized]); // Depend on isInitialized to re-check if needed
 
   return { state, isInitialized };
 }
@@ -162,13 +161,11 @@ export function useDataSync() {
             const serverData = await response.json();
             
             // Simple check to see if data is different before forcing an update
-            // We only update if server data is different from the in-memory store
             if (JSON.stringify(serverData) !== JSON.stringify(store.getState())) {
-                 // ONLY update the local state. DO NOT post back to server here.
-                 store.subscribe(s => s)(serverData);
+                 store.updateState(currentState => ({ ...currentState, ...serverData }));
             }
         } catch (error) {
-            console.error("Polling failed:", error);
+            // console.error("Polling failed:", error);
         }
     }, []);
 
