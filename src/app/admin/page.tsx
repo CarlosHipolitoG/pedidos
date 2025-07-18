@@ -7,14 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Utensils } from 'lucide-react';
+import { User, Utensils, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { validateUser } from '@/lib/users';
 
 export default function AdminPage() {
   const [email, setEmail] = useState('admin@example.com');
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState('admin123');
   const [error, setError] = useState('');
   const router = useRouter();
   const { toast } = useToast();
@@ -44,15 +44,20 @@ export default function AdminPage() {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="absolute top-4 right-4 flex gap-4">
+      <div className="absolute top-4 right-4 flex gap-2">
         <Link href="/" passHref>
           <Button variant="ghost" size="icon" aria-label="Client Login">
-            <User className="h-6 w-6 text-foreground" />
+            <User className="h-5 w-5 text-foreground" />
           </Button>
         </Link>
         <Link href="/waiter" passHref>
           <Button variant="ghost" size="icon" aria-label="Waiter Login">
-            <Utensils className="h-6 w-6 text-foreground" />
+            <Utensils className="h-5 w-5 text-foreground" />
+          </Button>
+        </Link>
+         <Link href="/admin" passHref>
+          <Button variant="ghost" size="icon" aria-label="Admin Login">
+            <Shield className="h-5 w-5 text-foreground" />
           </Button>
         </Link>
       </div>
@@ -61,7 +66,7 @@ export default function AdminPage() {
         <CardHeader>
           <CardTitle className="text-2xl text-center">Acceso de Administrador</CardTitle>
           <CardDescription className="text-center">
-            Ingresa tus credenciales para continuar. La contraseña por defecto es <span className="font-bold">admin123</span>
+            Ingresa tus credenciales para continuar.
           </CardDescription>
         </CardHeader>
         <CardContent>

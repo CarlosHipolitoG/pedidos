@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, User } from 'lucide-react';
+import { Shield, User, Utensils } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { validateUser } from '@/lib/users';
@@ -44,15 +44,20 @@ export default function WaiterPage() {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="absolute top-4 right-4 flex gap-4">
+      <div className="absolute top-4 right-4 flex gap-2">
         <Link href="/" passHref>
           <Button variant="ghost" size="icon" aria-label="Client Login">
-            <User className="h-6 w-6" />
+            <User className="h-5 w-5" />
+          </Button>
+        </Link>
+        <Link href="/waiter" passHref>
+          <Button variant="ghost" size="icon" aria-label="Waiter Login">
+            <Utensils className="h-5 w-5" />
           </Button>
         </Link>
         <Link href="/admin" passHref>
           <Button variant="ghost" size="icon" aria-label="Admin Login">
-            <Shield className="h-6 w-6" />
+            <Shield className="h-5 w-5" />
           </Button>
         </Link>
       </div>

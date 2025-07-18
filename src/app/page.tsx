@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, Utensils, History, X } from 'lucide-react';
+import { Shield, Utensils, History, X, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSettings, PromotionalImage } from '@/lib/settings';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel"
@@ -70,56 +70,62 @@ export default function HomePage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
         {isBannerVisible && promotionalImages.length > 0 && (
-             <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-                <div className="relative w-full max-w-4xl">
-                    <Carousel
-                        setApi={setEmblaApi}
-                        plugins={[autoplayPlugin.current]}
-                        className="w-full"
-                        onMouseEnter={() => autoplayPlugin.current.stop()}
-                        onMouseLeave={() => autoplayPlugin.current.play()}
-                    >
-                        <CarouselContent>
-                            {promotionalImages.map((img) => (
-                                <CarouselItem key={img.id}>
-                                    <Card className="overflow-hidden bg-transparent border-none">
-                                        <CardContent className="relative p-0 aspect-square flex items-center justify-center max-h-[80vh]">
-                                            <Image
-                                                src={img.src}
-                                                alt={img.alt}
-                                                fill={true}
-                                                className="object-contain"
-                                                data-ai-hint={img.hint}
-                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                                priority={true}
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                </CarouselItem>
-                            ))}
-                        </CarouselContent>
-                    </Carousel>
-                     <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="absolute top-0 right-0 mt-4 mr-4 bg-black/50 text-white hover:bg-black/70 hover:text-white rounded-full h-8 w-8 z-10"
-                        onClick={handleCloseBanner}
-                    >
-                        <X className="h-5 w-5" />
-                    </Button>
-                </div>
-            </div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="absolute inset-0 bg-black/60" onClick={handleCloseBanner}></div>
+              <div className="relative w-full max-w-4xl">
+                  <Carousel
+                      setApi={setEmblaApi}
+                      plugins={[autoplayPlugin.current]}
+                      className="w-full"
+                      onMouseEnter={() => autoplayPlugin.current.stop()}
+                      onMouseLeave={() => autoplayPlugin.current.play()}
+                  >
+                      <CarouselContent>
+                          {promotionalImages.map((img) => (
+                              <CarouselItem key={img.id}>
+                                  <Card className="overflow-hidden bg-transparent border-none">
+                                      <CardContent className="relative p-0 aspect-video flex items-center justify-center max-h-[80vh]">
+                                          <Image
+                                              src={img.src}
+                                              alt={img.alt}
+                                              fill={true}
+                                              className="object-contain"
+                                              data-ai-hint={img.hint}
+                                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                              priority={true}
+                                          />
+                                      </CardContent>
+                                  </Card>
+                              </CarouselItem>
+                          ))}
+                      </CarouselContent>
+                  </Carousel>
+              </div>
+              <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-0 right-0 mt-4 mr-4 bg-black/50 text-white hover:bg-black/70 hover:text-white rounded-full h-8 w-8 z-10"
+                  onClick={handleCloseBanner}
+              >
+                  <X className="h-5 w-5" />
+              </Button>
+          </div>
         )}
 
-        <div className={cn("absolute top-4 right-4 flex gap-4 z-20")}>
+        <div className={cn("absolute top-4 right-4 flex gap-2 z-20")}>
+             <Link href="/" passHref>
+                <Button variant="ghost" size="icon" aria-label="Client Login" className="text-white bg-black/50 hover:bg-black/70 hover:text-white">
+                    <User className="h-5 w-5" />
+                </Button>
+            </Link>
             <Link href="/waiter" passHref>
-                <Button variant="ghost" size="icon" aria-label="Waiter Login">
-                    <Utensils className="h-6 w-6 text-foreground" />
+                <Button variant="ghost" size="icon" aria-label="Waiter Login" className="text-white bg-black/50 hover:bg-black/70 hover:text-white">
+                    <Utensils className="h-5 w-5" />
                 </Button>
             </Link>
             <Link href="/admin" passHref>
-                <Button variant="ghost" size="icon" aria-label="Admin Login">
-                    <Shield className="h-6 w-6 text-foreground" />
+                <Button variant="ghost" size="icon" aria-label="Admin Login" className="text-white bg-black/50 hover:bg-black/70 hover:text-white">
+                    <Shield className="h-5 w-5" />
                 </Button>
             </Link>
         </div>
