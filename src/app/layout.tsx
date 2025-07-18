@@ -6,8 +6,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { useSettings } from "@/lib/settings";
-import { useEffect, useState } from "react";
-import { useDataSync } from "@/lib/store";
+import { useEffect } from "react";
+import { useDataSync, useAppStore } from "@/lib/store";
+import { Loader2 } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,13 +20,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { settings, isInitialized } = useSettings();
+  const { isInitialized: isStoreInitialized } = useAppStore();
+  const { settings, isInitialized: isSettingsInitialized } = useSettings();
   
   // This custom hook will periodically sync data from the server
   useDataSync();
 
   useEffect(() => {
-    if (isInitialized && settings) {
+    if (isSettingsInitialized && settings) {
       document.title = settings.barName || 'Holidays Friends';
       
       const body = document.body;
@@ -36,12 +38,21 @@ export default function RootLayout({
           body.style.setProperty('--dynamic-background-image', `url('https://storage.googleapis.com/project-spark-b6b15e45/dc407172-5953-4565-a83a-48a58ca7694f.png')`);
       }
     }
-  }, [settings, isInitialized]);
+  }, [settings, isSettingsInitialized]);
 
   return (
     <html lang="en">
       <body className={inter.className}>
-        {children}
+        {!isStoreInitialized ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-2 text-foreground">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <p>Cargando datos...</p>
+            </div>
+          </div>
+        ) : (
+          children
+        )}
         <Toaster />
       </body>
     </html>

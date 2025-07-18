@@ -1,35 +1,127 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { LogIn, Shield, Utensils, User, Loader2 } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { validateUser } from '@/lib/users';
+import { useAppStore } from '@/lib/store';
 
-export default function AdminRedirectPage() {
+
+export default function AdminPage() {
+  const [email, setEmail] = useState('temp.admin@example.com');
+  const [password, setPassword] = useState('tempadmin123');
   const router = useRouter();
+  const { toast } = useToast();
+  const { isInitialized } = useAppStore();
 
-  useEffect(() => {
-    // Set a default admin user in localStorage so other parts of the app don't break
-    localStorage.setItem('userName', 'Admin Principal');
-    localStorage.setItem('userEmail', 'admin@example.com');
-    
-    // Redirect to the dashboard
-    router.replace('/admin/dashboard');
-  }, [router]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isInitialized) return;
+
+    const validation = validateUser(email, password, 'admin');
+
+    if (validation.success) {
+      toast({
+        title: 'Inicio de Sesión Exitoso',
+        description: `Bienvenido de nuevo, ${validation.user.name}.`,
+      });
+      localStorage.setItem('userName', validation.user.name);
+      localStorage.setItem('userEmail', validation.user.email);
+      
+      if (validation.isTemporaryPassword) {
+        router.push('/change-password');
+      } else {
+        router.push('/admin/dashboard');
+      }
+
+    } else {
+      toast({
+        title: 'Error de Autenticación',
+        description: validation.message,
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center p-4">
+     <div className="relative min-h-screen flex flex-col items-center justify-center p-4">
+       <div className="absolute top-4 right-4 flex gap-2">
+          <Link href="/" passHref>
+            <Button variant="ghost" size="icon" aria-label="Client Login">
+              <User className="h-5 w-5" />
+            </Button>
+          </Link>
+          <Link href="/waiter" passHref>
+            <Button variant="ghost" size="icon" aria-label="Waiter Login">
+              <Utensils className="h-5 w-5" />
+            </Button>
+          </Link>
+          <Link href="/admin" passHref>
+            <Button variant="ghost" size="icon" aria-label="Admin Login">
+              <Shield className="h-5 w-5" />
+            </Button>
+          </Link>
+      </div>
+
       <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Accediendo al Panel de Administrador</CardTitle>
+          <CardTitle className="text-2xl text-center flex items-center justify-center gap-2">
+            <Shield className="h-6 w-6"/>
+            Acceso de Administrador
+          </CardTitle>
           <CardDescription className="text-center">
-            Serás redirigido en un momento...
+            Ingresa tus credenciales para gestionar el sistema.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex justify-center items-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Correo Electrónico</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="admin@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={!isInitialized || !email || !password}>
+               {!isInitialized ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <LogIn className="mr-2 h-4 w-4" />
+                )}
+              {isInitialized ? 'Iniciar Sesión' : 'Cargando...'}
+            </Button>
+          </form>
         </CardContent>
+        <CardFooter className="text-center text-sm">
+            <Link href="/forgot-password" passHref>
+                <p className="w-full hover:underline cursor-pointer">¿Olvidaste tu contraseña?</p>
+            </Link>
+        </CardFooter>
       </Card>
     </div>
   );
