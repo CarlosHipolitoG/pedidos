@@ -162,8 +162,10 @@ export function useDataSync() {
             const serverData = await response.json();
             
             // Simple check to see if data is different before forcing an update
+            // We only update if server data is different from the in-memory store
             if (JSON.stringify(serverData) !== JSON.stringify(store.getState())) {
-                 store.updateState(() => serverData);
+                 // ONLY update the local state. DO NOT post back to server here.
+                 store.subscribe(s => s)(serverData);
             }
         } catch (error) {
             console.error("Polling failed:", error);
