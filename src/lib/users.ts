@@ -5,6 +5,7 @@ import {useAppStore, store} from './store';
 
 // Simplified user types
 export type UserRole = 'admin' | 'waiter' | 'client';
+export type CommentCategory = "queja" | "solicitud" | "felicitacion" | "objeto_perdido";
 
 export type User = {
   id: number;
@@ -14,6 +15,11 @@ export type User = {
   password_hash?: string; // Storing a "hash" for simulation, optional for clients
   role: UserRole;
   temporaryPassword?: boolean;
+  cedula?: string;
+  birthDate?: string;
+  address?: string;
+  commentCategory?: CommentCategory;
+  comment?: string;
 };
 
 // This is NOT secure for production. For demo purposes only.
@@ -58,7 +64,7 @@ const getUserByEmail = (email: string): User | undefined => {
     return users.find(user => user.email.toLowerCase() === email.toLowerCase());
 }
 
-export const addUser = (userData: Omit<User, 'id' | 'password_hash' | 'temporaryPassword'> & { password_hash?: string; temporaryPassword?: boolean; }): { newUser: User, tempPassword?: string } => {
+export const addUser = (userData: Omit<User, 'id'>): { newUser: User, tempPassword?: string } => {
     let tempPassword: string | undefined;
     let newUser: User | null = null;
     
@@ -118,9 +124,9 @@ export const validateUser = (email: string, password_plaintext: string, required
         return { success: false, message: 'El usuario no tiene el rol requerido.' };
     }
     // Bypassing password validation as requested, but keeping the structure
-    // if (!user.password_hash || !simpleCompare(password_plaintext, user.password_hash)) {
-    //     return { success: false, message: 'Contraseña incorrecta.' };
-    // }
+    if (user.role !== 'client' && (!user.password_hash || !simpleCompare(password_plaintext, user.password_hash))) {
+         return { success: false, message: 'Contraseña incorrecta.' };
+    }
     return { success: true, user, isTemporaryPassword: !!user.temporaryPassword };
 };
 
@@ -145,7 +151,7 @@ export const updateUserPassword = (email: string, newPassword_plaintext: string)
     return success;
 };
 
-export const getUserFromStorage = (email: string): { email: string, role: UserRole, password?: string, temporaryPassword?: boolean } | null => {
+export const getUserFromStorage = (email: string): { email: string; role: UserRole; password?: string; temporaryPassword?: boolean; } | null => {
     const user = getUserByEmail(email);
     if(!user) return null;
     return {

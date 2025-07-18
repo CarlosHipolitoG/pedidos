@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useUsers, User, addUser, updateUser, deleteUser } from '@/lib/users';
+import { useUsers, User, addUser, updateUser, deleteUser, UserRole } from '@/lib/users';
 import { ArrowLeft, PlusCircle, Edit, Trash2, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -213,7 +213,7 @@ export default function AdminUsersPage() {
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="role">Rol</Label>
-                     <Select value={editingUser?.role} onValueChange={(value) => handleInputChange('role', value)}>
+                     <Select value={editingUser?.role} onValueChange={(value) => handleInputChange('role', value as UserRole)}>
                         <SelectTrigger id="role">
                             <SelectValue placeholder="Seleccionar rol" />
                         </SelectTrigger>
