@@ -8,28 +8,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, Utensils, History, X, User } from 'lucide-react';
+import { Shield, Utensils, History, X, User, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSettings, PromotionalImage } from '@/lib/settings';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { addUser, getUserFromStorage } from '@/lib/users';
-import { useToast } from '@/hooks/use-toast';
-
 
 export default function HomePage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
   const [hasPreviousOrders, setHasPreviousOrders] = useState(false);
   const { settings, isInitialized: isSettingsInitialized } = useSettings();
   const router = useRouter();
   const [isBannerVisible, setIsBannerVisible] = useState(true);
   const [emblaApi, setEmblaApi] = useState<CarouselApi | undefined>(undefined);
   const [promotionalImages, setPromotionalImages] = useState<PromotionalImage[]>([]);
-  const { toast } = useToast();
 
   const autoplayPlugin = useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true })
@@ -58,26 +53,9 @@ export default function HomePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name && phone) {
-      // Create a profile only if an email is provided
-      if (email) {
-          const existingUser = getUserFromStorage(email);
-          if (!existingUser) {
-            addUser({
-                name: name,
-                email: email,
-                phone: phone,
-                role: 'client'
-            });
-            toast({
-                title: "¡Perfil Creado!",
-                description: "Tu perfil ha sido creado. ¡Bienvenido!"
-            });
-          }
-      }
-
       localStorage.setItem('customerName', name);
       localStorage.setItem('customerPhone', phone);
-      localStorage.setItem('customerEmail', email); // Save email even if empty
+      localStorage.removeItem('customerEmail');
       localStorage.removeItem('activeOrderId');
       router.push('/menu');
     }
@@ -205,19 +183,16 @@ export default function HomePage() {
                                     required
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Correo Electrónico (Para crear tu perfil)</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="Opcional: para recibir tu factura"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
-                            </div>
+                            
                             <div className="space-y-2 pt-4">
                                 <Button type="submit" className="w-full" disabled={!name || !phone}>
                                     Ver el Menú
+                                </Button>
+                                 <Button variant="outline" className="w-full" asChild>
+                                    <Link href="/create-profile">
+                                        <UserPlus className="mr-2 h-4 w-4" />
+                                        Crear mi Perfil
+                                    </Link>
                                 </Button>
                                 {isSettingsInitialized && hasPreviousOrders && (
                                     <Button
