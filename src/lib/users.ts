@@ -33,6 +33,14 @@ export const initialUsersData: User[] = [
     role: 'admin',
     temporaryPassword: false
   },
+  {
+    id: 2,
+    name: 'Juan Mesero',
+    email: 'mesero@example.com',
+    password_hash: simpleHash('password123'),
+    role: 'waiter',
+    temporaryPassword: true
+  }
 ];
 
 // --- Hook to use users from the central store ---
@@ -44,8 +52,8 @@ export function useUsers() {
 // --- Data Manipulation Functions ---
 
 const getUserByEmail = (email: string): User | undefined => {
-    const users = store.getState().users;
-    return (users || []).find(user => user.email.toLowerCase() === email.toLowerCase());
+    const users = store.getState().users || [];
+    return users.find(user => user.email.toLowerCase() === email.toLowerCase());
 }
 
 export const addUser = (userData: Omit<User, 'id' | 'password_hash' | 'temporaryPassword'>): string => {
