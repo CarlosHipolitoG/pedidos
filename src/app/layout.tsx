@@ -6,7 +6,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { useSettings } from "@/lib/settings";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { Loader2 } from "lucide-react";
 
@@ -22,6 +22,11 @@ export default function RootLayout({
 }>) {
   const { isInitialized } = useAppStore();
   const { settings, isInitialized: isSettingsInitialized } = useSettings();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   // This custom hook will periodically sync data from the server - we removed it because it was causing issues.
   // useDataSync();
@@ -43,7 +48,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {!isInitialized ? (
+        {!isInitialized && isMounted ? (
           <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-background/80 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-2 text-foreground">
               <Loader2 className="h-8 w-8 animate-spin" />
