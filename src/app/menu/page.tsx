@@ -219,6 +219,16 @@ export default function MenuPage() {
   
   const shouldShowActiveOrder = activeOrder && activeOrder.status !== 'Pagado';
 
+  if (!isMounted) {
+    return (
+        <div className="container mx-auto py-8">
+            <div className="text-center py-16 text-muted-foreground">
+                <p className="text-lg">Cargando menú...</p>
+            </div>
+        </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8">
       <header className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
@@ -431,11 +441,7 @@ export default function MenuPage() {
       )}
 
       <div className="space-y-8">
-        {!isMounted ? (
-            <div className="text-center py-16 text-muted-foreground">
-                <p className="text-lg">Cargando menú...</p>
-            </div>
-        ) : categories.length > 0 ? (
+        {categories.length > 0 ? (
           categories.map((category) => (
             <div key={category}>
               <h2 className="text-2xl font-bold mb-4 border-b pb-2">{category}</h2>
