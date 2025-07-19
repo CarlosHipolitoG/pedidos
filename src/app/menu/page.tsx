@@ -254,105 +254,107 @@ export default function MenuPage() {
             </Link>
           </Button>
         </div>
-        {!shouldShowActiveOrder && (
-            <Sheet>
-            <SheetTrigger asChild>
-                <Button size="lg" className="relative">
-                <ShoppingCart className="mr-2 h-6 w-6" />
-                Ver Carrito
-                {totalItemsInCart > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-6 w-6 flex items-center justify-center animate-pulse">
-                    {totalItemsInCart}
-                    </span>
-                )}
-                </Button>
-            </SheetTrigger>
-            <SheetContent className="flex flex-col">
-                <SheetHeader>
-                <SheetTitle>Carrito de Compras ({totalItemsInCart})</SheetTitle>
-                </SheetHeader>
-                <Separator />
-                {cart.length > 0 ? (
-                <>
-                    <div className="flex-grow overflow-y-auto pr-4 -mr-4">
-                    <div className="space-y-4">
-                        {cart.map((item) => (
-                        <div key={item.id} className="flex items-center gap-4">
-                            <Image
-                            src={item.imagen || 'https://placehold.co/100x100.png'}
-                            alt={item.nombre}
-                            width={80}
-                            height={80}
-                            className="rounded-md object-cover"
-                            data-ai-hint="beverage drink"
-                            />
-                            <div className="flex-grow">
-                            <p className="font-semibold">{item.nombre}</p>
-                            <p className="text-sm text-muted-foreground">
-                                ${item.precio.toLocaleString('es-CO')}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1">
-                                <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-6 w-6"
-                                onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                                >
-                                <Minus className="h-4 w-4" />
-                                </Button>
-                                <span>{item.quantity}</span>
-                                <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-6 w-6"
-                                onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                                >
-                                <Plus className="h-4 w-4" />
-                                </Button>
-                            </div>
-                            </div>
-                            <div className="text-right">
-                            <p className="font-semibold">
-                                ${(item.precio * item.quantity).toLocaleString('es-CO')}
-                            </p>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-destructive hover:text-destructive"
-                                onClick={() => handleRemoveFromCart(item.id)}
-                                >
-                                <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                        ))}
-                    </div>
-                    </div>
-                    <Separator />
-                    <SheetFooter className="mt-4">
-                    <div className="w-full space-y-2">
-                        <div className="flex justify-between font-bold text-lg">
-                        <span>Total:</span>
-                        <span>${cartTotal.toLocaleString('es-CO')}</span>
-                        </div>
-                        <Button className="w-full" size="lg" onClick={handleConfirmOrder}>
-                            Confirmar Pedido
-                        </Button>
-                        <SheetClose ref={sheetCloseRef} className="hidden" />
-                    </div>
-                    </SheetFooter>
-                </>
-                ) : (
-                <div className="flex-grow flex flex-col items-center justify-center text-center">
-                    <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
-                    <p className="text-lg font-semibold">Tu carrito está vacío</p>
-                    <p className="text-sm text-muted-foreground">Agrega productos del menú para comenzar.</p>
-                </div>
-                )}
-            </SheetContent>
-            </Sheet>
-        )}
       </header>
+
+      {/* Floating Cart Button */}
+      {!shouldShowActiveOrder && (
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button size="icon" className="fixed bottom-8 right-8 z-50 h-16 w-16 rounded-full shadow-lg">
+              <ShoppingCart className="h-8 w-8" />
+              <span className="sr-only">Ver Carrito</span>
+              {totalItemsInCart > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-6 w-6 flex items-center justify-center animate-pulse">
+                  {totalItemsInCart}
+                </span>
+              )}
+            </Button>
+          </SheetTrigger>
+          <SheetContent className="flex flex-col">
+            <SheetHeader>
+              <SheetTitle>Carrito de Compras ({totalItemsInCart})</SheetTitle>
+            </SheetHeader>
+            <Separator />
+            {cart.length > 0 ? (
+              <>
+                <div className="flex-grow overflow-y-auto pr-4 -mr-4">
+                  <div className="space-y-4">
+                    {cart.map((item) => (
+                      <div key={item.id} className="flex items-center gap-4">
+                        <Image
+                          src={item.imagen || 'https://placehold.co/100x100.png'}
+                          alt={item.nombre}
+                          width={80}
+                          height={80}
+                          className="rounded-md object-cover"
+                          data-ai-hint="beverage drink"
+                        />
+                        <div className="flex-grow">
+                          <p className="font-semibold">{item.nombre}</p>
+                          <p className="text-sm text-muted-foreground">
+                            ${item.precio.toLocaleString('es-CO')}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <span>{item.quantity}</span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold">
+                            ${(item.precio * item.quantity).toLocaleString('es-CO')}
+                          </p>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => handleRemoveFromCart(item.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <Separator />
+                <SheetFooter className="mt-4">
+                  <div className="w-full space-y-2">
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total:</span>
+                      <span>${cartTotal.toLocaleString('es-CO')}</span>
+                    </div>
+                    <Button className="w-full" size="lg" onClick={handleConfirmOrder}>
+                      Confirmar Pedido
+                    </Button>
+                    <SheetClose ref={sheetCloseRef} className="hidden" />
+                  </div>
+                </SheetFooter>
+              </>
+            ) : (
+              <div className="flex-grow flex flex-col items-center justify-center text-center">
+                <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
+                <p className="text-lg font-semibold">Tu carrito está vacío</p>
+                <p className="text-sm text-muted-foreground">Agrega productos del menú para comenzar.</p>
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
+      )}
 
       {shouldShowActiveOrder && activeOrder && (
         <Card className="mb-8 bg-card/90 backdrop-blur-sm border-primary/20">
