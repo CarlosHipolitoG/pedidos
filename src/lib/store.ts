@@ -91,14 +91,13 @@ class AppStore {
         if (productsError) throw productsError;
 
         // The 'orders' table might not exist yet, so we'll handle this gracefully.
-        // const { data: orders, error: ordersError } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
-        // if (ordersError) {
-        //   console.warn("Could not fetch orders, maybe the table doesn't exist yet.", ordersError.message);
-        // }
+        const { data: orders, error: ordersError } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
+        if (ordersError) {
+          console.warn("Could not fetch orders, maybe the table doesn't exist yet.", ordersError.message);
+        }
         
         this.state.products = products || initialProductsData;
-        // this.state.orders = orders || [];
-        this.state.orders = [];
+        this.state.orders = orders || [];
 
 
     } catch (error: any) {
