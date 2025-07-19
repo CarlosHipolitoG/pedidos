@@ -4,7 +4,72 @@ import type { User } from './users';
 import type { Settings } from './settings';
 
 
-export const initialProductsData: Product[] = [];
+export const initialProductsData: Omit<Product, 'id'>[] = [
+  {
+    nombre: 'Café Americano',
+    precio: 5000,
+    imagen: 'https://placehold.co/600x400.png',
+    disponibilidad: 'PRODUCTO_DISPONIBLE',
+    existencias: 100,
+    categoria: 'Bebidas Calientes',
+  },
+  {
+    nombre: 'Jugo de Naranja',
+    precio: 7000,
+    imagen: 'https://placehold.co/600x400.png',
+    disponibilidad: 'PRODUCTO_DISPONIBLE',
+    existencias: 50,
+    categoria: 'Bebidas Frias',
+  },
+  {
+    nombre: 'Mojito Cubano',
+    precio: 18000,
+    imagen: 'https://placehold.co/600x400.png',
+    disponibilidad: 'PRODUCTO_DISPONIBLE',
+    existencias: 80,
+    categoria: 'Cócteles',
+  },
+  {
+    nombre: 'Cerveza Nacional',
+    precio: 6000,
+    imagen: 'https://placehold.co/600x400.png',
+    disponibilidad: 'PRODUCTO_DISPONIBLE',
+    existencias: 200,
+    categoria: 'Cervezas',
+  },
+   {
+    nombre: 'Té de Frutos Rojos',
+    precio: 6000,
+    imagen: 'https://placehold.co/600x400.png',
+    disponibilidad: 'PRODUCTO_DISPONIBLE',
+    existencias: 70,
+    categoria: 'Bebidas Calientes',
+  },
+  {
+    nombre: 'Limonada de Coco',
+    precio: 9000,
+    imagen: 'https://placehold.co/600x400.png',
+    disponibilidad: 'PRODUCTO_DISPONIBLE',
+    existencias: 60,
+    categoria: 'Bebidas Frias',
+  },
+  {
+    nombre: 'Margarita Clásica',
+    precio: 20000,
+    imagen: 'https://placehold.co/600x400.png',
+    disponibilidad: 'PRODUCTO_AGOTADO',
+    existencias: 0,
+    categoria: 'Cócteles',
+  },
+  {
+    nombre: 'Cerveza Importada',
+    precio: 12000,
+    imagen: 'https://placehold.co/600x400.png',
+    disponibilidad: 'PRODUCTO_DISPONIBLE',
+    existencias: 150,
+    categoria: 'Cervezas',
+  },
+];
 
 export const initialUsersData: User[] = [
   {
