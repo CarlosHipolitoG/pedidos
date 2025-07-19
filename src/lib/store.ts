@@ -70,7 +70,7 @@ class AppStore {
         // Fallback to initial data if fetch fails
         this.state = {
             orders: [],
-            products: initialProductsData,
+            products: initialProductsData.map((p, i) => ({ ...p, id: i + 1 })),
             users: initialUsersData,
             settings: initialSettings
         };
@@ -98,9 +98,21 @@ class AppStore {
         // Handle Products
         if (productsResponse.error) {
             console.error('Error fetching products:', productsResponse.error.message);
-            this.state.products = []; // Default to empty if error
+            this.state.products = [];
         } else {
-            this.state.products = productsResponse.data || [];
+            if (productsResponse.data?.length) {
+                this.state.products = productsResponse.data;
+            } else {
+                console.log("No products found in DB. Inserting initial product list.");
+                const { error: insertError } = await supabase.from('products').insert(initialProductsData);
+                if (insertError) {
+                    console.error("Failed to insert initial products:", insertError);
+                    this.state.products = initialProductsData.map((p, i) => ({ ...p, id: i + 1 }));
+                } else {
+                    const { data: newData } = await supabase.from('products').select('*');
+                    this.state.products = newData || [];
+                }
+            }
         }
         
         // Handle Orders
@@ -136,13 +148,12 @@ class AppStore {
         // Handle Users
         if (usersResponse.error) {
              console.error("Error fetching users:", usersResponse.error.message);
-             this.state.users = [];
+             this.state.users = initialUsersData;
         } else {
              if (usersResponse.data?.length) {
                 this.state.users = usersResponse.data;
             } else {
                 console.log("No users found in DB. Inserting initial admin/waiter users.");
-                // We only insert the essential users to avoid permission issues on first load.
                 const usersToInsert = initialUsersData
                     .filter(u => u.role === 'admin' || u.role === 'waiter')
                     .map(({ id, ...rest }) => rest);
@@ -151,13 +162,13 @@ class AppStore {
                     const { error: insertError } = await supabase.from('users').insert(usersToInsert);
                     if (insertError) {
                         console.error("Failed to insert initial users:", insertError);
-                        this.state.users = []; // Fallback to empty
+                        this.state.users = initialUsersData;
                     } else {
                         const { data: newData } = await supabase.from('users').select('*');
                         this.state.users = newData || [];
                     }
                 } else {
-                    this.state.users = [];
+                    this.state.users = initialUsersData;
                 }
             }
         }
@@ -166,9 +177,9 @@ class AppStore {
     } catch (error: any) {
         console.error("[AppStore] Fetching data failed:", error.message);
         this.state = {
-            products: [],
+            products: initialProductsData.map((p, i) => ({ ...p, id: i + 1 })),
             orders: [],
-            users: [],
+            users: initialUsersData,
             settings: initialSettings,
         };
     } finally {
@@ -268,3 +279,5 @@ export function useAppStore() {
 
   return { state, isInitialized };
 }
+
+    
