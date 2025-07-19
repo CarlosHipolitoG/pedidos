@@ -129,7 +129,7 @@ export default function AdminProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
+              {products && products.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>
                     <Image
