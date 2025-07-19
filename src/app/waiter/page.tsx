@@ -72,7 +72,7 @@ export default function WaiterPage() {
             Acceso de Mesero
           </CardTitle>
           <CardDescription className="text-center">
-            Ingresa tu correo y tu cédula como contraseña.
+            Ingresa tus credenciales para acceder.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -90,7 +90,7 @@ export default function WaiterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña (Cédula)</Label>
+              <Label htmlFor="password">Contraseña</Label>
               <Input
                 id="password"
                 type="password"
