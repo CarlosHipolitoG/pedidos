@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-let supabase: any;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 // A mock client for server-side rendering, where environment variables might not be available.
 // This allows the application to build without errors.
@@ -25,19 +26,9 @@ const mockSupabase = {
   removeChannel: () => {},
 };
 
-// Check if we are running on the client side
-if (typeof window !== 'undefined') {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabase = typeof window === 'undefined'
+  ? mockSupabase
+  : createClient(supabaseUrl, supabaseAnonKey);
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Supabase URL and anonymous key are required on the client side.");
-  }
-  supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-} else {
-  // We are on the server, use the mock client
-  supabase = mockSupabase;
-}
 
 export { supabase };
