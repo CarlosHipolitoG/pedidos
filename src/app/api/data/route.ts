@@ -8,7 +8,7 @@ import { initialProductsData, initialUsersData, initialSettings } from '@/lib/in
  */
 export async function GET() {
   try {
-    const { data: products, error: productsError } = await supabase.from('products').select('*');
+    const { data: products, error: productsError } = await supabase.from('productos').select('*');
     if (productsError) throw productsError;
 
     const { data: users, error: usersError } = await supabase.from('users').select('*');
@@ -26,7 +26,7 @@ export async function GET() {
     // Fallback logic: if a table is empty, populate it with initial data
     let finalProducts = products;
     if (!products || products.length === 0) {
-        const { data } = await supabase.from('products').insert(initialProductsData).select();
+        const { data } = await supabase.from('productos').insert(initialProductsData).select();
         finalProducts = data || [];
     }
     
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     // Upsert all data. 'upsert' will insert if the record doesn't exist
     // or update it if it does, based on the primary key.
     if (products) {
-        const { error } = await supabase.from('products').upsert(products);
+        const { error } = await supabase.from('productos').upsert(products);
         if (error) throw error;
     }
     if (users) {
