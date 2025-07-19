@@ -49,12 +49,14 @@ class AppStore {
 
     this.initializationPromise = (async () => {
       try {
-        await this.fetchData();
-        this.isInitialized = true;
-        this.broadcast();
-        this.initializeRealtimeSync(); // Set up real-time listeners
+        const response = await fetch('/api/data');
+        if (!response.ok) {
+            throw new Error(`API fetch failed with status ${response.status}`);
+        }
+        const data = await response.json();
+        this.state = data;
       } catch (error) {
-        console.error('Initialization failed:', error);
+        console.error('Initialization failed, falling back to local data:', error);
         // Fallback to initial data if API fails on first load
         this.state = {
             orders: [],
@@ -62,9 +64,10 @@ class AppStore {
             users: initialUsersData,
             settings: initialSettings
         };
+      } finally {
         this.isInitialized = true;
         this.broadcast();
-      } finally {
+        this.initializeRealtimeSync(); // Set up real-time listeners AFTER initial data is set.
         this.initializationPromise = null;
       }
     })();
@@ -79,12 +82,13 @@ class AppStore {
             return;
         }
         const data = await response.json();
-        this.state = data;
-        this.broadcast();
+        // Only broadcast if there are actual changes
+        if (JSON.stringify(this.state) !== JSON.stringify(data)) {
+            this.state = data;
+            this.broadcast();
+        }
     } catch (error) {
         console.error("[AppStore] Fetching data failed:", error);
-        // If fetch fails, we re-throw to be caught by the initializer
-        throw error;
     }
   }
 
@@ -99,10 +103,33 @@ class AppStore {
     channel
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public' },
+        { event: '*', schema: 'public', table: 'productos' },
         (payload) => {
-          console.log('Realtime change received!', payload);
-          // On any change, refetch all data to ensure consistency
+          console.log('Realtime change received on productos!', payload);
+          this.fetchData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        (payload) => {
+          console.log('Realtime change received on orders!', payload);
+          this.fetchData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'users' },
+        (payload) => {
+          console.log('Realtime change received on users!', payload);
+          this.fetchData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'settings' },
+        (payload) => {
+          console.log('Realtime change received on settings!', payload);
           this.fetchData();
         }
       )

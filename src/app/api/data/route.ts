@@ -26,8 +26,15 @@ export async function GET() {
     // Fallback logic: if a table is empty, populate it with initial data
     let finalProducts = products;
     if ((!products || products.length === 0) && initialProductsData.length > 0) {
-        const { data } = await supabase.from('productos').insert(initialProductsData).select();
-        finalProducts = data || [];
+        console.log("Productos table is empty, attempting to populate...");
+        const { data, error: insertError } = await supabase.from('productos').insert(initialProductsData).select();
+        if (insertError) {
+            console.error("Error populating productos table:", insertError);
+            finalProducts = []; // Return empty if insert fails
+        } else {
+            console.log("Successfully populated productos table:", data);
+            finalProducts = data || [];
+        }
     }
     
     let finalUsers = users;
@@ -52,7 +59,7 @@ export async function GET() {
       console.error("Error fetching data from Supabase:", error);
       // If fetching fails entirely, return a default empty state
        return NextResponse.json({
-          products: [],
+          products: initialProductsData, // Return initial data on error
           users: initialUsersData,
           orders: [],
           settings: initialSettings,
