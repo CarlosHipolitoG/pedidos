@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, Utensils, History, X, User, UserPlus } from 'lucide-react';
+import { Shield, Utensils, User, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSettings, PromotionalImage } from '@/lib/settings';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel"
@@ -19,7 +19,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function HomePage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [hasPreviousOrders, setHasPreviousOrders] = useState(false);
   const { settings, isInitialized: isSettingsInitialized } = useSettings();
   const router = useRouter();
   const [emblaApi, setEmblaApi] = useState<CarouselApi | undefined>(undefined);
@@ -28,13 +27,6 @@ export default function HomePage() {
   const autoplayPlugin = useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true })
   );
-
-  useEffect(() => {
-    const storedPhone = localStorage.getItem('customerPhone');
-    if (storedPhone) {
-      setHasPreviousOrders(true);
-    }
-  }, []);
 
   useEffect(() => {
     if (isSettingsInitialized && settings?.promotionalImages) {
@@ -80,9 +72,9 @@ export default function HomePage() {
             </Link>
         </div>
 
-        <div className="z-10 relative flex flex-col md:flex-row items-center justify-center gap-8 w-full">
+        <div className="z-10 relative flex flex-col items-center justify-center gap-6 w-full max-w-md">
             {promotionalImages.length > 0 && (
-                 <Card className="hidden md:block w-full max-w-md bg-card/80 backdrop-blur-sm">
+                 <Card className="w-full bg-card/80 backdrop-blur-sm shadow-xl">
                      <CardContent className="p-0">
                          <Carousel
                             setApi={setEmblaApi}
@@ -94,14 +86,14 @@ export default function HomePage() {
                             <CarouselContent>
                                 {promotionalImages.map((img) => (
                                     <CarouselItem key={img.id}>
-                                        <div className="relative aspect-[3/4] w-full">
+                                        <div className="relative aspect-video w-full">
                                             <Image
                                                 src={img.src}
                                                 alt={img.alt}
                                                 fill={true}
                                                 className="object-cover rounded-lg"
                                                 data-ai-hint={img.hint}
-                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                sizes="(max-width: 768px) 100vw, 33vw"
                                                 priority={true}
                                             />
                                         </div>
@@ -113,7 +105,7 @@ export default function HomePage() {
                  </Card>
             )}
 
-            <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm">
+            <Card className="w-full bg-card/80 backdrop-blur-sm">
                 <CardHeader>
                     {!isSettingsInitialized || !settings ? (
                         <div className="flex flex-col items-center">
@@ -176,6 +168,11 @@ export default function HomePage() {
                                     <Link href="/create-profile">
                                         <UserPlus className="mr-2 h-4 w-4" />
                                         Crear mi Perfil
+                                    </Link>
+                                </Button>
+                                <Button variant="secondary" className="w-full" asChild>
+                                    <Link href="/my-orders">
+                                        Revisar mis Pedidos
                                     </Link>
                                 </Button>
                             </div>
