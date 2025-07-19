@@ -2,6 +2,7 @@
 'use client';
 
 import {useAppStore, store} from './store';
+import { getClient } from './supabaseClient';
 
 // Simplified user types
 export type UserRole = 'admin' | 'waiter' | 'client';
@@ -36,6 +37,24 @@ const getUserByEmail = (email: string): User | undefined => {
     const users = store.getState().users || [];
     return users.find(user => user.email.toLowerCase() === email.toLowerCase());
 }
+
+async function syncUserInSupabase(userData: Partial<User>, isNew: boolean) {
+    try {
+        const supabase = getClient();
+        const { id, ...dataToSync } = userData;
+
+        if (isNew) {
+            const { error } = await supabase.from('users').insert(dataToSync);
+            if (error) throw error;
+        } else if (id) {
+            const { error } = await supabase.from('users').update(dataToSync).eq('id', id);
+            if (error) throw error;
+        }
+    } catch (error) {
+        console.error("Error syncing user in Supabase:", error);
+    }
+}
+
 
 export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tempPassword?: string } => {
     let tempPassword: string | undefined;
@@ -72,6 +91,7 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tem
         }
         
         newUser = finalUserData;
+        syncUserInSupabase(newUser, true);
         const users = [...currentUsers, finalUserData].sort((a, b) => a.id - b.id);
         return { ...currentState, users };
     });
@@ -80,6 +100,7 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tem
 };
 
 export const updateUser = (userId: number, updatedData: Partial<Omit<User, 'id' | 'password' | 'temporaryPassword'>>): void => {
+    let userToSync: User | null = null;
     store.updateState(currentState => {
         const users = currentState.users.map(user => {
             if (user.id === userId) {
@@ -89,19 +110,31 @@ export const updateUser = (userId: number, updatedData: Partial<Omit<User, 'id' 
                     finalUpdatedUser.password = updatedData.cedula;
                     finalUpdatedUser.temporaryPassword = false;
                 }
+                userToSync = finalUpdatedUser;
                 return finalUpdatedUser;
             }
             return user;
         });
         return { ...currentState, users };
     });
+
+    if (userToSync) {
+        syncUserInSupabase(userToSync, false);
+    }
 };
 
-export const deleteUser = (userId: number): void => {
+export const deleteUser = async (userId: number): Promise<void> => {
     store.updateState(currentState => {
         const users = currentState.users.filter(user => user.id !== userId);
         return { ...currentState, users };
     });
+    try {
+        const supabase = getClient();
+        const { error } = await supabase.from('users').delete().eq('id', userId);
+        if (error) throw error;
+    } catch (error) {
+        console.error("Error deleting user from Supabase:", error);
+    }
 };
 
 export const validateUser = (email: string, password_plaintext: string, requiredRole?: UserRole) => {
@@ -120,6 +153,7 @@ export const validateUser = (email: string, password_plaintext: string, required
 
 export const updateUserPassword = (email: string, newPassword_plaintext: string): boolean => {
     let success = false;
+    let userToUpdate: User | null = null;
     store.updateState(currentState => {
         const userIndex = currentState.users.findIndex(user => user.email.toLowerCase() === email.toLowerCase());
         if (userIndex === -1) {
@@ -128,14 +162,21 @@ export const updateUserPassword = (email: string, newPassword_plaintext: string)
         }
 
         const newUsers = [...currentState.users];
-        newUsers[userIndex] = {
+        userToUpdate = {
             ...newUsers[userIndex],
             password: newPassword_plaintext,
             temporaryPassword: false
         };
+        newUsers[userIndex] = userToUpdate;
+        
         success = true;
         return { ...currentState, users: newUsers };
     });
+
+    if (success && userToUpdate) {
+        syncUserInSupabase(userToUpdate, false);
+    }
+
     return success;
 };
 

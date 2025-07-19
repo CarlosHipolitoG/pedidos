@@ -24,7 +24,7 @@ class AppStore {
   private state: AppData = {
     orders: [],
     products: [],
-    users: initialUsersData, // Start with default users
+    users: [],
     settings: initialSettings,
   };
   private listeners: Set<(state: AppData) => void> = new Set();
@@ -96,8 +96,24 @@ class AppStore {
         ]);
         
         // Handle Products
-        if (productsResponse.error) throw new Error(`Failed to fetch products: ${productsResponse.error.message}`);
-        this.state.products = productsResponse.data?.length ? productsResponse.data : initialProductsData;
+        if (productsResponse.error) {
+            console.error('Error fetching products:', productsResponse.error.message);
+            this.state.products = initialProductsData;
+        } else {
+             if (productsResponse.data?.length) {
+                this.state.products = productsResponse.data;
+            } else {
+                console.log("No products found in DB, inserting initial data...");
+                const { error: insertError } = await supabase.from('products').insert(initialProductsData);
+                if (insertError) {
+                    console.error("Failed to insert initial products:", insertError);
+                    this.state.products = initialProductsData;
+                } else {
+                    const { data: newData } = await supabase.from('products').select('*');
+                    this.state.products = newData || initialProductsData;
+                }
+            }
+        }
         
         // Handle Orders
         if (ordersResponse.error) {
@@ -125,7 +141,6 @@ class AppStore {
              this.state.settings = settingsResponse.data.settings_data;
           } else {
             // No settings found, just use the initial ones locally.
-            // Admin can save them for the first time from the settings page.
             this.state.settings = initialSettings;
           }
         }
@@ -135,7 +150,19 @@ class AppStore {
              console.error("Error fetching users:", usersResponse.error.message);
              this.state.users = initialUsersData;
         } else {
-            this.state.users = usersResponse.data?.length ? usersResponse.data : initialUsersData;
+             if (usersResponse.data?.length) {
+                this.state.users = usersResponse.data;
+            } else {
+                console.log("No users found in DB, inserting initial data...");
+                const { error: insertError } = await supabase.from('users').insert(initialUsersData);
+                 if (insertError) {
+                    console.error("Failed to insert initial users:", insertError);
+                    this.state.users = initialUsersData;
+                } else {
+                    const { data: newData } = await supabase.from('users').select('*');
+                    this.state.users = newData || initialUsersData;
+                }
+            }
         }
 
 
