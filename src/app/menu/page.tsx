@@ -473,14 +473,16 @@ export default function MenuPage() {
                       </p>
                     </CardContent>
                     <CardFooter className="p-4 pt-0">
-                       <Button
-                          className="w-full"
-                          disabled={product.disponibilidad === 'PRODUCTO_AGOTADO' || (activeOrder && (activeOrder.status === 'Completado' || activeOrder.status === 'Pagado'))}
-                          onClick={() => handleAddToCart(product)}
-                        >
-                          <Plus className="mr-2 h-4 w-4" />
-                          {activeOrder ? 'Añadir al Pedido' : 'Agregar al Carrito'}
-                        </Button>
+                        {product.disponibilidad !== 'PRODUCTO_AGOTADO' && (
+                            <Button
+                                className="w-full"
+                                disabled={activeOrder && (activeOrder.status === 'Completado' || activeOrder.status === 'Pagado')}
+                                onClick={() => handleAddToCart(product)}
+                                >
+                                <Plus className="mr-2 h-4 w-4" />
+                                {activeOrder ? 'Añadir al Pedido' : 'Agregar al Carrito'}
+                            </Button>
+                        )}
                     </CardFooter>
                   </Card>
                 ))}
