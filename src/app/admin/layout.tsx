@@ -18,6 +18,14 @@ export default function AdminLayout({
     // Only show the notice on the client-side after mounting
     // to prevent hydration errors.
     setIsDemoNoticeVisible(true);
+    
+    // Clear any conflicting session storage when entering the admin area
+    // to prevent auth state issues.
+    localStorage.removeItem('customerName');
+    localStorage.removeItem('customerPhone');
+    localStorage.removeItem('customerEmail');
+    localStorage.removeItem('activeOrderId');
+
   }, []);
 
 
