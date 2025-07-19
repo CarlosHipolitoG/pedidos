@@ -32,8 +32,8 @@ export default function AdminLayout({
           </AlertDescription>
           <Button
             variant="ghost"
-            size="icon"
-            className="absolute top-1 right-2 h-6 w-6"
+            size="sm"
+            className="absolute top-2 right-2 h-auto w-auto p-1"
             onClick={() => setIsDemoNoticeVisible(false)}
           >
             <X className="h-4 w-4 font-bold" />
