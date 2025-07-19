@@ -97,8 +97,7 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
             throw error;
         }
 
-        // The data from Supabase has the correct column names from the DB
-        const newOrder = {
+        const newOrder: Order = {
             id: data.id,
             timestamp: new Date(data.timestamp).getTime(),
             customer: data.customer,
@@ -106,7 +105,7 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
             total: data.total,
             status: data.status,
             orderedBy: data.orderedBy,
-            attendedBy: data.attendedBy
+            attendedBy: data.attendedBy,
         };
 
         store.updateState(currentState => ({

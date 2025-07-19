@@ -89,9 +89,9 @@ class AppStore {
         
         // Parallel fetching for better performance
         const [productsResponse, ordersResponse, settingsResponse] = await Promise.all([
-            supabase.from('productos').select('*'),
-            supabase.from('pedidos').select('*').order('marca_de_tiempo', { ascending: false }),
-            supabase.from('configuraciones').select('settings_data').eq('id', 1).maybeSingle()
+            supabase.from('products').select('*'),
+            supabase.from('orders').select('*').order('timestamp', { ascending: false }),
+            supabase.from('settings').select('settings_data').eq('id', 1).maybeSingle()
         ]);
         
         // Handle Products
@@ -105,13 +105,13 @@ class AppStore {
         } else {
              this.state.orders = (ordersResponse.data || []).map((o: any) => ({
                 id: o.id,
-                timestamp: new Date(o.marca_de_tiempo).getTime(),
-                customer: o.cliente,
-                items: o.elementos,
+                timestamp: new Date(o.timestamp).getTime(),
+                customer: o.customer,
+                items: o.items,
                 total: o.total,
-                status: o.estado,
-                orderedBy: o.pedido_por,
-                attendedBy: o.atendido_por
+                status: o.status,
+                orderedBy: o.orderedBy,
+                attendedBy: o.attendedBy
              }));
         }
 
@@ -127,7 +127,7 @@ class AppStore {
             console.log("No settings found in DB, inserting initial settings.");
             this.state.settings = initialSettings;
             const { error: insertError } = await supabase
-              .from('configuraciones')
+              .from('settings')
               .insert({ id: 1, settings_data: initialSettings });
             if (insertError) {
               console.error("Failed to insert initial settings:", insertError);
@@ -153,7 +153,7 @@ class AppStore {
 
       const supabase = getClient();
       
-      const tables = ['pedidos', 'productos', 'configuraciones'];
+      const tables = ['orders', 'products', 'settings'];
       
       this.realtimeChannel = supabase
         .channel('public-dynamic-db-changes')
