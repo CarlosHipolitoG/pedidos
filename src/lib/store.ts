@@ -56,17 +56,14 @@ class AppStore {
       try {
         await this.fetchData(); // Perform the initial fetch
         
-        // Only setup realtime for staff
+        // Only setup realtime for staff (admin/waiter)
         const userName = localStorage.getItem('userName');
-        if (!userName) {
-            this.teardownRealtimeListeners();
+        const user = this.state.users.find(u => u.name === userName);
+
+        if (user && (user.role === 'admin' || user.role === 'waiter')) {
+             this.setupRealtimeListeners();
         } else {
-            const user = this.state.users.find(u => u.name === userName);
-            if (user && (user.role === 'admin' || user.role === 'waiter')) {
-                 this.setupRealtimeListeners();
-            } else {
-                 this.teardownRealtimeListeners();
-            }
+             this.teardownRealtimeListeners();
         }
 
       } catch (error) {
@@ -90,20 +87,22 @@ class AppStore {
   public async fetchData() {
     try {
         const supabase = getClient();
+        if (!supabase) throw new Error("Supabase client is not available.");
         
         const { data: products, error: productsError } = await supabase.from('productos').select('*');
-        if (productsError) throw new Error("Failed to fetch products");
+        if (productsError) throw new Error(`Failed to fetch products: ${productsError.message}`);
 
         this.state.products = products || initialProductsData;
         
         // Also fetch existing orders
-        const { data: ordersData, error: ordersError } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
+        const { data: ordersData, error: ordersError } = await supabase.from('pedidos').select('*').order('timestamp', { ascending: false });
+        
         if (ordersError) {
             // It's ok if the orders table doesn't exist yet, don't throw.
             console.warn("[AppStore] Could not fetch orders, maybe the table doesn't exist yet?", ordersError.message);
             this.state.orders = [];
         } else {
-             // Map Supabase data to application's Order type
+             // Map Supabase data (Spanish columns) to application's Order type
              this.state.orders = (ordersData || []).map((o: any) => ({
                 id: o.id,
                 timestamp: new Date(o.timestamp).getTime(),
@@ -111,7 +110,7 @@ class AppStore {
                 items: o.elementos,
                 total: o.total_numerico,
                 status: o.texto_de_estado,
-                orderedBy: o.orderedBy,
+                orderedBy: o.ordenadoPor,
                 attendedBy: o.atendidoPor
              }));
         }
@@ -131,15 +130,17 @@ class AppStore {
       if (typeof window === 'undefined' || this.realtimeChannel) return;
 
       const supabase = getClient();
+      if (!supabase) return; // Do not proceed if client is not available
+      
       this.realtimeChannel = supabase
-        .channel('public:orders')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+        .channel('public:pedidos')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, (payload) => {
             console.log('Realtime change received!', payload);
             this.fetchData(); // Refetch all data to ensure consistency
         })
         .subscribe((status, err) => {
              if (status === 'SUBSCRIBED') {
-                console.log('Successfully subscribed to realtime orders channel.');
+                console.log('Successfully subscribed to realtime pedidos channel.');
             }
              if (status === 'CHANNEL_ERROR') {
                 console.error('Realtime channel error. Retrying connection...', err);

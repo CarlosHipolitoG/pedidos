@@ -70,25 +70,26 @@ export function getOrdersByAttendedBy(userName: string): Order[] {
 export async function addOrder(payload: NewOrderPayload): Promise<Order | null> {
     try {
         const supabase = getClient();
+        if (!supabase) throw new Error("Supabase client not initialized");
         const now = Date.now();
         const itemsWithTimestamp: OrderItem[] = payload.items.map(item => ({
             ...item,
             addedAt: now
         }));
         
-        // Map application payload to Supabase table schema
+        // Map application payload to Supabase table schema (Spanish columns)
         const newOrderDataForSupabase = {
             timestamp: new Date(now).toISOString(),
             cliente: payload.customer,
             elementos: itemsWithTimestamp,
             total_numerico: payload.total,
             texto_de_estado: 'Pendiente',
-            orderedBy: payload.orderedBy,
+            ordenadoPor: payload.orderedBy,
             atendidoPor: payload.orderedBy.type === 'Mesero' ? payload.orderedBy.name : undefined,
         };
 
         const { data, error } = await supabase
-            .from('orders')
+            .from('pedidos')
             .insert(newOrderDataForSupabase)
             .select()
             .single();
@@ -99,7 +100,7 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
         }
 
         // The state will be updated by the realtime listener, but we can return the created order
-        // We must map it back to the application's Order type
+        // We must map it back from the Spanish columns to the application's Order type
         return {
             id: data.id,
             timestamp: new Date(data.timestamp).getTime(),
@@ -107,7 +108,7 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
             items: data.elementos,
             total: data.total_numerico,
             status: data.texto_de_estado,
-            orderedBy: data.orderedBy,
+            orderedBy: data.ordenadoPor,
             attendedBy: data.atendidoPor
         };
 
@@ -120,8 +121,9 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
 async function updateOrderInSupabase(orderId: number, updateData: { [key: string]: any }) {
     try {
         const supabase = getClient();
+        if (!supabase) throw new Error("Supabase client not initialized");
         const { error } = await supabase
-            .from('orders')
+            .from('pedidos')
             .update(updateData)
             .eq('id', orderId);
         if (error) throw error;
@@ -253,16 +255,16 @@ export function removeProductFromOrder(orderId: number, itemId: number): boolean
     return success;
 }
 
-export function deleteOrder(orderId: number): void {
+export async function deleteOrder(orderId: number): Promise<void> {
     store.updateState(currentState => ({
         ...currentState,
         orders: currentState.orders.filter(order => order.id !== orderId)
     }));
      try {
         const supabase = getClient();
-        supabase.from('orders').delete().eq('id', orderId).then(({ error }) => {
-            if (error) console.error("Error deleting order from Supabase:", error);
-        });
+        if (!supabase) throw new Error("Supabase client not initialized");
+        const { error } = await supabase.from('pedidos').delete().eq('id', orderId)
+        if (error) console.error("Error deleting order from Supabase:", error);
     } catch (error) {
         console.error("Error deleting order:", error);
     }
