@@ -219,17 +219,61 @@ export default function WaiterDashboardPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+      </div>
 
-        <Sheet>
+      {isCustomerModalOpen && <div className="absolute inset-0 bg-background/80 z-10"/>}
+
+      <Dialog open={isCustomerModalOpen} onOpenChange={setIsCustomerModalOpen}>
+          <DialogContent className="sm:max-w-[425px]" onInteractOutside={(e) => e.preventDefault()}>
+               <DialogHeader>
+                    <DialogTitle>Identificar Cliente</DialogTitle>
+                    <DialogDescription>
+                        Ingresa los datos del cliente para iniciar un nuevo pedido.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="customer-name">Nombre del Cliente</Label>
+                        <Input 
+                            id="customer-name" 
+                            value={customerName} 
+                            onChange={(e) => setCustomerName(e.target.value)} 
+                            placeholder="Ej: Juan Pérez"
+                        />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="customer-phone">Celular del Cliente</Label>
+                        <Input 
+                            id="customer-phone" 
+                            value={customerPhone} 
+                            onChange={(e) => setCustomerPhone(e.target.value)} 
+                            placeholder="Ej: 3001234567"
+                        />
+                    </div>
+                </div>
+                 <DialogFooter>
+                    <Button 
+                        type="submit" 
+                        onClick={handleStartOrderForCustomer} 
+                        disabled={!customerName || !customerPhone}
+                        className="w-full"
+                    >
+                        Iniciar Pedido para este Cliente
+                    </Button>
+                </DialogFooter>
+          </DialogContent>
+      </Dialog>
+      
+      <Sheet>
         <SheetTrigger asChild>
-            <Button size="lg" className="relative w-full md:w-auto" disabled={isCustomerModalOpen}>
-            <ShoppingCart className="mr-2 h-6 w-6" />
-            Ver Pedido Actual
-            {totalItemsInCart > 0 && (
-                <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-6 w-6 flex items-center justify-center animate-pulse">
-                {totalItemsInCart}
+            <Button size="icon" className="fixed bottom-8 right-8 z-50 h-16 w-16 rounded-full shadow-lg" disabled={isCustomerModalOpen}>
+              <ShoppingCart className="h-8 w-8" />
+              <span className="sr-only">Ver Pedido</span>
+              {totalItemsInCart > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-6 w-6 flex items-center justify-center animate-pulse">
+                  {totalItemsInCart}
                 </span>
-            )}
+              )}
             </Button>
         </SheetTrigger>
         <SheetContent className="flex flex-col">
@@ -303,50 +347,6 @@ export default function WaiterDashboardPage() {
             )}
         </SheetContent>
         </Sheet>
-      </div>
-
-      {isCustomerModalOpen && <div className="absolute inset-0 bg-background/80 z-10"/>}
-
-      <Dialog open={isCustomerModalOpen} onOpenChange={setIsCustomerModalOpen}>
-          <DialogContent className="sm:max-w-[425px]" onInteractOutside={(e) => e.preventDefault()}>
-               <DialogHeader>
-                    <DialogTitle>Identificar Cliente</DialogTitle>
-                    <DialogDescription>
-                        Ingresa los datos del cliente para iniciar un nuevo pedido.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="customer-name">Nombre del Cliente</Label>
-                        <Input 
-                            id="customer-name" 
-                            value={customerName} 
-                            onChange={(e) => setCustomerName(e.target.value)} 
-                            placeholder="Ej: Juan Pérez"
-                        />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="customer-phone">Celular del Cliente</Label>
-                        <Input 
-                            id="customer-phone" 
-                            value={customerPhone} 
-                            onChange={(e) => setCustomerPhone(e.target.value)} 
-                            placeholder="Ej: 3001234567"
-                        />
-                    </div>
-                </div>
-                 <DialogFooter>
-                    <Button 
-                        type="submit" 
-                        onClick={handleStartOrderForCustomer} 
-                        disabled={!customerName || !customerPhone}
-                        className="w-full"
-                    >
-                        Iniciar Pedido para este Cliente
-                    </Button>
-                </DialogFooter>
-          </DialogContent>
-      </Dialog>
 
       <div className="space-y-8">
         {categories.length > 0 ? (
