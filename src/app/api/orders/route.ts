@@ -9,10 +9,11 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  console.error("Supabase URL and Service Key must be provided in .env");
+  throw new Error("Supabase URL and Service Key must be provided in .env for server-side operations.");
 }
 
-const supabaseAdmin = createClient(supabaseUrl!, supabaseServiceKey!);
+// Create a dedicated admin client for server-side operations
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,11 +21,10 @@ export async function POST(req: NextRequest) {
 
     const { data: existingOrders, error: countError } = await supabaseAdmin
         .from('orders')
-        .select('id');
+        .select('id', { count: 'exact', head: true });
 
     if (countError) throw countError;
 
-    const nextOrderId = (existingOrders || []).length + 1;
     const now = Date.now();
 
     const itemsWithTimestamp: OrderItem[] = payload.items.map(item => ({
