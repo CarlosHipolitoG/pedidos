@@ -43,6 +43,7 @@ export default function AdminUsersPage() {
         email: '',
         role: 'waiter',
         phone: '',
+        cedula: '',
       });
     }
     setIsModalOpen(true);
@@ -58,7 +59,12 @@ export default function AdminUsersPage() {
 
   const handleSaveUser = () => {
     if (!editingUser || !editingUser.name || !editingUser.email || !editingUser.role) {
-        toast({ title: "Error", description: "Todos los campos son requeridos.", variant: "destructive" });
+        toast({ title: "Error", description: "El nombre, email y rol son requeridos.", variant: "destructive" });
+        return;
+    }
+
+    if (editingUser.role === 'waiter' && !editingUser.cedula) {
+        toast({ title: "Error", description: "La cédula es requerida para el rol de mesero.", variant: "destructive" });
         return;
     }
 
@@ -70,17 +76,38 @@ export default function AdminUsersPage() {
     } else {
       // Adding new user
       const result = addUser(editingUser as Omit<User, 'id' | 'password' | 'temporaryPassword'>);
-      if (result.tempPassword && result.newUser) {
+      if (result.newUser) {
         const baseUrl = window.location.origin;
         const loginPath = result.newUser.role === 'admin' ? '/admin' : '/waiter';
         const loginUrl = `${baseUrl}${loginPath}`;
         
+        let toastDescription: React.ReactNode;
+        if(result.newUser.role === 'waiter') {
+            toastDescription = (
+                 <div>
+                  <p>Usuario: {result.newUser.name}</p>
+                  <p>Contraseña: <span className="font-bold">{result.newUser.cedula} (su cédula)</span></p>
+                </div>
+            );
+        } else if (result.tempPassword) {
+            toastDescription = (
+                 <div>
+                    <p>Usuario: {result.newUser.name}</p>
+                    <p>Contraseña Temporal: <span className="font-bold">{result.tempPassword}</span></p>
+                </div>
+            );
+        } else {
+            toast({ title: "Cliente Registrado", description: `${editingUser.name} ha sido añadido como cliente.` });
+            setIsModalOpen(false);
+            setEditingUser(null);
+            return;
+        }
+
         toast({ 
             title: "Usuario Registrado Exitosamente", 
             description: (
               <div>
-                  <p>Usuario: {result.newUser.name}</p>
-                  <p>Contraseña Temporal: <span className="font-bold">{result.tempPassword}</span></p>
+                  {toastDescription}
                   <div className="mt-2">
                     <p className="text-xs">Enlace de acceso:</p>
                     <div className="flex items-center gap-2">
@@ -95,8 +122,7 @@ export default function AdminUsersPage() {
             ),
             duration: 20000 
         });
-      } else {
-         toast({ title: "Cliente Registrado", description: `${editingUser.name} ha sido añadido como cliente.` });
+
       }
     }
     setIsModalOpen(false);
@@ -152,7 +178,7 @@ export default function AdminUsersPage() {
               <TableRow>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Celular</TableHead>
+                <TableHead>Cédula</TableHead>
                 <TableHead>Rol</TableHead>
                 <TableHead>Contraseña</TableHead>
                 <TableHead className="text-center">Acciones</TableHead>
@@ -163,7 +189,7 @@ export default function AdminUsersPage() {
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
-                   <TableCell>{user.phone || 'N/A'}</TableCell>
+                   <TableCell>{user.cedula || 'N/A'}</TableCell>
                   <TableCell>
                     <Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
                   </TableCell>
@@ -232,7 +258,7 @@ export default function AdminUsersPage() {
                     <Label htmlFor="phone">Número de Celular</Label>
                     <Input id="phone" type="tel" value={editingUser?.phone || ''} onChange={(e) => handleInputChange('phone', e.target.value)} />
                 </div>
-                <div className="space-y-2">
+                 <div className="space-y-2">
                     <Label htmlFor="role">Rol</Label>
                      <Select value={editingUser?.role} onValueChange={(value) => handleInputChange('role', value as UserRole)}>
                         <SelectTrigger id="role">
@@ -245,8 +271,16 @@ export default function AdminUsersPage() {
                         </SelectContent>
                     </Select>
                 </div>
-                {!editingUser?.id && editingUser?.role !== 'client' && (
-                     <p className="text-sm text-muted-foreground">Se generará una contraseña temporal para este usuario.</p>
+
+                {editingUser?.role === 'waiter' && (
+                    <div className="space-y-2">
+                        <Label htmlFor="cedula">Cédula (será la contraseña)</Label>
+                        <Input id="cedula" value={editingUser?.cedula || ''} onChange={(e) => handleInputChange('cedula', e.target.value)} />
+                    </div>
+                )}
+                
+                {!editingUser?.id && editingUser?.role === 'admin' && (
+                     <p className="text-sm text-muted-foreground">Se generará una contraseña temporal para este administrador.</p>
                 )}
             </div>
             <DialogFooter>

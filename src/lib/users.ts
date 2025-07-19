@@ -37,9 +37,10 @@ export const initialUsersData: User[] = [
     id: 2,
     name: 'Juan Mesero',
     email: 'mesero@example.com',
-    password: 'password123',
+    cedula: '10203040',
+    password: '10203040', // Cedula is the password
     role: 'waiter',
-    temporaryPassword: true
+    temporaryPassword: false
   },
 ];
 
@@ -57,7 +58,7 @@ const getUserByEmail = (email: string): User | undefined => {
     return users.find(user => user.email.toLowerCase() === email.toLowerCase());
 }
 
-export const addUser = (userData: Omit<User, 'id'>): { newUser: User, tempPassword?: string } => {
+export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tempPassword?: string } => {
     let tempPassword: string | undefined;
     let newUser: User | null = null;
     
@@ -74,7 +75,14 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User, tempPasswo
                 password: undefined,
                 temporaryPassword: false,
             };
-        } else {
+        } else if (userData.role === 'waiter' && userData.cedula) {
+             finalUserData = {
+                ...userData,
+                id: nextUserId,
+                password: userData.cedula, // Use cedula as password
+                temporaryPassword: false,
+            };
+        } else { // Admin or other roles
             tempPassword = Math.random().toString(36).slice(-8);
             finalUserData = {
                 ...userData,
@@ -89,14 +97,23 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User, tempPasswo
         return { ...currentState, users };
     });
 
-    return { newUser: newUser!, tempPassword };
+    return { newUser, tempPassword };
 };
 
 export const updateUser = (userId: number, updatedData: Partial<Omit<User, 'id' | 'password' | 'temporaryPassword'>>): void => {
     store.updateState(currentState => {
-        const users = currentState.users.map(user =>
-            user.id === userId ? { ...user, ...updatedData } : user
-        );
+        const users = currentState.users.map(user => {
+            if (user.id === userId) {
+                let finalUpdatedUser = { ...user, ...updatedData };
+                // If the role is waiter and cedula is being updated, update password too
+                if(finalUpdatedUser.role === 'waiter' && updatedData.cedula) {
+                    finalUpdatedUser.password = updatedData.cedula;
+                    finalUpdatedUser.temporaryPassword = false;
+                }
+                return finalUpdatedUser;
+            }
+            return user;
+        });
         return { ...currentState, users };
     });
 };

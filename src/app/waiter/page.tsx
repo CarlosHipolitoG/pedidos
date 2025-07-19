@@ -15,7 +15,7 @@ import { useAppStore } from '@/lib/store';
 
 export default function WaiterPage() {
   const [email, setEmail] = useState('mesero@example.com');
-  const [password, setPassword] = useState('password123');
+  const [password, setPassword] = useState('10203040'); // The Cedula for the sample user
   const router = useRouter();
   const { toast } = useToast();
   const { isInitialized } = useAppStore();
@@ -34,11 +34,9 @@ export default function WaiterPage() {
       localStorage.setItem('userName', validation.user.name);
       localStorage.setItem('userEmail', validation.user.email);
       
-      if (validation.isTemporaryPassword) {
-        router.push('/change-password');
-      } else {
-        router.push('/waiter/dashboard');
-      }
+      // Since Cedula is the permanent password, there's no temporary password flow for waiters anymore
+      router.push('/waiter/dashboard');
+
     } else {
       toast({
         title: 'Error de Autenticación',
@@ -74,7 +72,7 @@ export default function WaiterPage() {
             Acceso de Mesero
           </CardTitle>
           <CardDescription className="text-center">
-            Ingresa tus credenciales para tomar pedidos.
+            Ingresa tu correo y tu cédula como contraseña.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -92,11 +90,11 @@ export default function WaiterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password">Contraseña (Cédula)</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="********"
+                placeholder="Tu número de cédula"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
