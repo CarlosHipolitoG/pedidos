@@ -14,7 +14,7 @@ const mockSupabase = {
   }),
   channel: () => ({
     on: () => mockSupabase.channel(), // Return the mock channel to allow chaining
-    subscribe: (callback: (status: string) => void) => {
+    subscribe: (callback: (status: string, err?: Error) => void) => {
       // Immediately call back with a 'SUBSCRIBED' status for consistency.
       if (typeof callback === 'function') {
         callback('SUBSCRIBED');
