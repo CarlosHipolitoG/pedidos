@@ -147,7 +147,8 @@ class AppStore {
                 this.state.users = usersResponse.data;
             } else {
                 console.log("No users found in DB, inserting initial data...");
-                const { error: insertError } = await supabase.from('users').insert(initialUsersData);
+                const usersToInsert = initialUsersData.map(({ id, ...rest }) => rest);
+                const { error: insertError } = await supabase.from('users').insert(usersToInsert);
                 if (insertError) {
                     console.error("Failed to insert initial users:", insertError);
                     this.state.users = initialUsersData;
