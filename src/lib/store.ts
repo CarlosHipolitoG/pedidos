@@ -140,7 +140,13 @@ class AppStore {
           if (settingsResponse.data && settingsResponse.data.settings_data) {
              this.state.settings = settingsResponse.data.settings_data;
           } else {
-             console.log("No settings found in DB, using initial local data.");
+             console.log("No settings found in DB, using initial local data and inserting it.");
+              const { error: insertError } = await supabase
+              .from('settings')
+              .insert({ id: 1, settings_data: initialSettings });
+            if (insertError) {
+              console.error("Failed to insert initial settings:", insertError);
+            }
              this.state.settings = initialSettings;
           }
         }
