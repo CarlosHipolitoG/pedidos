@@ -80,27 +80,18 @@ class AppStore {
         const { data: products, error: productsError } = await supabase.from('productos').select('*');
         if (productsError) throw productsError;
         
-        // Only fetch products for now, as other tables might not exist.
-        // Use initial data for users and settings.
-        const newState = {
-            products: products || initialProductsData,
-            users: initialUsersData,
-            orders: [], // Start with no orders
-            settings: initialSettings
+        // Overwrite the state with the latest data from the DB
+        this.state = {
+            ...this.state, // Keep existing orders, users, settings
+            products: products || initialProductsData
         };
-        
-        this.state = newState;
 
     } catch (error: any) {
         console.error("[AppStore] Fetching data failed, using fallback data:", error.message);
-        // If fetching fails, we stick with the initial local data
-        this.state = {
-            orders: [],
-            products: initialProductsData,
-            users: initialUsersData,
-            settings: initialSettings
-        };
+        // If fetching fails, we stick with the initial local data for products
+        this.state.products = initialProductsData;
     } finally {
+        // Broadcast changes to all subscribed components
         this.broadcast();
     }
   }
@@ -108,7 +99,7 @@ class AppStore {
   private initializeRealtimeSync() {
     // Prevent initialization on the server
     const supabase = getClient();
-    if (typeof window === 'undefined' || !supabase.channel) {
+    if (typeof window === 'undefined') {
         return;
     }
     // Ensure we only have one channel subscription.
@@ -125,7 +116,7 @@ class AppStore {
       { event: '*', schema: 'public', table: 'productos' },
       (payload) => {
         console.log(`Realtime change received on productos!`, payload);
-        this.fetchData();
+        this.fetchData(); // Refetch all product data on any change
       }
     );
 
@@ -163,6 +154,7 @@ class AppStore {
   public getState(): AppData {
     return this.state;
   }
+
 
   public async updateState(updater: (currentState: AppData) => AppData) {
     await this.ensureInitialized();
