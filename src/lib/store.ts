@@ -93,10 +93,7 @@ class AppStore {
         }
         
         // Overwrite the state with the latest data from the DB
-        this.state = {
-            ...this.state,
-            products: products || initialProductsData
-        };
+        this.state.products = products || initialProductsData;
 
     } catch (error: any) {
         console.error("[AppStore] Fetching data failed, using fallback data:", error.message);
@@ -109,7 +106,6 @@ class AppStore {
   }
 
   private initializeRealtimeSync() {
-    // Prevent initialization on the server
     const supabase = getClient();
     if (typeof window === 'undefined' || this.realtimeChannel) {
         return;
@@ -119,16 +115,15 @@ class AppStore {
 
     const channel = supabase.channel('public-db-changes');
     
-    channel.on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'productos' },
-      (payload) => {
-        console.log(`Realtime change received on productos!`, payload);
+    const handleDbChange = (payload: any) => {
+        console.log(`Realtime change received!`, payload);
         this.fetchData(); 
-      }
-    );
+    };
 
-    channel.subscribe((status, err) => { 
+    channel
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'productos' }, handleDbChange)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, handleDbChange)
+      .subscribe((status, err) => { 
         if (status === 'SUBSCRIBED') {
           console.log('Successfully subscribed to Supabase Realtime!');
         }
@@ -166,19 +161,39 @@ class AppStore {
   public getState(): AppData {
     return this.state;
   }
+  
+  private async saveStateToSupabase(oldState: AppData, newState: AppData) {
+      const supabase = getClient();
+
+      // We won't save products from the client to avoid RLS issues for now.
+      // This functionality can be restored once proper RLS policies are in place.
+
+      // Save orders if they have changed
+      if (JSON.stringify(oldState.orders) !== JSON.stringify(newState.orders)) {
+          // This is a simplified approach. A real app would calculate diffs.
+          // For now, we just upsert all orders.
+          const { error } = await supabase.from('orders').upsert(newState.orders, { onConflict: 'id' });
+          if (error) console.error("Error saving orders", error);
+      }
+      
+      // We can add similar logic for users and settings if needed.
+  }
 
 
   public async updateState(updater: (currentState: AppData) => AppData) {
     await this.ensureInitialized();
     
+    const oldState = JSON.parse(JSON.stringify(this.state));
     const newState = updater(this.state);
-    const hasChanges = JSON.stringify(this.state) !== JSON.stringify(newState);
     
     this.state = newState;
     
-    if (hasChanges) {
-        this.broadcast();
-    }
+    this.broadcast();
+    
+    // Asynchronously save the new state to Supabase without blocking the UI
+    this.saveStateToSupabase(oldState, newState).catch(error => {
+        console.error('Failed to save state to Supabase:', error);
+    });
   }
 
   public async ensureInitialized() {
