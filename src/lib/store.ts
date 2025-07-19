@@ -55,16 +55,7 @@ class AppStore {
     this.initializationPromise = (async () => {
       try {
         await this.fetchData(); // Perform the initial fetch
-        
-        // Only start realtime sync if a privileged user is logged in.
-        const userName = localStorage.getItem('userName');
-        if (userName) {
-            const user = this.state.users.find(u => u.name === userName);
-            if (user && (user.role === 'admin' || user.role === 'waiter')) {
-                this.initializeRealtimeSync();
-            }
-        }
-
+        this.setupRealtimeListeners();
       } catch (error) {
         console.error("[AppStore] Initialization failed, falling back to local data:", error);
         // Fallback to initial data if fetch fails
@@ -87,60 +78,28 @@ class AppStore {
     try {
         const supabase = getClient();
         
+        // Products are the only thing we now fetch from DB.
         const { data: products, error: productsError } = await supabase.from('productos').select('*');
         if (productsError) throw productsError;
 
-        // The 'orders' table might not exist yet, so we'll handle this gracefully.
-        const { data: orders, error: ordersError } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
-        if (ordersError) {
-          console.warn("Could not fetch orders, maybe the table doesn't exist yet.", ordersError.message);
-        }
-        
         this.state.products = products || initialProductsData;
-        this.state.orders = orders || [];
-
 
     } catch (error: any) {
-        console.error("[AppStore] Fetching data failed, using fallback data:", error.message);
-        // If fetching fails, we stick with the initial local data
+        console.error("[AppStore] Fetching products failed, using fallback data:", error.message);
         this.state.products = initialProductsData;
-        this.state.orders = [];
     } finally {
-        // Broadcast changes to all subscribed components
         this.broadcast();
     }
   }
 
-  private initializeRealtimeSync() {
-    const supabase = getClient();
-    if (typeof window === 'undefined' || this.realtimeChannel) {
-        return;
-    }
-    
-    console.log("Attempting to initialize realtime sync...");
-
-    const handleDbChange = (payload: any) => {
-        console.log(`Realtime change received!`, payload);
-        this.fetchData(); 
-    };
-
-    const channel = supabase.channel('public-changes');
-    channel
-      .on('postgres_changes', { event: '*', schema: 'public' }, handleDbChange)
-      .subscribe((status, err) => { 
-        if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to Supabase Realtime!');
-        }
-        if (status === 'CHANNEL_ERROR') {
-          console.error('Realtime subscription error:', err);
-        }
-         if (status === 'TIMED_OUT') {
-          console.warn('Realtime subscription timed out.');
-        }
-    });
-
-    this.realtimeChannel = channel;
+  // This method sets up listeners for local state changes and broadcasts them.
+  // It simulates realtime updates for a local-first approach.
+  private setupRealtimeListeners() {
+      // The broadcast mechanism itself serves as the realtime sync for local state.
+      // Whenever updateState is called, it triggers broadcast(), updating all subscribed components.
+      console.log("Realtime listeners (local state broadcast) are active.");
   }
+
 
   // Subscribe to state changes
   public subscribe(listener: (state: AppData) => void): () => void {
@@ -150,15 +109,19 @@ class AppStore {
     }
     return () => {
       this.listeners.delete(listener);
-      if (this.listeners.size === 0 && this.realtimeChannel) {
-          getClient().removeChannel(this.realtimeChannel);
-          this.realtimeChannel = null;
-          console.log("Removed realtime channel.");
-      }
     };
   }
 
   private broadcast() {
+    // This now also broadcasts changes to a Supabase channel if it exists
+    const payload = {
+        type: 'BROADCAST',
+        event: 'app-state-update',
+        payload: this.state,
+    };
+    this.realtimeChannel?.send(payload);
+    
+    // And update local listeners
     this.listeners.forEach(listener => listener(this.state));
   }
   

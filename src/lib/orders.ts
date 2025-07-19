@@ -67,26 +67,38 @@ export function getOrdersByAttendedBy(userName: string): Order[] {
         .sort((a, b) => b.timestamp - a.timestamp);
 }
 
+// This is now a local-only operation, no API call needed.
 export async function addOrder(payload: NewOrderPayload): Promise<Order | null> {
     try {
-        const response = await fetch('/api/orders', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            const errorBody = await response.json();
-            throw new Error(errorBody.message || 'Failed to create order');
-        }
-
-        const newOrder: Order = await response.json();
+        let newOrder: Order | null = null;
         
-        // Manually add the new order to the local store to update UI immediately
-        store.updateState(currentState => ({
-            ...currentState,
-            orders: [newOrder, ...currentState.orders]
-        }));
+        store.updateState(currentState => {
+            const now = Date.now();
+            const nextOrderId = (currentState.orders.reduce((maxId, o) => Math.max(o.id, maxId), 0) || 0) + 1;
+
+            const itemsWithTimestamp: OrderItem[] = payload.items.map(item => ({
+                ...item,
+                addedAt: now
+            }));
+
+            const createdOrder: Order = {
+                id: nextOrderId,
+                timestamp: now,
+                customer: payload.customer,
+                items: itemsWithTimestamp,
+                total: payload.total,
+                status: 'Pendiente',
+                orderedBy: payload.orderedBy,
+                attendedBy: payload.orderedBy.type === 'Mesero' ? payload.orderedBy.name : undefined,
+            };
+
+            newOrder = createdOrder; // Assign to outer scope variable
+
+            return {
+                ...currentState,
+                orders: [createdOrder, ...currentState.orders]
+            };
+        });
         
         return newOrder;
 
