@@ -9,16 +9,17 @@ let supabase: SupabaseClient | undefined;
 // Mock client for server-side rendering or when variables are missing
 const mockSupabase = {
   from: () => ({
-    select: () => Promise.resolve({ data: [], error: null }),
+    select: () => Promise.resolve({ data: [], error: { message: 'Mock client used', details: 'Environment variables likely missing', hint: '' } }),
     insert: (data: any) => Promise.resolve({ data, error: null }),
     update: (data: any) => Promise.resolve({ data, error: null }),
     delete: () => Promise.resolve({ data: [], error: null }),
     upsert: (data: any) => Promise.resolve({ data, error: null }),
   }),
   channel: (name: string) => ({
-    on: (event: any, filter: any, callback: any) => mockSupabase.channel(name),
+    on: () => mockSupabase.channel(name),
     subscribe: (callback: (status: string, err?: Error) => void) => {
       if (typeof callback === 'function') {
+        // Immediately call with a mock status to prevent hangs
         callback('SUBSCRIBED');
       }
       return mockSupabase.channel(name);
@@ -46,9 +47,10 @@ export function getClient(): SupabaseClient {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // If the variables are not set on the client, throw an error.
+  // If the variables are not set, return the mock client instead of throwing an error.
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Supabase URL and anonymous key must be provided in .env and prefixed with NEXT_PUBLIC_");
+    console.warn("Supabase environment variables not found. Using mock client. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env file.");
+    return mockSupabase as unknown as SupabaseClient;
   }
 
   // Create, store, and return the Supabase client instance.

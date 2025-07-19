@@ -6,7 +6,7 @@ import type {Order} from './orders';
 import type {Product} from './products';
 import type {User} from './users';
 import type {Settings} from './settings';
-import { initialUsersData, initialSettings } from './initial-data';
+import { initialUsersData, initialSettings, initialProductsData } from './initial-data';
 import { getClient } from './supabaseClient';
 
 
@@ -57,11 +57,11 @@ class AppStore {
         await this.fetchData(); // Perform the initial fetch
         this.initializeRealtimeSync(); // Set up real-time listeners AFTER initial data is set.
       } catch (error) {
-        console.error("[AppStore] Initialization failed:", error);
+        console.error("[AppStore] Initialization failed, falling back to local data:", error);
         // Fallback to initial data if fetch fails
         this.state = {
             orders: [],
-            products: [],
+            products: initialProductsData,
             users: initialUsersData,
             settings: initialSettings
         };
@@ -91,27 +91,35 @@ class AppStore {
 
         const settingsObject = settings && settings.length > 0 ? settings[0] : initialSettings;
         
+        const hasProducts = products && products.length > 0;
+
         const newState = {
-            products: products || [],
+            products: hasProducts ? products : initialProductsData,
             users: (users && users.length > 0) ? users : initialUsersData,
             orders: orders || [],
             settings: settingsObject
         };
-
-        if (JSON.stringify(this.state) !== JSON.stringify(newState)) {
-            this.state = newState;
-            this.broadcast();
+        
+        if (!hasProducts && initialProductsData.length > 0) {
+            console.log("No products found in the database. Seeding with initial data.");
+            const { error: seedError } = await supabase.from('productos').upsert(initialProductsData);
+            if (seedError) {
+                console.error("Error seeding products:", seedError);
+            }
         }
+        
+        this.state = newState;
 
-    } catch (error) {
-        console.error("[AppStore] Fetching data failed:", error);
+    } catch (error: any) {
+        console.error("[AppStore] Fetching data failed, using fallback data:", error.message);
         // If fetching fails, we stick with the initial local data
         this.state = {
             orders: [],
-            products: [],
+            products: initialProductsData,
             users: initialUsersData,
             settings: initialSettings
         };
+    } finally {
         this.broadcast();
     }
   }
