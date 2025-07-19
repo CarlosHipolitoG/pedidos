@@ -22,7 +22,6 @@ export default function HomePage() {
   const [hasPreviousOrders, setHasPreviousOrders] = useState(false);
   const { settings, isInitialized: isSettingsInitialized } = useSettings();
   const router = useRouter();
-  const [isBannerVisible, setIsBannerVisible] = useState(true);
   const [emblaApi, setEmblaApi] = useState<CarouselApi | undefined>(undefined);
   const [promotionalImages, setPromotionalImages] = useState<PromotionalImage[]>([]);
 
@@ -44,11 +43,11 @@ export default function HomePage() {
   }, [isSettingsInitialized, settings]);
 
   useEffect(() => {
-    if (isBannerVisible && emblaApi) {
+    if (emblaApi) {
         emblaApi.reInit();
         autoplayPlugin.current.play();
     }
-  }, [isBannerVisible, emblaApi, promotionalImages]);
+  }, [emblaApi, promotionalImages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,56 +59,9 @@ export default function HomePage() {
       router.push('/menu');
     }
   };
-  
-  const handleCloseBanner = () => {
-    setIsBannerVisible(false);
-  }
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden">
-        {isBannerVisible && promotionalImages.length > 0 && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <div className="absolute inset-0 bg-black/60" onClick={handleCloseBanner}></div>
-              <div className="relative w-full max-w-4xl">
-                  <Carousel
-                      setApi={setEmblaApi}
-                      plugins={[autoplayPlugin.current]}
-                      className="w-full"
-                      onMouseEnter={() => autoplayPlugin.current.stop()}
-                      onMouseLeave={() => autoplayPlugin.current.play()}
-                  >
-                      <CarouselContent>
-                          {promotionalImages.map((img) => (
-                              <CarouselItem key={img.id}>
-                                  <Card className="overflow-hidden bg-transparent border-none">
-                                      <CardContent className="relative p-0 aspect-video flex items-center justify-center max-h-[80vh]">
-                                          <Image
-                                              src={img.src}
-                                              alt={img.alt}
-                                              fill={true}
-                                              className="object-contain"
-                                              data-ai-hint={img.hint}
-                                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                              priority={true}
-                                          />
-                                      </CardContent>
-                                  </Card>
-                              </CarouselItem>
-                          ))}
-                      </CarouselContent>
-                  </Carousel>
-              </div>
-              <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-0 right-0 mt-4 mr-4 bg-black/50 text-white hover:bg-black/70 hover:text-white rounded-full h-8 w-8 z-10"
-                  onClick={handleCloseBanner}
-              >
-                  <X className="h-5 w-5" />
-              </Button>
-          </div>
-        )}
-
         <div className={cn("absolute top-4 right-4 flex gap-2 z-20")}>
              <Link href="/" passHref>
                 <Button variant="ghost" size="icon" aria-label="Client Login" className="text-white bg-black/50 hover:bg-black/70 hover:text-white">
@@ -128,7 +80,39 @@ export default function HomePage() {
             </Link>
         </div>
 
-        <div className="z-10 relative mt-4">
+        <div className="z-10 relative flex flex-col md:flex-row items-center justify-center gap-8 w-full">
+            {promotionalImages.length > 0 && (
+                 <Card className="hidden md:block w-full max-w-md bg-card/80 backdrop-blur-sm">
+                     <CardContent className="p-0">
+                         <Carousel
+                            setApi={setEmblaApi}
+                            plugins={[autoplayPlugin.current]}
+                            className="w-full"
+                            onMouseEnter={() => autoplayPlugin.current.stop()}
+                            onMouseLeave={() => autoplayPlugin.current.play()}
+                        >
+                            <CarouselContent>
+                                {promotionalImages.map((img) => (
+                                    <CarouselItem key={img.id}>
+                                        <div className="relative aspect-[3/4] w-full">
+                                            <Image
+                                                src={img.src}
+                                                alt={img.alt}
+                                                fill={true}
+                                                className="object-cover rounded-lg"
+                                                data-ai-hint={img.hint}
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                priority={true}
+                                            />
+                                        </div>
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                        </Carousel>
+                     </CardContent>
+                 </Card>
+            )}
+
             <Card className="w-full max-w-md bg-card/80 backdrop-blur-sm">
                 <CardHeader>
                     {!isSettingsInitialized || !settings ? (
