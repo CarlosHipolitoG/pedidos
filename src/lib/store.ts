@@ -91,20 +91,23 @@ class AppStore {
     try {
         const supabase = getClient();
         
-        // Fetch products first, as they are essential for the menu to display.
-        const { data: products, error: productsError } = await supabase.from('productos').select('*');
-        if (productsError) throw new Error(`Failed to fetch products: ${productsError.message}`);
-
-        this.state.products = products || initialProductsData;
+        // Parallel fetching for better performance
+        const [productsResponse, ordersResponse, settingsResponse] = await Promise.all([
+            supabase.from('productos').select('*'),
+            supabase.from('orders').select('*').order('timestamp', { ascending: false }),
+            supabase.from('settings').select('settings_data').eq('id', 1).maybeSingle()
+        ]);
         
-        // Then, fetch orders. It's okay if this fails, the app can still function.
-        const { data: ordersData, error: ordersError } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
+        // Handle Products
+        if (productsResponse.error) throw new Error(`Failed to fetch products: ${productsResponse.error.message}`);
+        this.state.products = productsResponse.data || initialProductsData;
         
-        if (ordersError) {
-            console.warn("[AppStore] Could not fetch orders, maybe the table doesn't exist yet?", ordersError.message);
+        // Handle Orders
+        if (ordersResponse.error) {
+            console.warn("[AppStore] Could not fetch orders:", ordersResponse.error.message);
             this.state.orders = [];
         } else {
-             this.state.orders = (ordersData || []).map((o: any) => ({
+             this.state.orders = (ordersResponse.data || []).map((o: any) => ({
                 id: o.id,
                 timestamp: new Date(o.timestamp).getTime(),
                 customer: o.customer,
@@ -116,11 +119,34 @@ class AppStore {
              }));
         }
 
+        // Handle Settings
+        if (settingsResponse.error) {
+           console.error("Error fetching settings:", settingsResponse.error.message);
+           this.state.settings = initialSettings;
+        } else {
+          if (settingsResponse.data && settingsResponse.data.settings_data) {
+             this.state.settings = settingsResponse.data.settings_data;
+          } else {
+            // No settings found, so insert the initial ones
+            console.log("No settings found in DB, inserting initial settings.");
+            this.state.settings = initialSettings;
+            const { error: insertError } = await supabase
+              .from('settings')
+              .insert({ id: 1, settings_data: initialSettings });
+            if (insertError) {
+              console.error("Failed to insert initial settings:", insertError);
+            }
+          }
+        }
+
     } catch (error: any) {
         console.error("[AppStore] Fetching data failed, using fallback data:", error.message);
-        // If fetching fails, we stick with the initial local data
-        this.state.products = initialProductsData;
-        this.state.orders = [];
+        this.state = {
+            products: initialProductsData,
+            orders: [],
+            users: initialUsersData,
+            settings: initialSettings,
+        };
     } finally {
         this.broadcast();
     }
@@ -131,15 +157,19 @@ class AppStore {
 
       const supabase = getClient();
       
+      const tables = ['orders', 'productos', 'settings'];
+      
       this.realtimeChannel = supabase
-        .channel('public:orders')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-            console.log('Realtime change received!', payload);
-            this.fetchData();
+        .channel('public-dynamic-db-changes')
+        .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
+            if (tables.includes(payload.table)) {
+                console.log(`Realtime change in ${payload.table} detected!`, payload);
+                this.fetchData();
+            }
         })
         .subscribe((status, err) => {
              if (status === 'SUBSCRIBED') {
-                console.log('Successfully subscribed to realtime orders channel.');
+                console.log('Successfully subscribed to realtime channel.');
             }
              if (status === 'CHANNEL_ERROR') {
                 console.error('Realtime channel error.', err);
