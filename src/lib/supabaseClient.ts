@@ -21,6 +21,21 @@ if (supabaseUrl && supabaseAnonKey) {
       delete: async () => ({ data: [], error: { message: 'Mock client', details: 'Not configured' } }),
       upsert: async () => ({ data: [], error: { message: 'Mock client', details: 'Not configured' } }),
     }),
+    channel: (channelName: string) => ({
+      on: (event: string, filter: any, callback: any) => {
+        // Return a mock object with a subscribe method that does nothing.
+        return {
+          subscribe: (callback: (status: string, err?: Error) => void) => {
+             console.log(`Mock subscription to channel '${channelName}'. In a real environment, this would connect to Supabase.`);
+             // You could optionally call the callback with a 'SUBSCRIBED' status for more realistic mocking.
+             // callback('SUBSCRIBED');
+          }
+        };
+      },
+    }),
+    removeChannel: (channel: any) => {
+       console.log('Mock removeChannel called.');
+    }
   };
   supabaseInstance = mockSupabase as any;
 }
