@@ -87,17 +87,19 @@ class AppStore {
     try {
         const supabase = getClient();
         
-        // Fetch products directly
         const { data: products, error: productsError } = await supabase.from('productos').select('*');
         if (productsError) throw productsError;
 
-        // Fetch orders directly
-        const { data: orders, error: ordersError } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
-        if (ordersError) throw ordersError;
+        // The 'orders' table might not exist yet, so we'll handle this gracefully.
+        // const { data: orders, error: ordersError } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
+        // if (ordersError) {
+        //   console.warn("Could not fetch orders, maybe the table doesn't exist yet.", ordersError.message);
+        // }
         
-        // Overwrite the state with the latest data from the DB
         this.state.products = products || initialProductsData;
-        this.state.orders = orders || [];
+        // this.state.orders = orders || [];
+        this.state.orders = [];
+
 
     } catch (error: any) {
         console.error("[AppStore] Fetching data failed, using fallback data:", error.message);
