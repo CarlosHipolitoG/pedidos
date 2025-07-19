@@ -22,6 +22,13 @@ export default function WaiterPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Temporarily bypass login for direct access
+    localStorage.setItem('userName', 'Mesero Temporal');
+    localStorage.setItem('userEmail', 'mesero@example.com');
+    router.push('/waiter/dashboard');
+    
+    /*
     if (!isInitialized) return;
 
     const validation = validateUser(email, password, 'waiter');
@@ -34,7 +41,6 @@ export default function WaiterPage() {
       localStorage.setItem('userName', validation.user.name);
       localStorage.setItem('userEmail', validation.user.email);
       
-      // Since Cedula is the permanent password, there's no temporary password flow for waiters anymore
       router.push('/waiter/dashboard');
 
     } else {
@@ -44,6 +50,7 @@ export default function WaiterPage() {
         variant: 'destructive',
       });
     }
+    */
   };
 
   return (
@@ -72,7 +79,7 @@ export default function WaiterPage() {
             Acceso de Mesero
           </CardTitle>
           <CardDescription className="text-center">
-            Ingresa tus credenciales para acceder.
+            Ingresa para tomar pedidos.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -94,20 +101,16 @@ export default function WaiterPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Tu número de cédula"
+                placeholder="Tu contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
               />
             </div>
-             <Button type="submit" className="w-full" disabled={!isInitialized || !email || !password}>
-                {!isInitialized ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <LogIn className="mr-2 h-4 w-4" />
-                )}
-              {isInitialized ? 'Iniciar Sesión' : 'Cargando...'}
+             <Button type="submit" className="w-full">
+                <LogIn className="mr-2 h-4 w-4" />
+                Iniciar Sesión
             </Button>
           </form>
         </CardContent>
