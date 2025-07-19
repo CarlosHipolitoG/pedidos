@@ -178,18 +178,6 @@ export default function HomePage() {
                                         Crear mi Perfil
                                     </Link>
                                 </Button>
-                                {isSettingsInitialized && hasPreviousOrders && (
-                                    <Button
-                                        variant="outline"
-                                        className="w-full"
-                                        asChild
-                                    >
-                                        <Link href="/my-orders">
-                                            <History className="mr-2 h-4 w-4" />
-                                            Ver mis Pedidos Anteriores
-                                        </Link>
-                                    </Button>
-                                )}
                             </div>
                         </div>
                     </form>
