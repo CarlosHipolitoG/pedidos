@@ -38,7 +38,7 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
     const supabase = getClient();
     // Assuming we have only one row for settings in the DB, with id=1
     const { error } = await supabase
-      .from('settings')
+      .from('configuraciones')
       .update({ settings_data: newSettings })
       .eq('id', 1); 
     

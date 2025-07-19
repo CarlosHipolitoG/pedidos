@@ -58,12 +58,8 @@ class AppStore {
         
         // Only setup realtime for staff (admin/waiter)
         const userName = localStorage.getItem('userName');
-        if (!userName) {
-           this.teardownRealtimeListeners();
-           return;
-        }
-
         const user = this.state.users.find(u => u.name === userName);
+
         if (user && (user.role === 'admin' || user.role === 'waiter')) {
           this.setupRealtimeListeners();
         } else {
@@ -94,8 +90,8 @@ class AppStore {
         // Parallel fetching for better performance
         const [productsResponse, ordersResponse, settingsResponse] = await Promise.all([
             supabase.from('productos').select('*'),
-            supabase.from('orders').select('*').order('timestamp', { ascending: false }),
-            supabase.from('settings').select('settings_data').eq('id', 1).maybeSingle()
+            supabase.from('pedidos').select('*').order('marca_de_tiempo', { ascending: false }),
+            supabase.from('configuraciones').select('settings_data').eq('id', 1).maybeSingle()
         ]);
         
         // Handle Products
@@ -109,13 +105,13 @@ class AppStore {
         } else {
              this.state.orders = (ordersResponse.data || []).map((o: any) => ({
                 id: o.id,
-                timestamp: new Date(o.timestamp).getTime(),
-                customer: o.customer,
-                items: o.items,
+                timestamp: new Date(o.marca_de_tiempo).getTime(),
+                customer: o.cliente,
+                items: o.elementos,
                 total: o.total,
-                status: o.status,
-                orderedBy: o.orderedBy,
-                attendedBy: o.attendedBy
+                status: o.estado,
+                orderedBy: o.pedido_por,
+                attendedBy: o.atendido_por
              }));
         }
 
@@ -131,7 +127,7 @@ class AppStore {
             console.log("No settings found in DB, inserting initial settings.");
             this.state.settings = initialSettings;
             const { error: insertError } = await supabase
-              .from('settings')
+              .from('configuraciones')
               .insert({ id: 1, settings_data: initialSettings });
             if (insertError) {
               console.error("Failed to insert initial settings:", insertError);
@@ -157,7 +153,7 @@ class AppStore {
 
       const supabase = getClient();
       
-      const tables = ['orders', 'productos', 'settings'];
+      const tables = ['pedidos', 'productos', 'configuraciones'];
       
       this.realtimeChannel = supabase
         .channel('public-dynamic-db-changes')

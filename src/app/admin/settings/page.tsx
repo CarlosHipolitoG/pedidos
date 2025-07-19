@@ -8,15 +8,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSettings, updateSettings, Settings, PromotionalImage } from '@/lib/settings';
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, PlusCircle, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, PlusCircle, Trash2, Info, X, Shield, Utensils, User } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function AdminSettingsPage() {
   const { settings, isInitialized } = useSettings();
   const [formState, setFormState] = useState<Settings>({ barName: '', logoUrl: '', backgroundUrl: '', promotionalImages: [] });
   const [newImageUrl, setNewImageUrl] = useState('');
   const { toast } = useToast();
+  const [isDemoNoticeVisible, setIsDemoNoticeVisible] = useState(false);
+
+  useEffect(() => {
+    setIsDemoNoticeVisible(true);
+  }, []);
 
   useEffect(() => {
     if (isInitialized && settings) {
@@ -62,6 +68,11 @@ export default function AdminSettingsPage() {
   if (!isInitialized) {
     return (
         <div className="container mx-auto py-8">
+             <div className="absolute top-4 right-4 flex gap-2">
+                <Link href="/" passHref><Button variant="ghost" size="icon" aria-label="Client Login"><User className="h-5 w-5" /></Button></Link>
+                <Link href="/waiter" passHref><Button variant="ghost" size="icon" aria-label="Waiter Login"><Utensils className="h-5 w-5" /></Button></Link>
+                <Link href="/admin" passHref><Button variant="ghost" size="icon" aria-label="Admin Login"><Shield className="h-5 w-5" /></Button></Link>
+            </div>
             <Card className="max-w-2xl mx-auto">
                 <CardHeader>
                     <Skeleton className="h-8 w-48" />
@@ -80,7 +91,32 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-8 relative">
+       {isDemoNoticeVisible && (
+        <Alert className="fixed bottom-4 right-4 z-50 w-full max-w-sm bg-card/90 backdrop-blur-sm p-3 text-muted-foreground">
+          <Info className="h-4 w-4" />
+          <AlertTitle className="text-sm font-semibold text-foreground">Aviso Importante</AlertTitle>
+          <AlertDescription className="text-xs">
+            Este aplicativo fue realizado a manera de demo y cuenta con un tiempo
+            limite. Contacte a su Administrador para activar su cuenta.
+          </AlertDescription>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-2 right-2 h-auto w-auto p-1"
+            onClick={() => setIsDemoNoticeVisible(false)}
+          >
+            <X className="h-4 w-4 font-bold" />
+            <span className="sr-only">Cerrar</span>
+          </Button>
+        </Alert>
+      )}
+      <div className="absolute top-4 right-4 flex gap-2">
+          <Link href="/" passHref><Button variant="ghost" size="icon" aria-label="Client Login"><User className="h-5 w-5" /></Button></Link>
+          <Link href="/waiter" passHref><Button variant="ghost" size="icon" aria-label="Waiter Login"><Utensils className="h-5 w-5" /></Button></Link>
+          <Link href="/admin" passHref><Button variant="ghost" size="icon" aria-label="Admin Login"><Shield className="h-5 w-5" /></Button></Link>
+      </div>
+
       <div className="mb-4">
         <Button variant="ghost" asChild>
           <Link href="/admin/dashboard">
