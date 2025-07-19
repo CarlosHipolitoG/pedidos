@@ -4,8 +4,12 @@
 import {useState, useEffect, useCallback} from 'react';
 import type {Order} from './orders';
 import type {Product} from './products';
+import { initialProductsData } from './products';
 import type {User} from './users';
+import { initialUsersData } from './users';
 import type {Settings} from './settings';
+import { initialSettings } from './settings';
+
 
 // Define the shape of our entire application's data
 export type AppData = {
@@ -20,9 +24,9 @@ class AppStore {
   private static instance: AppStore;
   private state: AppData = {
     orders: [],
-    products: [],
-    users: [],
-    settings: {barName: '', logoUrl: '', backgroundUrl: '', promotionalImages: []},
+    products: initialProductsData,
+    users: initialUsersData,
+    settings: initialSettings,
   };
   private listeners: Set<(state: AppData) => void> = new Set();
   private isInitialized = false;
@@ -52,7 +56,10 @@ class AppStore {
         this.startPolling();
       } catch (error) {
         console.error('Initialization failed:', error);
-        // In case of failure, you might want to set a default state or handle it differently
+        // Fallback to initial data if API fails on first load
+        this.isInitialized = true;
+        this.broadcast();
+        this.startPolling();
       } finally {
         this.initializationPromise = null;
       }
