@@ -6,6 +6,7 @@ import type {Order} from './orders';
 import type {Product} from './products';
 import type {User} from './users';
 import type {Settings} from './settings';
+import { initialProductsData, initialUsersData, initialSettings } from './initial-data';
 
 
 // Define the shape of our entire application's data
@@ -21,9 +22,9 @@ class AppStore {
   private static instance: AppStore;
   private state: AppData = {
     orders: [],
-    products: [],
-    users: [],
-    settings: { barName: '', logoUrl: '', backgroundUrl: '', promotionalImages: [] },
+    products: initialProductsData,
+    users: initialUsersData,
+    settings: initialSettings,
   };
   private listeners: Set<(state: AppData) => void> = new Set();
   private isInitialized = false;
