@@ -58,19 +58,19 @@ class AppStore {
         
         // Only setup realtime for staff (admin/waiter)
         const userName = localStorage.getItem('userName');
-        const user = this.state.users.find(u => u.name === userName);
-
-        if (user && (user.role === 'admin' || user.role === 'waiter')) {
-          this.setupRealtimeListeners();
-        } else {
-          this.teardownRealtimeListeners();
+        
+        if (userName) {
+          const user = this.state.users.find(u => u.name === userName);
+          if (user && (user.role === 'admin' || user.role === 'waiter')) {
+            this.setupRealtimeListeners();
+          }
         }
+
       } catch (error) {
-        console.error("[AppStore] Initialization failed, falling back to local data:", error);
         // Fallback to initial data if fetch fails
         this.state = {
             orders: [],
-            products: initialProductsData,
+            products: initialProductsData.map((p, i) => ({ ...p, id: i + 1 })),
             users: initialUsersData,
             settings: initialSettings
         };
@@ -97,20 +97,17 @@ class AppStore {
         
         // Handle Products
         if (productsResponse.error) {
-            console.error('Error fetching products:', productsResponse.error.message);
-            this.state.products = initialProductsData;
+            this.state.products = initialProductsData.map((p, i) => ({ ...p, id: i + 1 }));
         } else {
             if (productsResponse.data?.length) {
                 this.state.products = productsResponse.data;
             } else {
-                console.log("No products found in DB. Using local initial product list.");
-                this.state.products = initialProductsData;
+                this.state.products = initialProductsData.map((p, i) => ({ ...p, id: i + 1 }));
             }
         }
         
         // Handle Orders
         if (ordersResponse.error) {
-            console.warn("[AppStore] Could not fetch orders:", ordersResponse.error.message);
             this.state.orders = [];
         } else {
              this.state.orders = (ordersResponse.data || []).map((o: any) => ({
@@ -127,51 +124,30 @@ class AppStore {
 
         // Handle Settings
         if (settingsResponse.error) {
-           console.error("Error fetching settings:", settingsResponse.error.message);
            this.state.settings = initialSettings;
         } else {
           if (settingsResponse.data && settingsResponse.data.settings_data) {
              this.state.settings = settingsResponse.data.settings_data;
           } else {
-             console.log("No settings found in DB, using initial local data.");
              this.state.settings = initialSettings;
           }
         }
         
         // Handle Users
         if (usersResponse.error) {
-             console.error("Error fetching users:", usersResponse.error.message);
              this.state.users = initialUsersData;
         } else {
              if (usersResponse.data?.length) {
                 this.state.users = usersResponse.data;
             } else {
-                console.log("No users found in DB. Inserting initial admin/waiter users.");
-                // Filter out clients and objects without a role, and remove ID before insert
-                const usersToInsert = initialUsersData
-                    .filter(u => u.role && (u.role === 'admin' || u.role === 'waiter'))
-                    .map(({ id, ...rest }) => rest);
-                
-                if (usersToInsert.length > 0) {
-                    const { error: insertError } = await supabase.from('users').insert(usersToInsert);
-                    if (insertError) {
-                        console.error("Failed to insert initial users:", insertError);
-                        this.state.users = initialUsersData;
-                    } else {
-                        const { data: newData } = await supabase.from('users').select('*');
-                        this.state.users = newData || [];
-                    }
-                } else {
-                    this.state.users = initialUsersData;
-                }
+                this.state.users = initialUsersData;
             }
         }
 
 
     } catch (error: any) {
-        console.error("[AppStore] Fetching data failed:", error.message);
         this.state = {
-            products: initialProductsData,
+            products: initialProductsData.map((p, i) => ({ ...p, id: i + 1 })),
             orders: [],
             users: initialUsersData,
             settings: initialSettings,
@@ -192,13 +168,12 @@ class AppStore {
         .channel('public-dynamic-db-changes')
         .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
             if (tables.includes(payload.table)) {
-                console.log(`Realtime change in ${payload.table} detected!`, payload);
                 this.fetchData();
             }
         })
         .subscribe((status, err) => {
              if (status === 'SUBSCRIBED') {
-                console.log('Successfully subscribed to realtime channel.');
+                // console.log('Successfully subscribed to realtime channel.');
             }
              if (status === 'CHANNEL_ERROR') {
                 console.error('Realtime channel error.', err);
@@ -208,7 +183,6 @@ class AppStore {
   
   private teardownRealtimeListeners() {
       if (this.realtimeChannel) {
-          console.log('Tearing down realtime channel.');
           this.realtimeChannel.unsubscribe();
           this.realtimeChannel = null;
       }
