@@ -55,7 +55,14 @@ class AppStore {
     this.initializationPromise = (async () => {
       try {
         await this.fetchData(); // Perform the initial fetch
-        this.setupRealtimeListeners();
+        
+        // Only setup realtime for staff
+        const userName = localStorage.getItem('userName');
+        const user = this.state.users.find(u => u.name === userName);
+        if (user && (user.role === 'admin' || user.role === 'waiter')) {
+             this.setupRealtimeListeners();
+        }
+
       } catch (error) {
         console.error("[AppStore] Initialization failed, falling back to local data:", error);
         // Fallback to initial data if fetch fails
@@ -79,7 +86,7 @@ class AppStore {
         const supabase = getClient();
         
         const { data: products, error: productsError } = await supabase.from('productos').select('*');
-        if (productsError) throw productsError;
+        if (productsError) throw new Error("Failed to fetch products");
 
         this.state.products = products || initialProductsData;
         
@@ -105,6 +112,7 @@ class AppStore {
 
     } catch (error: any) {
         console.error("[AppStore] Fetching data failed, using fallback data:", error.message);
+        // If fetching fails, we stick with the initial local data
         this.state.products = initialProductsData;
         this.state.orders = [];
     } finally {
