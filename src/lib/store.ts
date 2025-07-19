@@ -100,7 +100,7 @@ class AppStore {
             console.error('Error fetching products:', productsResponse.error.message);
             this.state.products = initialProductsData;
         } else {
-             if (productsResponse.data?.length) {
+            if (productsResponse.data?.length) {
                 this.state.products = productsResponse.data;
             } else {
                 console.log("No products found in DB, using initial local data.");
@@ -148,7 +148,7 @@ class AppStore {
             } else {
                 console.log("No users found in DB, inserting initial data...");
                 const { error: insertError } = await supabase.from('users').insert(initialUsersData);
-                 if (insertError) {
+                if (insertError) {
                     console.error("Failed to insert initial users:", insertError);
                     this.state.users = initialUsersData;
                 } else {

@@ -38,16 +38,17 @@ const getUserByEmail = (email: string): User | undefined => {
     return users.find(user => user.email.toLowerCase() === email.toLowerCase());
 }
 
-async function syncUserInSupabase(userData: Partial<User>, isNew: boolean) {
+async function syncUserInSupabase(userData: Partial<User>, isNew: boolean, userIdToUpdate?: number) {
     try {
         const supabase = getClient();
         const { id, ...dataToSync } = userData;
 
         if (isNew) {
+            // Exclude id for insert operations
             const { error } = await supabase.from('users').insert(dataToSync);
             if (error) throw error;
-        } else if (id) {
-            const { error } = await supabase.from('users').update(dataToSync).eq('id', id);
+        } else if (userIdToUpdate) {
+            const { error } = await supabase.from('users').update(dataToSync).eq('id', userIdToUpdate);
             if (error) throw error;
         }
     } catch (error) {
@@ -62,7 +63,6 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tem
     
     store.updateState(currentState => {
         const currentUsers = currentState.users || [];
-        // This logic is now handled by Supabase identity, but we keep it for local fallback.
         const nextUserId = (currentUsers.reduce((maxId, u) => Math.max(u.id, maxId), 0) || 0) + 1;
         
         let finalUserData: User;
@@ -78,7 +78,7 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tem
              finalUserData = {
                 ...userData,
                 id: nextUserId,
-                password: userData.cedula, // Use cedula as password
+                password: userData.cedula,
                 temporaryPassword: false,
             };
         } else { // Admin or other roles
@@ -92,7 +92,9 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tem
         }
         
         newUser = finalUserData;
-        syncUserInSupabase(newUser, true);
+        const { id, ...dataToInsert } = newUser; // Exclude 'id' for insertion
+        syncUserInSupabase(dataToInsert, true);
+
         const users = [...currentUsers, finalUserData].sort((a, b) => a.id - b.id);
         return { ...currentState, users };
     });
@@ -106,7 +108,6 @@ export const updateUser = (userId: number, updatedData: Partial<Omit<User, 'id' 
         const users = currentState.users.map(user => {
             if (user.id === userId) {
                 let finalUpdatedUser = { ...user, ...updatedData };
-                // If the role is waiter and cedula is being updated, update password too
                 if(finalUpdatedUser.role === 'waiter' && updatedData.cedula) {
                     finalUpdatedUser.password = updatedData.cedula;
                     finalUpdatedUser.temporaryPassword = false;
@@ -120,7 +121,7 @@ export const updateUser = (userId: number, updatedData: Partial<Omit<User, 'id' 
     });
 
     if (userToSync) {
-        syncUserInSupabase(userToSync, false);
+        syncUserInSupabase(userToSync, false, userId);
     }
 };
 
@@ -175,7 +176,7 @@ export const updateUserPassword = (email: string, newPassword_plaintext: string)
     });
 
     if (success && userToUpdate) {
-        syncUserInSupabase(userToUpdate, false);
+        syncUserInSupabase(userToUpdate, false, userToUpdate.id);
     }
 
     return success;
