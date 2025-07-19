@@ -91,7 +91,7 @@ export default function WaiterMyOrdersPage() {
     }, 2000);
   };
   
-  const filteredProducts = products.filter((product) =>
+  const filteredProducts = (products || []).filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
 
