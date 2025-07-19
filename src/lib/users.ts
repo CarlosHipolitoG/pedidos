@@ -62,6 +62,7 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tem
     
     store.updateState(currentState => {
         const currentUsers = currentState.users || [];
+        // This logic is now handled by Supabase identity, but we keep it for local fallback.
         const nextUserId = (currentUsers.reduce((maxId, u) => Math.max(u.id, maxId), 0) || 0) + 1;
         
         let finalUserData: User;

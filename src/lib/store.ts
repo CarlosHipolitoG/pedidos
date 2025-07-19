@@ -133,8 +133,8 @@ class AppStore {
           if (settingsResponse.data && settingsResponse.data.settings_data) {
              this.state.settings = settingsResponse.data.settings_data;
           } else {
-            console.log("No settings found in DB, using initial local data.");
-            this.state.settings = initialSettings;
+             console.log("No settings found in DB, using initial local data.");
+             this.state.settings = initialSettings;
           }
         }
         
