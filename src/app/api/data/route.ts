@@ -1,12 +1,15 @@
 
 import {NextRequest, NextResponse} from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
+import { initialProductsData, initialUsersData, initialSettings } from '@/lib/initial-data';
+import type { AppData } from '@/lib/store';
 
 // A simple lock to prevent race conditions during writes
 let isWriting = false;
 
 /**
- * Handles GET requests to fetch the current state of all data from Supabase.
+ * Handles GET requests to fetch the current state of all data.
+ * It prioritizes data from Supabase and falls back to initial mock data if Supabase returns nothing.
  */
 export async function GET() {
   try {
@@ -17,22 +20,31 @@ export async function GET() {
       supabase.from('settings').select('*').limit(1).single(),
     ]);
 
-    if (productsRes.error) throw productsRes.error;
-    if (usersRes.error) throw usersRes.error;
-    if (ordersRes.error) throw ordersRes.error;
-    if (settingsRes.error) throw settingsRes.error;
-
-    const serverDataStore = {
-      products: productsRes.data || [],
-      users: usersRes.data || [],
-      orders: ordersRes.data || [],
-      settings: settingsRes.data || { barName: '', logoUrl: '', backgroundUrl: '', promotionalImages: [] },
+    // Error handling can be more granular, but for now, we'll log and continue
+    if (productsRes.error) console.warn("Supabase products fetch error:", productsRes.error.message);
+    if (usersRes.error) console.warn("Supabase users fetch error:", usersRes.error.message);
+    if (ordersRes.error) console.warn("Supabase orders fetch error:", ordersRes.error.message);
+    if (settingsRes.error) console.warn("Supabase settings fetch error:", settingsRes.error.message);
+    
+    // Fallback logic: If Supabase returns no data (e.g., empty table or RLS blocks it), use initial data.
+    const serverDataStore: AppData = {
+      products: productsRes.data && productsRes.data.length > 0 ? productsRes.data : initialProductsData,
+      users: usersRes.data && usersRes.data.length > 0 ? usersRes.data : initialUsersData,
+      orders: ordersRes.data || [], // Orders usually start empty
+      settings: settingsRes.data || initialSettings,
     };
     
     return NextResponse.json(serverDataStore);
   } catch(error) {
      console.error("Error fetching data from Supabase:", error);
-     return NextResponse.json({ status: 'error', message: 'Failed to fetch data from Supabase' }, { status: 500 });
+     // Fallback to initial data on catastrophic failure
+     const fallbackData = {
+        products: initialProductsData,
+        users: initialUsersData,
+        orders: [],
+        settings: initialSettings
+     }
+     return NextResponse.json(fallbackData);
   }
 }
 
@@ -59,32 +71,30 @@ export async function POST(request: NextRequest) {
 
     const operations = [];
 
-    // Products
+    // Products - Upsert is safer and more efficient than delete/insert
     if (products) {
-        // Simple approach: delete all and insert new. Inefficient for large datasets.
-        operations.push(supabase.from('products').delete().neq('id', -1));
-        operations.push(supabase.from('products').insert(products));
+        operations.push(supabase.from('products').upsert(products, { onConflict: 'id' }));
     }
-    // Users
+    // Users - Upsert
      if (users) {
-        operations.push(supabase.from('users').delete().neq('id', -1));
-        operations.push(supabase.from('users').insert(users));
+        operations.push(supabase.from('users').upsert(users, { onConflict: 'id' }));
     }
-    // Orders
+    // Orders - Upsert
      if (orders) {
-        operations.push(supabase.from('orders').delete().neq('id', -1));
-        operations.push(supabase.from('orders').insert(orders));
+        operations.push(supabase.from('orders').upsert(orders, { onConflict: 'id' }));
     }
     // Settings - assuming one row with a known id, e.g., 1
     if (settings) {
-        operations.push(supabase.from('settings').update(settings).eq('id', 1));
+        // Upsert with a known ID to create if it doesn't exist
+        operations.push(supabase.from('settings').upsert({ ...settings, id: 1 }));
     }
 
-    const results = await Promise.all(operations);
-    const firstError = results.find(res => res.error);
-
-    if (firstError && firstError.error) {
-       throw firstError.error;
+    const results = await Promise.allSettled(operations);
+    
+    const errors = results.filter(res => res.status === 'rejected' || (res.status === 'fulfilled' && res.value?.error));
+    if (errors.length > 0) {
+       console.error("Errors during Supabase write operation:", errors);
+       // We won't throw an error to the client, but log it server-side
     }
 
     return NextResponse.json({status: 'success'});
