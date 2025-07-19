@@ -78,26 +78,48 @@ class AppStore {
     try {
         const supabase = getClient();
         
-        // Products are the only thing we now fetch from DB.
         const { data: products, error: productsError } = await supabase.from('productos').select('*');
         if (productsError) throw productsError;
 
         this.state.products = products || initialProductsData;
+        
+        // Also fetch existing orders
+        const { data: orders, error: ordersError } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
+        if (ordersError) {
+            // It's ok if the orders table doesn't exist yet, don't throw.
+            console.warn("[AppStore] Could not fetch orders, maybe the table doesn't exist yet?", ordersError.message);
+            this.state.orders = [];
+        } else {
+             this.state.orders = orders || [];
+        }
 
     } catch (error: any) {
-        console.error("[AppStore] Fetching products failed, using fallback data:", error.message);
+        console.error("[AppStore] Fetching data failed, using fallback data:", error.message);
         this.state.products = initialProductsData;
+        this.state.orders = [];
     } finally {
         this.broadcast();
     }
   }
 
-  // This method sets up listeners for local state changes and broadcasts them.
-  // It simulates realtime updates for a local-first approach.
   private setupRealtimeListeners() {
-      // The broadcast mechanism itself serves as the realtime sync for local state.
-      // Whenever updateState is called, it triggers broadcast(), updating all subscribed components.
-      console.log("Realtime listeners (local state broadcast) are active.");
+      if (this.realtimeChannel) return;
+
+      const supabase = getClient();
+      this.realtimeChannel = supabase
+        .channel('public:orders')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+            console.log('Realtime change received!', payload);
+            this.fetchData(); // Refetch all data to ensure consistency
+        })
+        .subscribe((status) => {
+             if (status === 'SUBSCRIBED') {
+                console.log('Successfully subscribed to realtime orders channel.');
+            }
+             if (status === 'CHANNEL_ERROR') {
+                console.error('Realtime channel error. Retrying connection...');
+            }
+        });
   }
 
 
@@ -113,15 +135,6 @@ class AppStore {
   }
 
   private broadcast() {
-    // This now also broadcasts changes to a Supabase channel if it exists
-    const payload = {
-        type: 'BROADCAST',
-        event: 'app-state-update',
-        payload: this.state,
-    };
-    this.realtimeChannel?.send(payload);
-    
-    // And update local listeners
     this.listeners.forEach(listener => listener(this.state));
   }
   

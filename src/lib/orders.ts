@@ -2,7 +2,7 @@
 'use client';
 
 import {useAppStore, store} from './store';
-import {useMemo} from 'react';
+import { getClient } from './supabaseClient';
 
 // Data types for orders
 export type OrderItem = {
@@ -67,40 +67,38 @@ export function getOrdersByAttendedBy(userName: string): Order[] {
         .sort((a, b) => b.timestamp - a.timestamp);
 }
 
-// This is now a local-only operation, no API call needed.
 export async function addOrder(payload: NewOrderPayload): Promise<Order | null> {
     try {
-        let newOrder: Order | null = null;
+        const supabase = getClient();
+        const now = Date.now();
+        const itemsWithTimestamp: OrderItem[] = payload.items.map(item => ({
+            ...item,
+            addedAt: now
+        }));
         
-        store.updateState(currentState => {
-            const now = Date.now();
-            const nextOrderId = (currentState.orders.reduce((maxId, o) => Math.max(o.id, maxId), 0) || 0) + 1;
+        const newOrderData = {
+            timestamp: new Date(now).toISOString(),
+            customer: payload.customer,
+            items: itemsWithTimestamp,
+            total: payload.total,
+            status: 'Pendiente',
+            orderedBy: payload.orderedBy,
+            attendedBy: payload.orderedBy.type === 'Mesero' ? payload.orderedBy.name : undefined,
+        };
 
-            const itemsWithTimestamp: OrderItem[] = payload.items.map(item => ({
-                ...item,
-                addedAt: now
-            }));
+        const { data, error } = await supabase
+            .from('orders')
+            .insert(newOrderData)
+            .select()
+            .single();
 
-            const createdOrder: Order = {
-                id: nextOrderId,
-                timestamp: now,
-                customer: payload.customer,
-                items: itemsWithTimestamp,
-                total: payload.total,
-                status: 'Pendiente',
-                orderedBy: payload.orderedBy,
-                attendedBy: payload.orderedBy.type === 'Mesero' ? payload.orderedBy.name : undefined,
-            };
+        if (error) {
+            console.error('Error inserting order:', error);
+            throw error;
+        }
 
-            newOrder = createdOrder; // Assign to outer scope variable
-
-            return {
-                ...currentState,
-                orders: [createdOrder, ...currentState.orders]
-            };
-        });
-        
-        return newOrder;
+        // The state will be updated by the realtime listener, but we can return the created order
+        return data as Order;
 
     } catch (error) {
         console.error("Error in addOrder:", error);
@@ -108,16 +106,31 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
     }
 }
 
+async function updateOrderInSupabase(orderId: number, updateData: Partial<Order>) {
+    try {
+        const supabase = getClient();
+        const { error } = await supabase
+            .from('orders')
+            .update(updateData)
+            .eq('id', orderId);
+        if (error) throw error;
+    } catch(error) {
+        console.error("Error updating order in Supabase:", error);
+    }
+}
+
 export function updateOrderStatus(orderId: number, status: OrderStatus) {
-    store.updateState(currentState => ({
-        ...currentState,
-        orders: currentState.orders.map(order =>
+    store.updateState(currentState => {
+        const orders = currentState.orders.map(order =>
             order.id === orderId ? { ...order, status } : order
-        )
-    }));
+        );
+        return { ...currentState, orders };
+    });
+    updateOrderInSupabase(orderId, { status });
 }
 
 export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'addedAt'>, attendedBy?: string) {
+    let updatedOrder: Order | undefined;
     store.updateState(currentState => {
         const newOrders = currentState.orders.map(order => {
             if (order.id === orderId) {
@@ -135,15 +148,27 @@ export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'add
                 const newTotal = newItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
                 const newStatus = (order.status === 'Completado' || order.status === 'Pagado') ? 'Pendiente' : order.status;
 
-                return { ...order, items: newItems, total: newTotal, status: newStatus, timestamp: now, attendedBy };
+                updatedOrder = { ...order, items: newItems, total: newTotal, status: newStatus, timestamp: now, attendedBy };
+                return updatedOrder;
             }
             return order;
         });
         return { ...currentState, orders: newOrders };
     });
+
+    if (updatedOrder) {
+        updateOrderInSupabase(orderId, {
+            items: updatedOrder.items,
+            total: updatedOrder.total,
+            status: updatedOrder.status,
+            timestamp: new Date(updatedOrder.timestamp).toISOString(),
+            attendedBy: updatedOrder.attendedBy
+        });
+    }
 }
 
 export function updateProductQuantityInOrder(orderId: number, itemId: number, newQuantity: number) {
+    let updatedOrder: Order | undefined;
     store.updateState(currentState => {
         const newOrders = currentState.orders.map(order => {
             if (order.id === orderId) {
@@ -162,16 +187,25 @@ export function updateProductQuantityInOrder(orderId: number, itemId: number, ne
                 newItems[itemIndex] = { ...item, quantity: newQuantity };
                 
                 const newTotal = newItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
-                return { ...order, items: newItems, total: newTotal };
+                updatedOrder = { ...order, items: newItems, total: newTotal };
+                return updatedOrder;
             }
             return order;
         });
         return { ...currentState, orders: newOrders };
     });
+
+     if (updatedOrder) {
+        updateOrderInSupabase(orderId, {
+            items: updatedOrder.items,
+            total: updatedOrder.total,
+        });
+    }
 }
 
 export function removeProductFromOrder(orderId: number, itemId: number): boolean {
     let success = false;
+    let updatedOrder: Order | undefined;
     store.updateState(currentState => {
         const newOrders = currentState.orders.map(order => {
             if (order.id === orderId) {
@@ -190,12 +224,20 @@ export function removeProductFromOrder(orderId: number, itemId: number): boolean
                 const newItems = order.items.filter(item => item.id !== itemId);
                 const newTotal = newItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
                 success = true;
-                return { ...order, items: newItems, total: newTotal };
+                updatedOrder = { ...order, items: newItems, total: newTotal };
+                return updatedOrder;
             }
             return order;
         });
         return { ...currentState, orders: newOrders };
     });
+    
+    if (updatedOrder) {
+        updateOrderInSupabase(orderId, {
+            items: updatedOrder.items,
+            total: updatedOrder.total,
+        });
+    }
     return success;
 }
 
@@ -204,4 +246,12 @@ export function deleteOrder(orderId: number): void {
         ...currentState,
         orders: currentState.orders.filter(order => order.id !== orderId)
     }));
+     try {
+        const supabase = getClient();
+        supabase.from('orders').delete().eq('id', orderId).then(({ error }) => {
+            if (error) console.error("Error deleting order from Supabase:", error);
+        });
+    } catch (error) {
+        console.error("Error deleting order:", error);
+    }
 }
