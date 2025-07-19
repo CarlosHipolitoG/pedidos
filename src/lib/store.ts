@@ -58,13 +58,16 @@ class AppStore {
         
         // Only setup realtime for staff (admin/waiter)
         const userName = localStorage.getItem('userName');
-        if (userName) {
-            const user = this.state.users.find(u => u.name === userName);
-             if (user && (user.role === 'admin' || user.role === 'waiter')) {
-                this.setupRealtimeListeners();
-            } else {
-                this.teardownRealtimeListeners();
-            }
+        if (!userName) {
+           this.teardownRealtimeListeners();
+           return;
+        }
+
+        const user = this.state.users.find(u => u.name === userName);
+        if (user && (user.role === 'admin' || user.role === 'waiter')) {
+          this.setupRealtimeListeners();
+        } else {
+          this.teardownRealtimeListeners();
         }
       } catch (error) {
         console.error("[AppStore] Initialization failed, falling back to local data:", error);
@@ -87,14 +90,15 @@ class AppStore {
   public async fetchData() {
     try {
         const supabase = getClient();
-        if (!supabase) throw new Error("Supabase client is not available.");
         
+        // Fetch products first, as they are essential for the menu to display.
         const { data: products, error: productsError } = await supabase.from('productos').select('*');
         if (productsError) throw new Error(`Failed to fetch products: ${productsError.message}`);
 
         this.state.products = products || initialProductsData;
         
-        const { data: ordersData, error: ordersError } = await supabase.from('pedidos').select('*').order('timestamp', { ascending: false });
+        // Then, fetch orders. It's okay if this fails, the app can still function.
+        const { data: ordersData, error: ordersError } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
         
         if (ordersError) {
             console.warn("[AppStore] Could not fetch orders, maybe the table doesn't exist yet?", ordersError.message);
@@ -103,17 +107,18 @@ class AppStore {
              this.state.orders = (ordersData || []).map((o: any) => ({
                 id: o.id,
                 timestamp: new Date(o.timestamp).getTime(),
-                customer: o.cliente,
-                items: o.elementos,
-                total: o.total_numerico,
-                status: o.texto_de_estado,
-                orderedBy: o.ordenadoPor,
-                attendedBy: o.atendidoPor
+                customer: o.customer,
+                items: o.items,
+                total: o.total,
+                status: o.status,
+                orderedBy: o.orderedBy,
+                attendedBy: o.attendedBy
              }));
         }
 
     } catch (error: any) {
         console.error("[AppStore] Fetching data failed, using fallback data:", error.message);
+        // If fetching fails, we stick with the initial local data
         this.state.products = initialProductsData;
         this.state.orders = [];
     } finally {
@@ -125,17 +130,16 @@ class AppStore {
       if (typeof window === 'undefined' || this.realtimeChannel) return;
 
       const supabase = getClient();
-      if (!supabase) return;
       
       this.realtimeChannel = supabase
-        .channel('public:pedidos')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, (payload) => {
+        .channel('public:orders')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
             console.log('Realtime change received!', payload);
             this.fetchData();
         })
         .subscribe((status, err) => {
              if (status === 'SUBSCRIBED') {
-                console.log('Successfully subscribed to realtime pedidos channel.');
+                console.log('Successfully subscribed to realtime orders channel.');
             }
              if (status === 'CHANNEL_ERROR') {
                 console.error('Realtime channel error.', err);

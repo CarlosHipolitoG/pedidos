@@ -3,32 +3,40 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Global variable for the Supabase client singleton for use in the browser
-let supabase: SupabaseClient | undefined;
+// --- Singleton Pattern for Supabase Client ---
 
-// This function should only be called from client components
-export function getClient(): SupabaseClient | undefined {
-  if (typeof window === 'undefined') {
-    return undefined;
+// Declare a global variable to hold the client instance.
+// Using `globalThis` ensures it works across different environments (browser, server, serverless).
+declare global {
+  var supabase: SupabaseClient | undefined;
+}
+
+let supabase: SupabaseClient | undefined = globalThis.supabase;
+
+// This function gets or creates the Supabase client instance.
+export function getClient(): SupabaseClient {
+  // If the instance doesn't exist, create it.
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error("Supabase URL and anonymous key are not configured in client environment variables.");
+    }
+    
+    // Create the client instance.
+    supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      // Opt-in to making this instance a singleton.
+      global: {
+        // Use the same instance across all calls to `createClient()`.
+        fetch: globalThis.fetch,
+      },
+    });
+
+    // Store the created instance in the global scope.
+    globalThis.supabase = supabase;
   }
-  
-  // If the client instance already exists, return it.
-  if (supabase) {
-    return supabase;
-  }
 
-  // Get the Supabase URL and Key from environment variables.
-  // IMPORTANT: Ensure these are capitalized correctly to match the .env file.
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("Supabase URL and anonymous key are not configured in client environment variables.");
-    return undefined;
-  }
-
-  // Create, store, and return the Supabase client instance.
-  // This instance uses the public 'anon' key, safe for client-side use.
-  supabase = createClient(supabaseUrl, supabaseAnonKey);
+  // Return the single, shared instance.
   return supabase;
 }
