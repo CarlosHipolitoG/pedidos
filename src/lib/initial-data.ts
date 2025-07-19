@@ -5,70 +5,8 @@ import type { Settings } from './settings';
 
 
 export const initialProductsData: Omit<Product, 'id'>[] = [
-  {
-    nombre: 'Mojito Cubano',
-    precio: 18000,
-    imagen: 'https://placehold.co/600x400.png',
-    disponibilidad: 'PRODUCTO_DISPONIBLE',
-    existencias: 80,
-    categoria: 'Cócteles',
-  },
-  {
-    nombre: 'Margarita Clásica',
-    precio: 20000,
-    imagen: 'https://placehold.co/600x400.png',
-    disponibilidad: 'PRODUCTO_DISPONIBLE',
-    existencias: 70,
-    categoria: 'Cócteles',
-  },
-  {
-    nombre: 'Gin & Tonic',
-    precio: 22000,
-    imagen: 'https://placehold.co/600x400.png',
-    disponibilidad: 'PRODUCTO_DISPONIBLE',
-    existencias: 90,
-    categoria: 'Cócteles',
-  },
-  {
-    nombre: 'Cerveza Nacional',
-    precio: 6000,
-    imagen: 'https://placehold.co/600x400.png',
-    disponibilidad: 'PRODUCTO_DISPONIBLE',
-    existencias: 200,
-    categoria: 'Cervezas',
-  },
-  {
-    nombre: 'Cerveza Importada',
-    precio: 12000,
-    imagen: 'https://placehold.co/600x400.png',
-    disponibilidad: 'PRODUCTO_DISPONIBLE',
-    existencias: 150,
-    categoria: 'Cervezas',
-  },
-  {
-    nombre: 'Cerveza Artesanal',
-    precio: 15000,
-    imagen: 'https://placehold.co/600x400.png',
-    disponibilidad: 'PRODUCTO_AGOTADO',
-    existencias: 0,
-    categoria: 'Cervezas',
-  },
-  {
-    nombre: 'Jugo de Naranja',
-    precio: 7000,
-    imagen: 'https://placehold.co/600x400.png',
-    disponibilidad: 'PRODUCTO_DISPONIBLE',
-    existencias: 50,
-    categoria: 'Bebidas Sin Alcohol',
-  },
-  {
-    nombre: 'Limonada de Coco',
-    precio: 9000,
-    imagen: 'https://placehold.co/600x400.png',
-    disponibilidad: 'PRODUCTO_DISPONIBLE',
-    existencias: 60,
-    categoria: 'Bebidas Sin Alcohol',
-  },
+  // This data is no longer used to populate the database.
+  // It remains as a reference for the data structure.
 ];
 
 export const initialUsersData: User[] = [

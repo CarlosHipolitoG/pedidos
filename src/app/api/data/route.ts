@@ -1,7 +1,6 @@
 
 import {NextRequest, NextResponse} from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
-import { initialProductsData, initialUsersData, initialSettings } from '@/lib/initial-data';
 
 /**
  * Handles GET requests to fetch the current state of all data from Supabase.
@@ -23,46 +22,20 @@ export async function GET() {
     // Supabase returns an array, we want the first (and only) settings object
     const settingsObject = settings && settings.length > 0 ? settings[0] : null;
 
-    // Fallback logic: if a table is empty, populate it with initial data
-    let finalProducts = products;
-    if ((!products || products.length === 0) && initialProductsData.length > 0) {
-        console.log("Productos table is empty, attempting to populate...");
-        const { data, error: insertError } = await supabase.from('productos').insert(initialProductsData).select();
-        if (insertError) {
-            console.error("Error populating productos table:", insertError);
-            finalProducts = []; // Return empty if insert fails
-        } else {
-            console.log("Successfully populated productos table:", data);
-            finalProducts = data || [];
-        }
-    }
-    
-    let finalUsers = users;
-    if (!users || users.length === 0) {
-        const { data } = await supabase.from('users').insert(initialUsersData).select();
-        finalUsers = data || [];
-    }
-
-    let finalSettings = settingsObject;
-    if (!settingsObject) {
-         const { data } = await supabase.from('settings').insert(initialSettings).select();
-         finalSettings = data && data.length > 0 ? data[0] : initialSettings;
-    }
-
     return NextResponse.json({
-        products: finalProducts,
-        users: finalUsers,
+        products: products || [],
+        users: users || [],
         orders: orders || [],
-        settings: finalSettings
+        settings: settingsObject
     });
   } catch(error) {
       console.error("Error fetching data from Supabase:", error);
       // If fetching fails entirely, return a default empty state
        return NextResponse.json({
-          products: initialProductsData, // Return initial data on error
-          users: initialUsersData,
+          products: [],
+          users: [],
           orders: [],
-          settings: initialSettings,
+          settings: null,
        }, { status: 500 });
   }
 }
