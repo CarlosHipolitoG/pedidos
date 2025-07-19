@@ -49,13 +49,18 @@ class AppStore {
 
     this.initializationPromise = (async () => {
       try {
-        await this.fetchData();
+        const response = await fetch('/api/data');
+        if (!response.ok) {
+            throw new Error(`Failed to fetch initial data: ${response.statusText}`);
+        }
+        const data = await response.json();
+        this.state = data;
       } catch (error) {
         console.error('Initialization failed during first fetch:', error);
         // Fallback to local data if API fails on first load
         this.state = {
             orders: [],
-            products: [],
+            products: [], // Start with empty products and let admin add them
             users: initialUsersData,
             settings: initialSettings
         };
@@ -84,8 +89,6 @@ class AppStore {
         }
     } catch (error) {
         console.error("[AppStore] Fetching data failed:", error);
-        // re-throw to be caught by initializer
-        throw error;
     }
   }
 
@@ -94,6 +97,12 @@ class AppStore {
     if (this.realtimeChannel) {
       supabase.removeChannel(this.realtimeChannel);
       this.realtimeChannel = null;
+    }
+
+    // This check is important because the mock client doesn't have a real 'channel' method.
+    if (typeof supabase.channel !== 'function') {
+        console.warn("Supabase client is not fully initialized. Realtime sync is disabled.");
+        return;
     }
 
     const channel = supabase.channel('public-db-changes');
