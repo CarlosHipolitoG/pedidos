@@ -28,6 +28,7 @@ const mockSupabase = {
   removeChannel: (channel: any) => {},
 };
 
+
 /**
  * Gets the Supabase client.
  * Implements a lazy singleton pattern to ensure the client is created only once.
@@ -47,9 +48,9 @@ export function getClient(): SupabaseClient {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // If the variables are not set, return the mock client instead of throwing an error.
+  // If the variables are not set on the client, throw an error.
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn("Supabase environment variables not found. Using mock client. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env file.");
+    console.error("Supabase URL and anonymous key must be provided in .env and prefixed with NEXT_PUBLIC_");
     return mockSupabase as unknown as SupabaseClient;
   }
 
