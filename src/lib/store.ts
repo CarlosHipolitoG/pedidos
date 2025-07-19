@@ -83,22 +83,25 @@ class AppStore {
     return this.initializationPromise;
   }
   
-  private async fetchData() {
+  public async fetchData() {
     try {
-        const supabase = getClient();
-        const { data: products, error: productsError } = await supabase.from('productos').select('*');
-        
-        if (productsError) {
-          throw productsError;
-        }
+        const productsResponse = await fetch('/api/data');
+        if (!productsResponse.ok) throw new Error('Failed to fetch products');
+        const { products } = await productsResponse.json();
+
+        const ordersResponse = await fetch('/api/orders');
+        if (!ordersResponse.ok) throw new Error('Failed to fetch orders');
+        const orders = await ordersResponse.json();
         
         // Overwrite the state with the latest data from the DB
         this.state.products = products || initialProductsData;
+        this.state.orders = orders || [];
 
     } catch (error: any) {
         console.error("[AppStore] Fetching data failed, using fallback data:", error.message);
-        // If fetching fails, we stick with the initial local data for products
+        // If fetching fails, we stick with the initial local data
         this.state.products = initialProductsData;
+        this.state.orders = [];
     } finally {
         // Broadcast changes to all subscribed components
         this.broadcast();
@@ -113,7 +116,7 @@ class AppStore {
     
     console.log("Attempting to initialize realtime sync...");
 
-    const channel = supabase.channel('public-db-changes');
+    const channel = supabase.channel('public:orders');
     
     const handleDbChange = (payload: any) => {
         console.log(`Realtime change received!`, payload);
@@ -121,11 +124,10 @@ class AppStore {
     };
 
     channel
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'productos' }, handleDbChange)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, handleDbChange)
       .subscribe((status, err) => { 
         if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to Supabase Realtime!');
+          console.log('Successfully subscribed to Supabase Realtime on orders table!');
         }
         if (status === 'CHANNEL_ERROR') {
           console.error('Realtime subscription error:', err);
@@ -161,24 +163,6 @@ class AppStore {
   public getState(): AppData {
     return this.state;
   }
-  
-  private async saveStateToSupabase(oldState: AppData, newState: AppData) {
-      const supabase = getClient();
-
-      // We won't save products from the client to avoid RLS issues for now.
-      // This functionality can be restored once proper RLS policies are in place.
-
-      // Save orders if they have changed
-      if (JSON.stringify(oldState.orders) !== JSON.stringify(newState.orders)) {
-          // This is a simplified approach. A real app would calculate diffs.
-          // For now, we just upsert all orders.
-          const { error } = await supabase.from('orders').upsert(newState.orders, { onConflict: 'id' });
-          if (error) console.error("Error saving orders", error);
-      }
-      
-      // We can add similar logic for users and settings if needed.
-  }
-
 
   public async updateState(updater: (currentState: AppData) => AppData) {
     await this.ensureInitialized();
@@ -189,11 +173,6 @@ class AppStore {
     this.state = newState;
     
     this.broadcast();
-    
-    // Asynchronously save the new state to Supabase without blocking the UI
-    this.saveStateToSupabase(oldState, newState).catch(error => {
-        console.error('Failed to save state to Supabase:', error);
-    });
   }
 
   public async ensureInitialized() {

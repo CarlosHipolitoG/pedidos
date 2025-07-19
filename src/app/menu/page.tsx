@@ -132,7 +132,7 @@ export default function MenuPage() {
   const totalItemsInCart = cart.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = cart.reduce((total, item) => total + item.precio * item.quantity, 0);
 
-  const handleConfirmOrder = () => {
+  const handleConfirmOrder = async () => {
     if (cart.length === 0 || !customerInfo) {
         toast({
             title: "Error en el pedido",
@@ -149,23 +149,28 @@ export default function MenuPage() {
         quantity: item.quantity,
     }));
   
-    const newOrderId = addOrder({
+    const newOrder = await addOrder({
         customer: customerInfo,
         items: orderItems,
         total: cartTotal,
         orderedBy: { type: 'Cliente', name: customerInfo.name }
     });
 
-    if(newOrderId) {
-        setActiveOrderId(newOrderId);
-        localStorage.setItem('activeOrderId', newOrderId.toString());
+    if(newOrder) {
+        setActiveOrderId(newOrder.id);
+        localStorage.setItem('activeOrderId', newOrder.id.toString());
+        toast({
+            title: "¡Pedido Enviado!",
+            description: "Tu pedido ha sido enviado al administrador. ¡Gracias por tu compra!",
+            variant: "default",
+        });
+    } else {
+         toast({
+            title: "Error al enviar el pedido",
+            description: "No se pudo crear el pedido. Por favor, inténtalo de nuevo.",
+            variant: "destructive",
+        });
     }
-    
-    toast({
-        title: "¡Pedido Enviado!",
-        description: "Tu pedido ha sido enviado al administrador. ¡Gracias por tu compra!",
-        variant: "default",
-    });
   
     setCart([]);
     sheetCloseRef.current?.click();

@@ -101,7 +101,7 @@ export default function WaiterDashboardPage() {
   const totalItemsInCart = cart.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = cart.reduce((total, item) => total + item.precio * item.quantity, 0);
 
-  const handleConfirmOrder = () => {
+  const handleConfirmOrder = async () => {
     if (cart.length === 0 || !customerName || !waiterName) {
         toast({
             title: "Error en el pedido",
@@ -118,18 +118,26 @@ export default function WaiterDashboardPage() {
         quantity: item.quantity,
     }));
   
-    addOrder({
+    const newOrder = await addOrder({
         customer: { name: customerName, phone: customerPhone },
         items: orderItems,
         total: cartTotal,
         orderedBy: { type: 'Mesero', name: waiterName }
     });
     
-    toast({
-        title: "¡Pedido Enviado!",
-        description: `El pedido para ${customerName} ha sido enviado.`,
-        variant: "default",
-    });
+    if (newOrder) {
+        toast({
+            title: "¡Pedido Enviado!",
+            description: `El pedido para ${customerName} ha sido enviado.`,
+            variant: "default",
+        });
+    } else {
+        toast({
+            title: "Error al enviar el pedido",
+            description: "No se pudo crear el pedido. Por favor, inténtalo de nuevo.",
+            variant: "destructive",
+        });
+    }
   
     setCart([]);
     setCustomerName('');

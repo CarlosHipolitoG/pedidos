@@ -67,32 +67,33 @@ export function getOrdersByAttendedBy(userName: string): Order[] {
         .sort((a, b) => b.timestamp - a.timestamp);
 }
 
-export function addOrder(payload: NewOrderPayload): number {
-    let newOrderId = 0;
-    store.updateState(currentState => {
-        const nextOrderId = (currentState.orders.reduce((maxId, order) => Math.max(order.id, maxId), 0) || 0) + 1;
-        newOrderId = nextOrderId;
-        const now = Date.now();
-        const itemsWithTimestamp: OrderItem[] = payload.items.map(item => ({
-            ...item,
-            addedAt: now
-        }));
+export async function addOrder(payload: NewOrderPayload): Promise<Order | null> {
+    try {
+        const response = await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
 
-        const newOrder: Order = {
-            ...payload,
-            items: itemsWithTimestamp,
-            id: nextOrderId,
-            timestamp: now,
-            status: 'Pendiente',
-            attendedBy: payload.orderedBy.type === 'Mesero' ? payload.orderedBy.name : undefined,
-        };
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(errorBody.message || 'Failed to create order');
+        }
 
-        return {
+        const newOrder: Order = await response.json();
+        
+        // Manually add the new order to the local store to update UI immediately
+        store.updateState(currentState => ({
             ...currentState,
             orders: [newOrder, ...currentState.orders]
-        };
-    });
-    return newOrderId;
+        }));
+        
+        return newOrder;
+
+    } catch (error) {
+        console.error("Error in addOrder:", error);
+        return null;
+    }
 }
 
 export function updateOrderStatus(orderId: number, status: OrderStatus) {
