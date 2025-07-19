@@ -58,9 +58,15 @@ class AppStore {
         
         // Only setup realtime for staff
         const userName = localStorage.getItem('userName');
-        const user = this.state.users.find(u => u.name === userName);
-        if (user && (user.role === 'admin' || user.role === 'waiter')) {
-             this.setupRealtimeListeners();
+        if (!userName) {
+            this.teardownRealtimeListeners();
+        } else {
+            const user = this.state.users.find(u => u.name === userName);
+            if (user && (user.role === 'admin' || user.role === 'waiter')) {
+                 this.setupRealtimeListeners();
+            } else {
+                 this.teardownRealtimeListeners();
+            }
         }
 
       } catch (error) {
@@ -106,7 +112,7 @@ class AppStore {
                 total: o.total_numerico,
                 status: o.texto_de_estado,
                 orderedBy: o.orderedBy,
-                attendedBy: o.atendidoPor,
+                attendedBy: o.atendidoPor
              }));
         }
 
@@ -121,7 +127,7 @@ class AppStore {
   }
 
   private setupRealtimeListeners() {
-      // Don't run on server
+      // Don't run on server or if channel already exists
       if (typeof window === 'undefined' || this.realtimeChannel) return;
 
       const supabase = getClient();
@@ -139,6 +145,14 @@ class AppStore {
                 console.error('Realtime channel error. Retrying connection...', err);
             }
         });
+  }
+  
+  private teardownRealtimeListeners() {
+      if (this.realtimeChannel) {
+          console.log('Tearing down realtime channel.');
+          this.realtimeChannel.unsubscribe();
+          this.realtimeChannel = null;
+      }
   }
 
 
