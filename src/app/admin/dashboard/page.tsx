@@ -11,7 +11,7 @@ import { es } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download, Settings, Trash2, Users } from 'lucide-react';
+import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download, Settings, Trash2, Users, Info, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -29,8 +29,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
 
 export default function AdminDashboardPage() {
   const { orders, isInitialized: isOrdersInitialized } = useOrders();
@@ -43,8 +44,13 @@ export default function AdminDashboardPage() {
   const [formattedDates, setFormattedDates] = useState<Record<string, string>>({});
   const [formattedItemDates, setFormattedItemDates] = useState<Record<string, string>>({});
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'Todos'>('Todos');
+  const [isDemoNoticeVisible, setIsDemoNoticeVisible] = useState(false);
   
   const isMountedAndInitialized = isOrdersInitialized && isProductsInitialized;
+
+  useEffect(() => {
+    setIsDemoNoticeVisible(true);
+  }, []);
 
   useEffect(() => {
     if (!isMountedAndInitialized || !orders) return;
@@ -214,7 +220,27 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-8 relative">
+       {isDemoNoticeVisible && (
+        <Alert className="fixed bottom-4 right-4 z-50 w-full max-w-sm bg-card/90 backdrop-blur-sm p-3 text-muted-foreground">
+          <Info className="h-4 w-4" />
+          <AlertTitle className="text-sm font-semibold text-foreground">Aviso Importante</AlertTitle>
+          <AlertDescription className="text-xs">
+            Este aplicativo fue realizado a manera de demo y cuenta con un tiempo
+            limite. Contacte a su Administrador para activar su cuenta.
+          </AlertDescription>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-2 right-2 h-auto w-auto p-1"
+            onClick={() => setIsDemoNoticeVisible(false)}
+          >
+            <X className="h-4 w-4 font-bold" />
+            <span className="sr-only">Cerrar</span>
+          </Button>
+        </Alert>
+      )}
+
       <div className="text-center mb-8 pt-12">
         <h1 className="text-4xl font-bold">Panel de Administrador</h1>
         <p className="text-muted-foreground">Aquí puedes ver y gestionar todos los pedidos del sistema.</p>
