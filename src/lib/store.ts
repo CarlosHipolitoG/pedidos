@@ -27,6 +27,8 @@ class AppStore {
   private listeners: Set<(state: AppData) => void> = new Set();
   private isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
+  private pollingInterval: NodeJS.Timeout | null = null;
+
 
   private constructor() {}
 
@@ -44,12 +46,10 @@ class AppStore {
 
     this.initializationPromise = (async () => {
       try {
-        const response = await fetch('/api/data');
-        if (!response.ok) throw new Error('Failed to fetch initial data');
-        const data = await response.json();
-        this.state = data;
+        await this.fetchData();
         this.isInitialized = true;
         this.broadcast();
+        this.startPolling();
       } catch (error) {
         console.error('Initialization failed:', error);
         // In case of failure, you might want to set a default state or handle it differently
@@ -58,6 +58,29 @@ class AppStore {
       }
     })();
     return this.initializationPromise;
+  }
+  
+  private async fetchData() {
+    try {
+        const response = await fetch('/api/data');
+        if (!response.ok) throw new Error('Failed to fetch data');
+        const data = await response.json();
+
+        // Simple deep-ish compare to see if an update is needed
+        if (JSON.stringify(this.state) !== JSON.stringify(data)) {
+            this.state = data;
+            this.broadcast();
+        }
+    } catch (error) {
+        console.error("Polling failed:", error);
+    }
+  }
+  
+  private startPolling(interval = 5000) {
+      if (this.pollingInterval) {
+          clearInterval(this.pollingInterval);
+      }
+      this.pollingInterval = setInterval(() => this.fetchData(), interval);
   }
 
   // Subscribe to state changes
@@ -87,6 +110,9 @@ class AppStore {
     // Ensure we are initialized before updating
     await this.ensureInitialized();
     
+    // Stop polling to prevent race conditions
+    if (this.pollingInterval) clearInterval(this.pollingInterval);
+
     const newState = updater(this.state);
     this.state = newState;
 
@@ -105,6 +131,9 @@ class AppStore {
     } catch (error) {
       console.error('Failed to save state to server:', error);
       // Optional: handle save failure (e.g., show a toast to the user)
+    } finally {
+        // Resume polling
+        this.startPolling();
     }
   }
 
