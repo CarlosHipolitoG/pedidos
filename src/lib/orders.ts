@@ -77,7 +77,6 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
             addedAt: now
         }));
         
-        // Map application payload to Supabase table schema (Spanish columns)
         const newOrderDataForSupabase = {
             timestamp: new Date(now).toISOString(),
             cliente: payload.customer,
@@ -99,9 +98,7 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
             throw error;
         }
 
-        // The state will be updated by the realtime listener, but we can return the created order
-        // We must map it back from the Spanish columns to the application's Order type
-        return {
+        const newOrder = {
             id: data.id,
             timestamp: new Date(data.timestamp).getTime(),
             customer: data.cliente,
@@ -111,6 +108,13 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
             orderedBy: data.ordenadoPor,
             attendedBy: data.atendidoPor
         };
+
+        store.updateState(currentState => ({
+            ...currentState,
+            orders: [newOrder, ...currentState.orders].sort((a, b) => b.timestamp - a.timestamp)
+        }));
+
+        return newOrder;
 
     } catch (error) {
         console.error("Error in addOrder:", error);
@@ -139,7 +143,6 @@ export function updateOrderStatus(orderId: number, status: OrderStatus) {
         );
         return { ...currentState, orders };
     });
-    // Map to Supabase column name
     updateOrderInSupabase(orderId, { texto_de_estado: status });
 }
 
