@@ -126,7 +126,7 @@ export default function CreateProfilePage() {
                         <PopoverTrigger asChild>
                             <Button id="birthDate" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !birthDate && "text-muted-foreground")}>
                                 <CalendarIcon className="mr-2 h-4 w-4" />
-                                {birthDate ? format(birthDate, "d 'de' MMMM, yyyy", { locale: es }) : <span>Selecciona una fecha</span>}
+                                {birthDate ? format(birthDate, "d 'de' MMMM, yyyy", { locale: es }) : <span>Selecciona fecha</span>}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
