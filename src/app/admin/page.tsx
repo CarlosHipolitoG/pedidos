@@ -25,12 +25,6 @@ export default function AdminPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Temporalily bypass login for direct access
-    localStorage.setItem('userName', 'Admin Temporal');
-    localStorage.setItem('userEmail', 'admin@example.com');
-    router.push('/admin/dashboard');
-
-    /*
     if (!isInitialized) return;
 
     const validation = validateUser(email, password, 'admin');
@@ -56,7 +50,6 @@ export default function AdminPage() {
         variant: 'destructive',
       });
     }
-    */
   };
 
   return (
