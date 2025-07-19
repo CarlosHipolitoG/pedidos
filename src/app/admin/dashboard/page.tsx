@@ -11,7 +11,7 @@ import { es } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download, Settings, Trash2, Users, Shield, User, Utensils } from 'lucide-react';
+import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download, Settings, Trash2, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -214,26 +214,8 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 relative">
-       <div className="absolute top-4 right-4 flex gap-2">
-        <Link href="/" passHref>
-          <Button variant="ghost" size="icon" aria-label="Client Login">
-            <User className="h-5 w-5" />
-          </Button>
-        </Link>
-        <Link href="/waiter" passHref>
-          <Button variant="ghost" size="icon" aria-label="Waiter Login">
-            <Utensils className="h-5 w-5" />
-          </Button>
-        </Link>
-         <Link href="/admin" passHref>
-          <Button variant="ghost" size="icon" aria-label="Admin Login">
-            <Shield className="h-5 w-5" />
-          </Button>
-        </Link>
-      </div>
-
-      <div className="text-center mb-8">
+    <div className="container mx-auto py-8">
+      <div className="text-center mb-8 pt-12">
         <h1 className="text-4xl font-bold">Panel de Administrador</h1>
         <p className="text-muted-foreground">Aquí puedes ver y gestionar todos los pedidos del sistema.</p>
         {isMountedAndInitialized && totalSales > 0 && (

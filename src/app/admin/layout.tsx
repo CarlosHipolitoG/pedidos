@@ -4,7 +4,8 @@
 import { useState, useEffect } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Info, X } from 'lucide-react';
+import { Info, X, User, Utensils, Shield } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AdminLayout({
   children,
@@ -21,7 +22,25 @@ export default function AdminLayout({
 
 
   return (
-    <div>
+    <div className="relative">
+       <div className="absolute top-4 right-4 flex gap-2 z-30">
+        <Link href="/" passHref>
+          <Button variant="ghost" size="icon" aria-label="Client Login">
+            <User className="h-5 w-5" />
+          </Button>
+        </Link>
+        <Link href="/waiter" passHref>
+          <Button variant="ghost" size="icon" aria-label="Waiter Login">
+            <Utensils className="h-5 w-5" />
+          </Button>
+        </Link>
+         <Link href="/admin" passHref>
+          <Button variant="ghost" size="icon" aria-label="Admin Login">
+            <Shield className="h-5 w-5" />
+          </Button>
+        </Link>
+      </div>
+
       {isDemoNoticeVisible && (
         <Alert className="fixed bottom-4 right-4 z-50 w-full max-w-sm bg-card/90 backdrop-blur-sm p-3 text-muted-foreground">
           <Info className="h-4 w-4" />

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useProducts, Product } from '@/lib/products';
-import { ShoppingCart, Search, Plus, Minus, Trash2, UserPlus, LogOut, PackagePlus, History, User, Utensils, Shield } from 'lucide-react';
+import { ShoppingCart, Search, Plus, Minus, Trash2, UserPlus, LogOut, PackagePlus, History } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
@@ -175,24 +175,6 @@ export default function WaiterDashboardPage() {
 
   return (
     <div className="container mx-auto py-8 relative">
-       <div className="absolute top-4 right-4 flex gap-2">
-        <Link href="/" passHref>
-          <Button variant="ghost" size="icon" aria-label="Client Login">
-            <User className="h-5 w-5" />
-          </Button>
-        </Link>
-        <Link href="/waiter" passHref>
-          <Button variant="ghost" size="icon" aria-label="Waiter Login">
-            <Utensils className="h-5 w-5" />
-          </Button>
-        </Link>
-        <Link href="/admin" passHref>
-          <Button variant="ghost" size="icon" aria-label="Admin Login">
-            <Shield className="h-5 w-5" />
-          </Button>
-        </Link>
-      </div>
-
       <header className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div className="text-center md:text-left">
             <h1 className="text-4xl font-bold">Panel del Mesero</h1>
