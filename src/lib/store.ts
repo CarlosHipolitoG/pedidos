@@ -7,7 +7,7 @@ import type {Product} from './products';
 import type {User} from './users';
 import type {Settings} from './settings';
 import { initialUsersData, initialSettings } from './initial-data';
-import { supabase } from './supabaseClient';
+import { getClient } from './supabaseClient';
 
 
 // Define the shape of our entire application's data
@@ -53,17 +53,30 @@ class AppStore {
     if (this.initializationPromise) return this.initializationPromise;
 
     this.initializationPromise = (async () => {
-      await this.fetchData(); // Perform the initial fetch
-      this.isInitialized = true;
-      this.broadcast();
-      this.initializeRealtimeSync(); // Set up real-time listeners AFTER initial data is set.
-      this.initializationPromise = null;
+      try {
+        await this.fetchData(); // Perform the initial fetch
+        this.initializeRealtimeSync(); // Set up real-time listeners AFTER initial data is set.
+      } catch (error) {
+        console.error("[AppStore] Initialization failed:", error);
+        // Fallback to initial data if fetch fails
+        this.state = {
+            orders: [],
+            products: [],
+            users: initialUsersData,
+            settings: initialSettings
+        };
+      } finally {
+        this.isInitialized = true;
+        this.broadcast();
+        this.initializationPromise = null;
+      }
     })();
     return this.initializationPromise;
   }
   
   private async fetchData() {
     try {
+        const supabase = getClient();
         const { data: products, error: productsError } = await supabase.from('productos').select('*');
         if (productsError) throw productsError;
 
@@ -105,6 +118,7 @@ class AppStore {
 
   private initializeRealtimeSync() {
     // Prevent initialization on the server
+    const supabase = getClient();
     if (typeof window === 'undefined' || !supabase.channel) {
         return;
     }
@@ -149,7 +163,7 @@ class AppStore {
     return () => {
       this.listeners.delete(listener);
       if (this.listeners.size === 0 && this.realtimeChannel) {
-          supabase.removeChannel(this.realtimeChannel);
+          getClient().removeChannel(this.realtimeChannel);
           this.realtimeChannel = null;
       }
     };
@@ -173,6 +187,8 @@ class AppStore {
     
     if (hasChanges) {
         this.broadcast();
+        
+        const supabase = getClient();
 
         // No need to use the API route anymore, just write directly
         try {
