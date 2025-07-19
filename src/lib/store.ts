@@ -6,7 +6,7 @@ import type {Order} from './orders';
 import type {Product} from './products';
 import type {User} from './users';
 import type {Settings} from './settings';
-import { initialProductsData, initialUsersData, initialSettings } from './initial-data';
+import { initialUsersData, initialSettings } from './initial-data';
 import { supabase } from './supabaseClient';
 
 
@@ -49,18 +49,13 @@ class AppStore {
 
     this.initializationPromise = (async () => {
       try {
-        const response = await fetch('/api/data');
-        if (!response.ok) {
-            throw new Error(`API fetch failed with status ${response.status}`);
-        }
-        const data = await response.json();
-        this.state = data;
+        await this.fetchData();
       } catch (error) {
-        console.error('Initialization failed, falling back to local data:', error);
-        // Fallback to initial data if API fails on first load
+        console.error('Initialization failed during first fetch:', error);
+        // Fallback to local data if API fails on first load
         this.state = {
             orders: [],
-            products: initialProductsData,
+            products: [],
             users: initialUsersData,
             settings: initialSettings
         };
@@ -89,6 +84,8 @@ class AppStore {
         }
     } catch (error) {
         console.error("[AppStore] Fetching data failed:", error);
+        // re-throw to be caught by initializer
+        throw error;
     }
   }
 
@@ -100,40 +97,44 @@ class AppStore {
     }
 
     const channel = supabase.channel('public-db-changes');
-    channel
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'productos' },
-        (payload) => {
-          console.log('Realtime change received on productos!', payload);
-          this.fetchData();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders' },
-        (payload) => {
-          console.log('Realtime change received on orders!', payload);
-          this.fetchData();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'users' },
-        (payload) => {
-          console.log('Realtime change received on users!', payload);
-          this.fetchData();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'settings' },
-        (payload) => {
-          console.log('Realtime change received on settings!', payload);
-          this.fetchData();
-        }
-      )
-      .subscribe((status, err) => {
+    
+    channel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'productos' },
+      (payload) => {
+        console.log('Realtime change received on productos!', payload);
+        this.fetchData();
+      }
+    );
+
+    channel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'orders' },
+      (payload) => {
+        console.log('Realtime change received on orders!', payload);
+        this.fetchData();
+      }
+    );
+
+    channel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'users' },
+      (payload) => {
+        console.log('Realtime change received on users!', payload);
+        this.fetchData();
+      }
+    );
+
+    channel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'settings' },
+      (payload) => {
+        console.log('Realtime change received on settings!', payload);
+        this.fetchData();
+      }
+    );
+
+    channel.subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
           console.log('Successfully subscribed to Supabase Realtime!');
         }
