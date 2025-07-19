@@ -159,7 +159,7 @@ class AppStore {
   private broadcast() {
     this.listeners.forEach(listener => listener(this.state));
   }
-
+  
   public getState(): AppData {
     return this.state;
   }
@@ -175,17 +175,16 @@ class AppStore {
     if (hasChanges) {
         this.broadcast();
         
-        const supabase = getClient();
-
-        // Only try to save changes to the 'productos' table
-        try {
-            if (newState.products && newState.products.length > 0) {
-              const { error } = await supabase.from('productos').upsert(newState.products);
-              if (error) console.error("Error saving products", error);
-            }
-        } catch (error) {
-          console.error('Failed to save state to Supabase:', error);
-        }
+        // --- Temporarily disabled to prevent RLS errors on anon key ---
+        // const supabase = getClient();
+        // try {
+        //     if (newState.products && newState.products.length > 0) {
+        //       const { error } = await supabase.from('productos').upsert(newState.products);
+        //       if (error) console.error("Error saving products", error);
+        //     }
+        // } catch (error) {
+        //   console.error('Failed to save state to Supabase:', error);
+        // }
     }
   }
 
