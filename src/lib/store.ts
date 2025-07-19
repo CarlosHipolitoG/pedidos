@@ -9,7 +9,7 @@ import type {Settings} from './settings';
 
 // --- Initial Data Definitions ---
 
-export const initialProductsData: Product[] = [
+const initialProductsData: Product[] = [
     // Cervezas
     { id: 1, nombre: 'Cerveza Poker', precio: 4500, imagen: 'https://www.bavaria.co/sites/g/files/seuoyk1666/files/2023-11/POKER_BOTELLA.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 100, categoria: 'Cervezas' },
     { id: 2, nombre: 'Cerveza Club Colombia Dorada', precio: 6000, imagen: 'https://www.bavaria.co/sites/g/files/seuoyk1666/files/2023-10/Club%20Colombia%20Dorada.png', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 80, categoria: 'Cervezas' },
@@ -36,7 +36,7 @@ export const initialProductsData: Product[] = [
     { id: 15, nombre: 'Mojito Cubano', precio: 18000, imagen: 'https://imag.bonviveur.com/mojito-cubano.jpg', disponibilidad: 'PRODUCTO_DISPONIBLE', existencias: 25, categoria: 'Cocteles' },
 ];
 
-export const initialUsersData: User[] = [
+const initialUsersData: User[] = [
   {
     id: 1,
     name: 'Admin Principal',
@@ -56,7 +56,7 @@ export const initialUsersData: User[] = [
   },
 ];
 
-export const initialSettings: Settings = {
+const initialSettings: Settings = {
   barName: 'HOLIDAYS FRIENDS',
   logoUrl: 'https://storage.googleapis.com/project-spark-b6b15e45/c015b678-9e5c-4467-8566-3c0a4c079237.png',
   backgroundUrl: 'https://storage.googleapis.com/project-spark-b6b15e45/dc407172-5953-4565-a83a-48a58ca7694f.png',
@@ -67,7 +67,6 @@ export const initialSettings: Settings = {
       { id: 4, src: "https://storage.googleapis.com/project-spark-b6b15e45/05459f37-64cd-4e89-9a7c-1795c6439167.png", alt: "Promoción 4", hint: "happy hour" },
   ]
 };
-
 
 // Define the shape of our entire application's data
 export type AppData = {
@@ -128,7 +127,11 @@ class AppStore {
   private async fetchData() {
     try {
         const response = await fetch('/api/data');
-        if (!response.ok) throw new Error('Failed to fetch data');
+        if (!response.ok) {
+            // Log the error quietly instead of throwing, to avoid console spam if DB is offline
+            console.warn(`[AppStore] Failed to fetch data. Status: ${response.status}. The app will continue with local data.`);
+            return;
+        }
         const data = await response.json();
 
         // Simple deep-ish compare to see if an update is needed
@@ -137,7 +140,7 @@ class AppStore {
             this.broadcast();
         }
     } catch (error) {
-        console.error("Polling failed:", error);
+        console.warn("[AppStore] Polling failed:", error);
     }
   }
   
