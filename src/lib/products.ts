@@ -116,12 +116,13 @@ export function useProducts() {
 
 export const addProduct = (productData: Omit<Product, 'id'>): void => {
     store.updateState(currentState => {
-        const nextProductId = (currentState.products.reduce((maxId, p) => Math.max(p.id, maxId), 0) || 0) + 1;
+        const currentProducts = currentState.products || [];
+        const nextProductId = (currentProducts.reduce((maxId, p) => Math.max(p.id, maxId), 0) || 0) + 1;
         const newProduct: Product = {
             ...productData,
             id: nextProductId,
         };
-        const products = [...currentState.products, newProduct].sort((a,b) => a.id - b.id);
+        const products = [...currentProducts, newProduct].sort((a,b) => a.id - b.id);
         return { ...currentState, products };
     });
 };
@@ -141,3 +142,5 @@ export const deleteProduct = (productId: number): void => {
         return { ...currentState, products };
     });
 };
+
+    
