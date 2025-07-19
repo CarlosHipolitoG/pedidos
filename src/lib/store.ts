@@ -88,15 +88,16 @@ class AppStore {
         const supabase = getClient();
         
         // Parallel fetching for better performance
-        const [productsResponse, ordersResponse, settingsResponse] = await Promise.all([
+        const [productsResponse, ordersResponse, settingsResponse, usersResponse] = await Promise.all([
             supabase.from('products').select('*'),
             supabase.from('orders').select('*').order('timestamp', { ascending: false }),
-            supabase.from('settings').select('settings_data').eq('id', 1).maybeSingle()
+            supabase.from('settings').select('settings_data').eq('id', 1).maybeSingle(),
+            supabase.from('users').select('*'),
         ]);
         
         // Handle Products
         if (productsResponse.error) throw new Error(`Failed to fetch products: ${productsResponse.error.message}`);
-        this.state.products = productsResponse.data || initialProductsData;
+        this.state.products = productsResponse.data?.length ? productsResponse.data : initialProductsData;
         
         // Handle Orders
         if (ordersResponse.error) {
@@ -123,17 +124,20 @@ class AppStore {
           if (settingsResponse.data && settingsResponse.data.settings_data) {
              this.state.settings = settingsResponse.data.settings_data;
           } else {
-            // No settings found, so insert the initial ones
-            console.log("No settings found in DB, inserting initial settings.");
+            // No settings found, just use the initial ones locally.
+            // Admin can save them for the first time from the settings page.
             this.state.settings = initialSettings;
-            const { error: insertError } = await supabase
-              .from('settings')
-              .insert({ id: 1, settings_data: initialSettings });
-            if (insertError) {
-              console.error("Failed to insert initial settings:", insertError);
-            }
           }
         }
+        
+        // Handle Users
+        if (usersResponse.error) {
+             console.error("Error fetching users:", usersResponse.error.message);
+             this.state.users = initialUsersData;
+        } else {
+            this.state.users = usersResponse.data?.length ? usersResponse.data : initialUsersData;
+        }
+
 
     } catch (error: any) {
         console.error("[AppStore] Fetching data failed, using fallback data:", error.message);
@@ -153,7 +157,7 @@ class AppStore {
 
       const supabase = getClient();
       
-      const tables = ['orders', 'products', 'settings'];
+      const tables = ['orders', 'products', 'settings', 'users'];
       
       this.realtimeChannel = supabase
         .channel('public-dynamic-db-changes')

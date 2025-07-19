@@ -21,26 +21,30 @@ export function useProducts() {
     return { products: state.products, isInitialized };
 }
 
-async function updateProductsInSupabase(products: Product[]) {
+async function syncProductInSupabase(product: Product, isNew: boolean) {
     try {
         const supabase = getClient();
-        // This is a simple but potentially inefficient way to sync.
-        // It deletes all products and re-inserts them.
-        // For a real-world app, you'd want more granular updates.
-        
-        const { error: deleteError } = await supabase.from('products').delete().neq('id', -1); // delete all
-        if (deleteError) throw deleteError;
+        const { id, ...productData } = product;
 
-        // We don't want to send the `id` on insert, as it's auto-generated.
-        const productsToInsert = products.map(({ id, ...rest }) => rest);
-
-        if (productsToInsert.length > 0) {
-            const { error: insertError } = await supabase.from('products').insert(productsToInsert);
-            if (insertError) throw insertError;
+        if (isNew) {
+            const { error } = await supabase.from('products').insert(productData).select().single();
+            if (error) throw error;
+        } else {
+            const { error } = await supabase.from('products').update(productData).eq('id', id);
+            if (error) throw error;
         }
+    } catch (error) {
+        console.error("Error syncing product in Supabase:", error);
+    }
+}
 
-    } catch(error) {
-        console.error("Error updating products in Supabase:", error);
+async function deleteProductFromSupabase(productId: number) {
+     try {
+        const supabase = getClient();
+        const { error } = await supabase.from('products').delete().eq('id', productId);
+        if (error) throw error;
+    } catch (error) {
+        console.error("Error deleting product from Supabase:", error);
     }
 }
 
@@ -48,38 +52,43 @@ async function updateProductsInSupabase(products: Product[]) {
 // --- Data Manipulation Functions ---
 
 export const addProduct = (productData: Omit<Product, 'id'>): void => {
-    let newProducts: Product[] = [];
+    let newProduct: Product | null = null;
     store.updateState(currentState => {
         const currentProducts = currentState.products || [];
         const nextProductId = (currentProducts.reduce((maxId, p) => Math.max(p.id, maxId), 0) || 0) + 1;
-        const newProduct: Product = {
+        newProduct = {
             ...productData,
             id: nextProductId,
         };
-        newProducts = [...currentProducts, newProduct].sort((a,b) => a.id - b.id);
+        const newProducts = [...currentProducts, newProduct].sort((a,b) => a.id - b.id);
         return { ...currentState, products: newProducts };
     });
-    updateProductsInSupabase(newProducts);
+    if (newProduct) {
+        syncProductInSupabase(newProduct, true);
+    }
 };
 
 export const updateProduct = (productId: number, updatedData: Partial<Omit<Product, 'id'>>): void => {
-    let newProducts: Product[] = [];
+    let productToSync: Product | null = null;
     store.updateState(currentState => {
-        newProducts = currentState.products.map(p =>
-            p.id === productId ? { ...p, ...updatedData } : p
-        ).sort((a,b) => a.id - b.id);
+        const newProducts = currentState.products.map(p => {
+            if (p.id === productId) {
+                productToSync = { ...p, ...updatedData };
+                return productToSync;
+            }
+            return p;
+        }).sort((a,b) => a.id - b.id);
         return { ...currentState, products: newProducts };
     });
-    updateProductsInSupabase(newProducts);
+    if (productToSync) {
+        syncProductInSupabase(productToSync, false);
+    }
 };
 
 export const deleteProduct = (productId: number): void => {
-    let newProducts: Product[] = [];
     store.updateState(currentState => {
-        newProducts = currentState.products.filter(p => p.id !== productId);
+        const newProducts = currentState.products.filter(p => p.id !== productId);
         return { ...currentState, products: newProducts };
     });
-     updateProductsInSupabase(newProducts);
+     deleteProductFromSupabase(productId);
 };
-
-    
