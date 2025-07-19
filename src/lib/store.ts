@@ -79,34 +79,15 @@ class AppStore {
         const supabase = getClient();
         const { data: products, error: productsError } = await supabase.from('productos').select('*');
         if (productsError) throw productsError;
-
-        const { data: users, error: usersError } = await supabase.from('users').select('*');
-        if (usersError) throw usersError;
-
-        const { data: orders, error: ordersError } = await supabase.from('orders').select('*');
-        if (ordersError) throw ordersError;
         
-        const { data: settings, error: settingsError } = await supabase.from('settings').select('*');
-        if (settingsError) throw settingsError;
-
-        const settingsObject = settings && settings.length > 0 ? settings[0] : initialSettings;
-        
-        const hasProducts = products && products.length > 0;
-
+        // Only fetch products for now, as other tables might not exist.
+        // Use initial data for users and settings.
         const newState = {
-            products: hasProducts ? products : initialProductsData,
-            users: (users && users.length > 0) ? users : initialUsersData,
-            orders: orders || [],
-            settings: settingsObject
+            products: products || initialProductsData,
+            users: initialUsersData,
+            orders: [], // Start with no orders
+            settings: initialSettings
         };
-        
-        if (!hasProducts && initialProductsData.length > 0) {
-            console.log("No products found in the database. Seeding with initial data.");
-            const { error: seedError } = await supabase.from('productos').upsert(initialProductsData);
-            if (seedError) {
-                console.error("Error seeding products:", seedError);
-            }
-        }
         
         this.state = newState;
 
@@ -138,17 +119,15 @@ class AppStore {
     
     const channel = supabase.channel('public-db-changes');
     
-    const tables = ['productos', 'orders', 'users', 'settings'];
-    tables.forEach(table => {
-      channel.on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: table },
-        (payload) => {
-          console.log(`Realtime change received on ${table}!`, payload);
-          this.fetchData();
-        }
-      );
-    });
+    // Only subscribe to the 'productos' table to avoid errors.
+    channel.on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'productos' },
+      (payload) => {
+        console.log(`Realtime change received on productos!`, payload);
+        this.fetchData();
+      }
+    );
 
     channel.subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
@@ -198,23 +177,11 @@ class AppStore {
         
         const supabase = getClient();
 
-        // No need to use the API route anymore, just write directly
+        // Only try to save changes to the 'productos' table
         try {
             if (newState.products && newState.products.length > 0) {
               const { error } = await supabase.from('productos').upsert(newState.products);
               if (error) console.error("Error saving products", error);
-            }
-            if (newState.users && newState.users.length > 0) {
-              const { error } = await supabase.from('users').upsert(newState.users);
-              if (error) console.error("Error saving users", error);
-            }
-             if (newState.orders && newState.orders.length > 0) {
-              const { error } = await supabase.from('orders').upsert(newState.orders);
-              if (error) console.error("Error saving orders", error);
-            }
-            if (newState.settings) {
-              const { error } = await supabase.from('settings').upsert(newState.settings);
-              if (error) console.error("Error saving settings", error);
             }
         } catch (error) {
           console.error('Failed to save state to Supabase:', error);

@@ -1,6 +1,7 @@
 
 import {NextRequest, NextResponse} from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
+import { initialProductsData } from '@/lib/initial-data';
 
 /**
  * Handles GET requests to fetch the current state of all data from Supabase.
@@ -11,28 +12,19 @@ export async function GET() {
     const { data: products, error: productsError } = await supabase.from('productos').select('*');
     if (productsError) throw productsError;
 
-    const { data: users, error: usersError } = await supabase.from('users').select('*');
-    if (usersError) throw usersError;
-
-    const { data: orders, error: ordersError } = await supabase.from('orders').select('*');
-    if (ordersError) throw ordersError;
-    
-    const { data: settings, error: settingsError } = await supabase.from('settings').select('*');
-    if (settingsError) throw settingsError;
-
-    const settingsObject = settings && settings.length > 0 ? settings[0] : null;
-
+    // For now, we only care about products. The other tables might not exist.
+    // We return empty arrays or null for the others to keep the structure.
     return NextResponse.json({
         products: products || [],
-        users: users || [],
-        orders: orders || [],
-        settings: settingsObject
+        users: [],
+        orders: [],
+        settings: null
     });
   } catch(error: any) {
       console.error("Error fetching data from Supabase:", error);
        return NextResponse.json({
           message: `Error fetching data: ${error.message}`,
-          products: [],
+          products: initialProductsData, // Fallback to initial data on error
           users: [],
           orders: [],
           settings: null,
