@@ -85,13 +85,15 @@ class AppStore {
   
   public async fetchData() {
     try {
-        const productsResponse = await fetch('/api/data');
-        if (!productsResponse.ok) throw new Error('Failed to fetch products');
-        const { products } = await productsResponse.json();
+        const supabase = getClient();
+        
+        // Fetch products directly
+        const { data: products, error: productsError } = await supabase.from('productos').select('*');
+        if (productsError) throw productsError;
 
-        const ordersResponse = await fetch('/api/orders');
-        if (!ordersResponse.ok) throw new Error('Failed to fetch orders');
-        const orders = await ordersResponse.json();
+        // Fetch orders directly
+        const { data: orders, error: ordersError } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
+        if (ordersError) throw ordersError;
         
         // Overwrite the state with the latest data from the DB
         this.state.products = products || initialProductsData;
@@ -116,18 +118,17 @@ class AppStore {
     
     console.log("Attempting to initialize realtime sync...");
 
-    const channel = supabase.channel('public:orders');
-    
     const handleDbChange = (payload: any) => {
         console.log(`Realtime change received!`, payload);
         this.fetchData(); 
     };
 
+    const channel = supabase.channel('public-changes');
     channel
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, handleDbChange)
+      .on('postgres_changes', { event: '*', schema: 'public' }, handleDbChange)
       .subscribe((status, err) => { 
         if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to Supabase Realtime on orders table!');
+          console.log('Successfully subscribed to Supabase Realtime!');
         }
         if (status === 'CHANNEL_ERROR') {
           console.error('Realtime subscription error:', err);
@@ -167,10 +168,7 @@ class AppStore {
   public async updateState(updater: (currentState: AppData) => AppData) {
     await this.ensureInitialized();
     
-    const oldState = JSON.parse(JSON.stringify(this.state));
-    const newState = updater(this.state);
-    
-    this.state = newState;
+    this.state = updater(this.state);
     
     this.broadcast();
   }

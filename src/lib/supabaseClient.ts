@@ -3,10 +3,10 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Global variable for the Supabase client singleton
+// Global variable for the Supabase client singleton for use in the browser
 let supabase: SupabaseClient | undefined;
 
-// This function can be called from both client and server components
+// This function should only be called from client components
 export function getClient(): SupabaseClient {
   // If the client instance already exists, return it.
   if (supabase) {
@@ -18,7 +18,7 @@ export function getClient(): SupabaseClient {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Supabase URL and anonymous key must be provided in environment variables.");
+    throw new Error("Supabase URL and anonymous key must be provided in environment variables for the client.");
   }
 
   // Create, store, and return the Supabase client instance.

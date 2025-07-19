@@ -8,22 +8,20 @@ import { NewOrderPayload, Order, OrderItem } from '@/lib/orders';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error("Supabase URL and Service Key must be provided in .env for server-side operations.");
+// Create a dedicated admin client for server-side operations
+// This ensures we don't leak service keys to the client.
+const getSupabaseAdmin = () => {
+    if (!supabaseUrl || !supabaseServiceKey) {
+        throw new Error("Supabase URL and Service Key must be provided in .env for server-side operations.");
+    }
+    return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-// Create a dedicated admin client for server-side operations
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(req: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const payload: NewOrderPayload = await req.json();
-
-    const { data: existingOrders, error: countError } = await supabaseAdmin
-        .from('orders')
-        .select('id', { count: 'exact', head: true });
-
-    if (countError) throw countError;
 
     const now = Date.now();
 
@@ -64,6 +62,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
     try {
+        const supabaseAdmin = getSupabaseAdmin();
         const { data, error } = await supabaseAdmin.from('orders').select('*').order('timestamp', { ascending: false });
         if (error) throw error;
         return NextResponse.json(data);

@@ -1,7 +1,10 @@
 
 import {NextRequest, NextResponse} from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@supabase/supabase-js';
 import { initialProductsData } from '@/lib/initial-data';
+
+// This file is no longer used for the main data fetching, 
+// but is kept in case it's needed for other server-side-only operations in the future.
 
 /**
  * Handles GET requests to fetch the current state of all data from Supabase.
@@ -9,6 +12,15 @@ import { initialProductsData } from '@/lib/initial-data';
  */
 export async function GET() {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error("Supabase credentials are not configured in environment variables.");
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
     const { data: products, error: productsError } = await supabase.from('productos').select('*');
     if (productsError) throw productsError;
 
