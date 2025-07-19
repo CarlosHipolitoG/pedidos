@@ -23,12 +23,6 @@ export default function WaiterPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Temporarily bypass login for direct access
-    localStorage.setItem('userName', 'Mesero Temporal');
-    localStorage.setItem('userEmail', 'mesero@example.com');
-    router.push('/waiter/dashboard');
-    
-    /*
     if (!isInitialized) return;
 
     const validation = validateUser(email, password, 'waiter');
@@ -50,7 +44,6 @@ export default function WaiterPage() {
         variant: 'destructive',
       });
     }
-    */
   };
 
   return (
