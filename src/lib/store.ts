@@ -70,7 +70,7 @@ class AppStore {
         // Fallback to initial data if fetch fails
         this.state = {
             orders: [],
-            products: initialProductsData.map((p, i) => ({ ...p, id: i + 1 })),
+            products: initialProductsData,
             users: initialUsersData,
             settings: initialSettings
         };
@@ -98,20 +98,13 @@ class AppStore {
         // Handle Products
         if (productsResponse.error) {
             console.error('Error fetching products:', productsResponse.error.message);
-            this.state.products = [];
+            this.state.products = initialProductsData;
         } else {
             if (productsResponse.data?.length) {
                 this.state.products = productsResponse.data;
             } else {
-                console.log("No products found in DB. Inserting initial product list.");
-                const { error: insertError } = await supabase.from('products').insert(initialProductsData);
-                if (insertError) {
-                    console.error("Failed to insert initial products:", insertError);
-                    this.state.products = initialProductsData.map((p, i) => ({ ...p, id: i + 1 }));
-                } else {
-                    const { data: newData } = await supabase.from('products').select('*');
-                    this.state.products = newData || [];
-                }
+                console.log("No products found in DB. Using local initial product list.");
+                this.state.products = initialProductsData;
             }
         }
         
@@ -154,8 +147,9 @@ class AppStore {
                 this.state.users = usersResponse.data;
             } else {
                 console.log("No users found in DB. Inserting initial admin/waiter users.");
+                // Filter out clients and objects without a role, and remove ID before insert
                 const usersToInsert = initialUsersData
-                    .filter(u => u.role === 'admin' || u.role === 'waiter')
+                    .filter(u => u.role && (u.role === 'admin' || u.role === 'waiter'))
                     .map(({ id, ...rest }) => rest);
                 
                 if (usersToInsert.length > 0) {
@@ -177,7 +171,7 @@ class AppStore {
     } catch (error: any) {
         console.error("[AppStore] Fetching data failed:", error.message);
         this.state = {
-            products: initialProductsData.map((p, i) => ({ ...p, id: i + 1 })),
+            products: initialProductsData,
             orders: [],
             users: initialUsersData,
             settings: initialSettings,
@@ -279,5 +273,3 @@ export function useAppStore() {
 
   return { state, isInitialized };
 }
-
-    
