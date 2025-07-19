@@ -5,78 +5,9 @@ import type { Settings } from './settings';
 
 
 export const initialProductsData: Omit<Product, 'id'>[] = [
-  {
-    nombre: "Margarita Clásica",
-    precio: 25000,
-    imagen: "https://placehold.co/600x400.png",
-    disponibilidad: "PRODUCTO_DISPONIBLE",
-    existencias: 50,
-    categoria: "Cócteles"
-  },
-  {
-    nombre: "Mojito",
-    precio: 22000,
-    imagen: "https://placehold.co/600x400.png",
-    disponibilidad: "PRODUCTO_DISPONIBLE",
-    existencias: 50,
-    categoria: "Cócteles"
-  },
-  {
-    nombre: "Piña Colada",
-    precio: 24000,
-    imagen: "https://placehold.co/600x400.png",
-    disponibilidad: "PRODUCTO_DISPONIBLE",
-    existencias: 50,
-    categoria: "Cócteles"
-  },
-  {
-    nombre: "Gin Tonic",
-    precio: 28000,
-    imagen: "https://placehold.co/600x400.png",
-    disponibilidad: "PRODUCTO_DISPONIBLE",
-    existencias: 50,
-    categoria: "Cócteles"
-  },
-  {
-    nombre: "Cerveza Nacional",
-    precio: 8000,
-    imagen: "https://placehold.co/600x400.png",
-    disponibilidad: "PRODUCTO_DISPONIBLE",
-    existencias: 100,
-    categoria: "Cervezas"
-  },
-  {
-    nombre: "Cerveza Importada",
-    precio: 15000,
-    imagen: "https://placehold.co/600x400.png",
-    disponibilidad: "PRODUCTO_DISPONIBLE",
-    existencias: 80,
-    categoria: "Cervezas"
-  },
-  {
-    nombre: "Jugo Natural",
-    precio: 9000,
-    imagen: "https://placehold.co/600x400.png",
-    disponibilidad: "PRODUCTO_DISPONIBLE",
-    existencias: 40,
-    categoria: "Bebidas sin Alcohol"
-  },
-  {
-    nombre: "Gaseosa",
-    precio: 6000,
-    imagen: "https://placehold.co/600x400.png",
-    disponibilidad: "PRODUCTO_DISPONIBLE",
-    existencias: 120,
-    categoria: "Bebidas sin Alcohol"
-  },
-  {
-    nombre: "Agua con Gas",
-    precio: 5000,
-    imagen: "https://placehold.co/600x400.png",
-    disponibilidad: "PRODUCTO_AGOTADO",
-    existencias: 0,
-    categoria: "Bebidas sin Alcohol"
-  }
+  // The user's custom products were deleted from the database due to a bad script.
+  // Clearing the initial data to avoid confusion with the default products.
+  // The user will now re-add their products via the admin UI, which are now persistent.
 ];
 
 export const initialUsersData: User[] = [
