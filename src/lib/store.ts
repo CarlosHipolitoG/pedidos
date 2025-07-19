@@ -55,7 +55,16 @@ class AppStore {
     this.initializationPromise = (async () => {
       try {
         await this.fetchData(); // Perform the initial fetch
-        this.initializeRealtimeSync(); // Set up real-time listeners AFTER initial data is set.
+        
+        // Only start realtime sync if a privileged user is logged in.
+        const userName = localStorage.getItem('userName');
+        if (userName) {
+            const user = this.state.users.find(u => u.name === userName);
+            if (user && (user.role === 'admin' || user.role === 'waiter')) {
+                this.initializeRealtimeSync();
+            }
+        }
+
       } catch (error) {
         console.error("[AppStore] Initialization failed, falling back to local data:", error);
         // Fallback to initial data if fetch fails
@@ -78,11 +87,14 @@ class AppStore {
     try {
         const supabase = getClient();
         const { data: products, error: productsError } = await supabase.from('productos').select('*');
-        if (productsError) throw productsError;
+        
+        if (productsError) {
+          throw productsError;
+        }
         
         // Overwrite the state with the latest data from the DB
         this.state = {
-            ...this.state, // Keep existing orders, users, settings
+            ...this.state,
             products: products || initialProductsData
         };
 
@@ -99,33 +111,32 @@ class AppStore {
   private initializeRealtimeSync() {
     // Prevent initialization on the server
     const supabase = getClient();
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || this.realtimeChannel) {
         return;
     }
-    // Ensure we only have one channel subscription.
-    if (this.realtimeChannel) {
-      supabase.removeChannel(this.realtimeChannel);
-      this.realtimeChannel = null;
-    }
     
+    console.log("Attempting to initialize realtime sync...");
+
     const channel = supabase.channel('public-db-changes');
     
-    // Only subscribe to the 'productos' table to avoid errors.
     channel.on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'productos' },
       (payload) => {
         console.log(`Realtime change received on productos!`, payload);
-        this.fetchData(); // Refetch all product data on any change
+        this.fetchData(); 
       }
     );
 
-    channel.subscribe((status, err) => {
+    channel.subscribe((status, err) => { 
         if (status === 'SUBSCRIBED') {
           console.log('Successfully subscribed to Supabase Realtime!');
         }
         if (status === 'CHANNEL_ERROR') {
           console.error('Realtime subscription error:', err);
+        }
+         if (status === 'TIMED_OUT') {
+          console.warn('Realtime subscription timed out.');
         }
     });
 
@@ -143,6 +154,7 @@ class AppStore {
       if (this.listeners.size === 0 && this.realtimeChannel) {
           getClient().removeChannel(this.realtimeChannel);
           this.realtimeChannel = null;
+          console.log("Removed realtime channel.");
       }
     };
   }
@@ -166,17 +178,6 @@ class AppStore {
     
     if (hasChanges) {
         this.broadcast();
-        
-        // --- Temporarily disabled to prevent RLS errors on anon key ---
-        // const supabase = getClient();
-        // try {
-        //     if (newState.products && newState.products.length > 0) {
-        //       const { error } = await supabase.from('productos').upsert(newState.products);
-        //       if (error) console.error("Error saving products", error);
-        //     }
-        // } catch (error) {
-        //   console.error('Failed to save state to Supabase:', error);
-        // }
     }
   }
 
