@@ -76,19 +76,20 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
             addedAt: now
         }));
         
-        const newOrderData = {
+        // Map application payload to Supabase table schema
+        const newOrderDataForSupabase = {
             timestamp: new Date(now).toISOString(),
-            customer: payload.customer,
-            items: itemsWithTimestamp,
-            total: payload.total,
-            status: 'Pendiente',
+            cliente: payload.customer,
+            elementos: itemsWithTimestamp,
+            total_numerico: payload.total,
+            texto_de_estado: 'Pendiente',
             orderedBy: payload.orderedBy,
-            attendedBy: payload.orderedBy.type === 'Mesero' ? payload.orderedBy.name : undefined,
+            atendidoPor: payload.orderedBy.type === 'Mesero' ? payload.orderedBy.name : undefined,
         };
 
         const { data, error } = await supabase
             .from('orders')
-            .insert(newOrderData)
+            .insert(newOrderDataForSupabase)
             .select()
             .single();
 
@@ -98,7 +99,17 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
         }
 
         // The state will be updated by the realtime listener, but we can return the created order
-        return data as Order;
+        // We must map it back to the application's Order type
+        return {
+            id: data.id,
+            timestamp: new Date(data.timestamp).getTime(),
+            customer: data.cliente,
+            items: data.elementos,
+            total: data.total_numerico,
+            status: data.texto_de_estado,
+            orderedBy: data.orderedBy,
+            attendedBy: data.atendidoPor
+        };
 
     } catch (error) {
         console.error("Error in addOrder:", error);
@@ -106,7 +117,7 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
     }
 }
 
-async function updateOrderInSupabase(orderId: number, updateData: Partial<Order>) {
+async function updateOrderInSupabase(orderId: number, updateData: { [key: string]: any }) {
     try {
         const supabase = getClient();
         const { error } = await supabase
@@ -126,7 +137,8 @@ export function updateOrderStatus(orderId: number, status: OrderStatus) {
         );
         return { ...currentState, orders };
     });
-    updateOrderInSupabase(orderId, { status });
+    // Map to Supabase column name
+    updateOrderInSupabase(orderId, { texto_de_estado: status });
 }
 
 export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'addedAt'>, attendedBy?: string) {
@@ -158,11 +170,11 @@ export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'add
 
     if (updatedOrder) {
         updateOrderInSupabase(orderId, {
-            items: updatedOrder.items,
-            total: updatedOrder.total,
-            status: updatedOrder.status,
+            elementos: updatedOrder.items,
+            total_numerico: updatedOrder.total,
+            texto_de_estado: updatedOrder.status,
             timestamp: new Date(updatedOrder.timestamp).toISOString(),
-            attendedBy: updatedOrder.attendedBy
+            atendidoPor: updatedOrder.attendedBy
         });
     }
 }
@@ -197,8 +209,8 @@ export function updateProductQuantityInOrder(orderId: number, itemId: number, ne
 
      if (updatedOrder) {
         updateOrderInSupabase(orderId, {
-            items: updatedOrder.items,
-            total: updatedOrder.total,
+            elementos: updatedOrder.items,
+            total_numerico: updatedOrder.total,
         });
     }
 }
@@ -234,8 +246,8 @@ export function removeProductFromOrder(orderId: number, itemId: number): boolean
     
     if (updatedOrder) {
         updateOrderInSupabase(orderId, {
-            items: updatedOrder.items,
-            total: updatedOrder.total,
+            elementos: updatedOrder.items,
+            total_numerico: updatedOrder.total,
         });
     }
     return success;

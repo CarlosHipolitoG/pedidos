@@ -84,13 +84,23 @@ class AppStore {
         this.state.products = products || initialProductsData;
         
         // Also fetch existing orders
-        const { data: orders, error: ordersError } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
+        const { data: ordersData, error: ordersError } = await supabase.from('orders').select('*').order('timestamp', { ascending: false });
         if (ordersError) {
             // It's ok if the orders table doesn't exist yet, don't throw.
             console.warn("[AppStore] Could not fetch orders, maybe the table doesn't exist yet?", ordersError.message);
             this.state.orders = [];
         } else {
-             this.state.orders = orders || [];
+             // Map Supabase data to application's Order type
+             this.state.orders = (ordersData || []).map((o: any) => ({
+                id: o.id,
+                timestamp: new Date(o.timestamp).getTime(),
+                customer: o.cliente,
+                items: o.elementos,
+                total: o.total_numerico,
+                status: o.texto_de_estado,
+                orderedBy: o.orderedBy,
+                attendedBy: o.atendidoPor,
+             }));
         }
 
     } catch (error: any) {
@@ -103,7 +113,8 @@ class AppStore {
   }
 
   private setupRealtimeListeners() {
-      if (this.realtimeChannel) return;
+      // Don't run on server
+      if (typeof window === 'undefined' || this.realtimeChannel) return;
 
       const supabase = getClient();
       this.realtimeChannel = supabase
@@ -112,12 +123,12 @@ class AppStore {
             console.log('Realtime change received!', payload);
             this.fetchData(); // Refetch all data to ensure consistency
         })
-        .subscribe((status) => {
+        .subscribe((status, err) => {
              if (status === 'SUBSCRIBED') {
                 console.log('Successfully subscribed to realtime orders channel.');
             }
              if (status === 'CHANNEL_ERROR') {
-                console.error('Realtime channel error. Retrying connection...');
+                console.error('Realtime channel error. Retrying connection...', err);
             }
         });
   }
