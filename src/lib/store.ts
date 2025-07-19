@@ -22,9 +22,9 @@ class AppStore {
   private static instance: AppStore;
   private state: AppData = {
     orders: [],
-    products: initialProductsData,
-    users: initialUsersData,
-    settings: initialSettings,
+    products: [],
+    users: [],
+    settings: initialSettings, // Start with some default settings
   };
   private listeners: Set<(state: AppData) => void> = new Set();
   private isInitialized = false;
@@ -55,6 +55,12 @@ class AppStore {
       } catch (error) {
         console.error('Initialization failed:', error);
         // Fallback to initial data if API fails on first load
+        this.state = {
+            orders: [],
+            products: initialProductsData,
+            users: initialUsersData,
+            settings: initialSettings
+        };
         this.isInitialized = true;
         this.broadcast();
         this.startPolling();
@@ -69,13 +75,11 @@ class AppStore {
     try {
         const response = await fetch('/api/data');
         if (!response.ok) {
-            // Log the error quietly instead of throwing, to avoid console spam if DB is offline
             console.warn(`[AppStore] Failed to fetch data. Status: ${response.status}. The app will continue with local data.`);
             return;
         }
         const data = await response.json();
 
-        // Simple deep-ish compare to see if an update is needed
         if (JSON.stringify(this.state) !== JSON.stringify(data)) {
             this.state = data;
             this.broadcast();
@@ -95,7 +99,6 @@ class AppStore {
   // Subscribe to state changes
   public subscribe(listener: (state: AppData) => void): () => void {
     this.listeners.add(listener);
-    // Immediately call listener with current state if initialized
     if (this.isInitialized) {
       listener(this.state);
     }
@@ -104,49 +107,44 @@ class AppStore {
     };
   }
 
-  // Notify all listeners of a state change
   private broadcast() {
     this.listeners.forEach(listener => listener(this.state));
   }
 
-  // Get the current state
   public getState(): AppData {
     return this.state;
   }
 
-  // Update the state and notify the server
   public async updateState(updater: (currentState: AppData) => AppData) {
-    // Ensure we are initialized before updating
     await this.ensureInitialized();
     
-    // Stop polling to prevent race conditions
     if (this.pollingInterval) clearInterval(this.pollingInterval);
 
     const newState = updater(this.state);
+    
+    const hasChanges = JSON.stringify(this.state) !== JSON.stringify(newState);
+    
     this.state = newState;
+    
+    if (hasChanges) {
+        this.broadcast();
 
-    // Immediately update local UI
-    this.broadcast();
-
-    // Persist the new state to the server
-    try {
-      await fetch('/api/data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(this.state),
-      });
-    } catch (error) {
-      console.error('Failed to save state to server:', error);
-      // Optional: handle save failure (e.g., show a toast to the user)
-    } finally {
-        // Resume polling
-        this.startPolling();
+        try {
+          await fetch('/api/data', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(this.state),
+          });
+        } catch (error) {
+          console.error('Failed to save state to server:', error);
+        }
     }
+
+    this.startPolling();
   }
 
-  // A helper to ensure initialization is complete before any action
   public async ensureInitialized() {
     if (!this.isInitialized) {
       await this.initialize();
@@ -160,7 +158,6 @@ class AppStore {
 
 export const store = AppStore.getInstance();
 
-// A generic hook to subscribe to the store's state
 export function useAppStore() {
   const [state, setState] = useState(() => store.getState());
   const [isInitialized, setIsInitialized] = useState(() => store.getIsInitialized());
