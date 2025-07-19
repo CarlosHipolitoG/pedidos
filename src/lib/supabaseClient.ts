@@ -1,46 +1,43 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+let supabase: any;
 
-let supabaseInstance;
-
-// This check allows the project to build on Vercel/Netlify without having the environment variables set.
-// The real connection will be established on the client-side where the env vars are available.
-if (supabaseUrl && supabaseAnonKey) {
-  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey)
-} else {
-  console.warn("Supabase environment variables not found. Using a mock client. THIS IS EXPECTED DURING BUILD, BUT NOT IN PRODUCTION RUNTIME.");
-  // Create a mock client that won't throw errors but will have no functionality.
-  // This allows the build process (which might not have env vars) to complete.
-  const mockSupabase = {
-    from: () => ({
-      select: async () => ({ data: [], error: null }),
-      insert: async () => ({ data: [], error: { message: 'Mock client', details: 'Not configured' } }),
-      update: async () => ({ data: [], error: { message: 'Mock client', details: 'Not configured' } }),
-      delete: async () => ({ data: [], error: { message: 'Mock client', details: 'Not configured' } }),
-      upsert: async () => ({ data: [], error: { message: 'Mock client', details: 'Not configured' } }),
-    }),
-    channel: (channelName: string) => {
-      console.log(`Mock channel '${channelName}' created.`);
-      return {
-        on: (event: string, filter: any, callback: any) => {
-          console.log(`Mock 'on' listener for event '${event}' on channel '${channelName}'.`);
-          // Return `this` to allow for chaining `.on()` calls if ever needed.
-          return this;
-        },
-        subscribe: (callback: (status: string, err?: Error) => void) => {
-           console.log(`Mock subscription to channel '${channelName}'. In a real environment, this would connect to Supabase.`);
-           // To be more realistic, we can simulate a successful subscription.
-           // callback('SUBSCRIBED');
-        }
-      };
+// A mock client for server-side rendering, where environment variables might not be available.
+// This allows the application to build without errors.
+const mockSupabase = {
+  from: () => ({
+    select: () => Promise.resolve({ data: [], error: null }),
+    insert: () => Promise.resolve({ data: [], error: null }),
+    update: () => Promise.resolve({ data: [], error: null }),
+    delete: () => Promise.resolve({ data: [], error: null }),
+    upsert: () => Promise.resolve({ data: [], error: null }),
+  }),
+  channel: () => ({
+    on: () => mockSupabase.channel(), // Return the mock channel to allow chaining
+    subscribe: (callback: (status: string) => void) => {
+      // Immediately call back with a 'SUBSCRIBED' status for consistency.
+      if (typeof callback === 'function') {
+        callback('SUBSCRIBED');
+      }
+      return mockSupabase.channel(); // Return for chaining
     },
-    removeChannel: (channel: any) => {
-       console.log('Mock removeChannel called.');
-    }
-  };
-  supabaseInstance = mockSupabase as any;
+  }),
+  removeChannel: () => {},
+};
+
+// Check if we are running on the client side
+if (typeof window !== 'undefined') {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Supabase URL and anonymous key are required on the client side.");
+  }
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+} else {
+  // We are on the server, use the mock client
+  supabase = mockSupabase;
 }
 
-export const supabase = supabaseInstance;
+export { supabase };

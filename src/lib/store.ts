@@ -24,7 +24,7 @@ class AppStore {
   private state: AppData = {
     orders: [],
     products: [],
-    users: [],
+    users: initialUsersData, // Start with default users
     settings: initialSettings,
   };
   private listeners: Set<(state: AppData) => void> = new Set();
@@ -44,104 +44,89 @@ class AppStore {
 
   // Fetch initial data from the server
   private async initialize() {
+    // Prevent initialization on the server
+    if (typeof window === 'undefined') {
+        return;
+    }
+
     if (this.isInitialized) return;
     if (this.initializationPromise) return this.initializationPromise;
 
     this.initializationPromise = (async () => {
-      try {
-        const response = await fetch('/api/data');
-        if (!response.ok) {
-            throw new Error(`Failed to fetch initial data: ${response.statusText}`);
-        }
-        const data = await response.json();
-        this.state = data;
-      } catch (error) {
-        console.error('Initialization failed during first fetch:', error);
-        // Fallback to local data if API fails on first load
-        this.state = {
-            orders: [],
-            products: [], // Start with empty products and let admin add them
-            users: initialUsersData,
-            settings: initialSettings
-        };
-      } finally {
-        this.isInitialized = true;
-        this.broadcast();
-        this.initializeRealtimeSync(); // Set up real-time listeners AFTER initial data is set.
-        this.initializationPromise = null;
-      }
+      await this.fetchData(); // Perform the initial fetch
+      this.isInitialized = true;
+      this.broadcast();
+      this.initializeRealtimeSync(); // Set up real-time listeners AFTER initial data is set.
+      this.initializationPromise = null;
     })();
     return this.initializationPromise;
   }
   
   private async fetchData() {
     try {
-        const response = await fetch('/api/data');
-        if (!response.ok) {
-            console.warn(`[AppStore] Failed to fetch data. Status: ${response.status}. The app will continue with local data.`);
-            return;
-        }
-        const data = await response.json();
-        // Only broadcast if there are actual changes
-        if (JSON.stringify(this.state) !== JSON.stringify(data)) {
-            this.state = data;
+        const { data: products, error: productsError } = await supabase.from('productos').select('*');
+        if (productsError) throw productsError;
+
+        const { data: users, error: usersError } = await supabase.from('users').select('*');
+        if (usersError) throw usersError;
+
+        const { data: orders, error: ordersError } = await supabase.from('orders').select('*');
+        if (ordersError) throw ordersError;
+        
+        const { data: settings, error: settingsError } = await supabase.from('settings').select('*');
+        if (settingsError) throw settingsError;
+
+        const settingsObject = settings && settings.length > 0 ? settings[0] : initialSettings;
+        
+        const newState = {
+            products: products || [],
+            users: (users && users.length > 0) ? users : initialUsersData,
+            orders: orders || [],
+            settings: settingsObject
+        };
+
+        if (JSON.stringify(this.state) !== JSON.stringify(newState)) {
+            this.state = newState;
             this.broadcast();
         }
+
     } catch (error) {
         console.error("[AppStore] Fetching data failed:", error);
+        // If fetching fails, we stick with the initial local data
+        this.state = {
+            orders: [],
+            products: [],
+            users: initialUsersData,
+            settings: initialSettings
+        };
+        this.broadcast();
     }
   }
 
   private initializeRealtimeSync() {
+    // Prevent initialization on the server
+    if (typeof window === 'undefined' || !supabase.channel) {
+        return;
+    }
     // Ensure we only have one channel subscription.
     if (this.realtimeChannel) {
       supabase.removeChannel(this.realtimeChannel);
       this.realtimeChannel = null;
     }
-
-    // This check is important because the mock client doesn't have a real 'channel' method.
-    if (typeof supabase.channel !== 'function') {
-        console.warn("Supabase client is not fully initialized. Realtime sync is disabled.");
-        return;
-    }
-
+    
     const channel = supabase.channel('public-db-changes');
     
-    channel.on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'productos' },
-      (payload) => {
-        console.log('Realtime change received on productos!', payload);
-        this.fetchData();
-      }
-    );
-
-    channel.on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'orders' },
-      (payload) => {
-        console.log('Realtime change received on orders!', payload);
-        this.fetchData();
-      }
-    );
-
-    channel.on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'users' },
-      (payload) => {
-        console.log('Realtime change received on users!', payload);
-        this.fetchData();
-      }
-    );
-
-    channel.on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'settings' },
-      (payload) => {
-        console.log('Realtime change received on settings!', payload);
-        this.fetchData();
-      }
-    );
+    const tables = ['productos', 'orders', 'users', 'settings'];
+    tables.forEach(table => {
+      channel.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: table },
+        (payload) => {
+          console.log(`Realtime change received on ${table}!`, payload);
+          this.fetchData();
+        }
+      );
+    });
 
     channel.subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
@@ -150,7 +135,7 @@ class AppStore {
         if (status === 'CHANNEL_ERROR') {
           console.error('Realtime subscription error:', err);
         }
-      });
+    });
 
     this.realtimeChannel = channel;
   }
@@ -189,16 +174,26 @@ class AppStore {
     if (hasChanges) {
         this.broadcast();
 
+        // No need to use the API route anymore, just write directly
         try {
-          await fetch('/api/data', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(this.state),
-          });
+            if (newState.products && newState.products.length > 0) {
+              const { error } = await supabase.from('productos').upsert(newState.products);
+              if (error) console.error("Error saving products", error);
+            }
+            if (newState.users && newState.users.length > 0) {
+              const { error } = await supabase.from('users').upsert(newState.users);
+              if (error) console.error("Error saving users", error);
+            }
+             if (newState.orders && newState.orders.length > 0) {
+              const { error } = await supabase.from('orders').upsert(newState.orders);
+              if (error) console.error("Error saving orders", error);
+            }
+            if (newState.settings) {
+              const { error } = await supabase.from('settings').upsert(newState.settings);
+              if (error) console.error("Error saving settings", error);
+            }
         } catch (error) {
-          console.error('Failed to save state to server:', error);
+          console.error('Failed to save state to Supabase:', error);
         }
     }
   }
@@ -221,17 +216,20 @@ export function useAppStore() {
   const [isInitialized, setIsInitialized] = useState(() => store.getIsInitialized());
 
   useEffect(() => {
-    store.ensureInitialized().then(() => {
-      setIsInitialized(store.getIsInitialized());
-      setState(store.getState());
-    });
-    
-    const unsubscribe = store.subscribe((newState) => {
-        setState(newState);
-        setIsInitialized(store.getIsInitialized());
-    });
+    // Only run on the client
+    if (typeof window !== 'undefined') {
+        store.ensureInitialized().then(() => {
+          setIsInitialized(store.getIsInitialized());
+          setState(store.getState());
+        });
+        
+        const unsubscribe = store.subscribe((newState) => {
+            setState(newState);
+            setIsInitialized(store.getIsInitialized());
+        });
 
-    return unsubscribe;
+        return unsubscribe;
+    }
   }, []);
 
   return { state, isInitialized };
