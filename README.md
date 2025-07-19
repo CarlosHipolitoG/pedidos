@@ -75,3 +75,4 @@ npm run dev
 - `npm run start`: Starts a production server.
 - `npm run lint`: Lints the code for errors.
 # HolidaysFriends
+# HolidaysFriends
