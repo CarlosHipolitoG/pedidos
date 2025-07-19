@@ -103,8 +103,15 @@ class AppStore {
             if (productsResponse.data?.length) {
                 this.state.products = productsResponse.data;
             } else {
-                console.log("No products found in DB, using initial local data.");
-                this.state.products = initialProductsData;
+                console.log("No products found in DB, inserting initial data...");
+                const { error: insertError } = await supabase.from('products').insert(initialProductsData);
+                if (insertError) {
+                    console.error("Failed to insert initial products:", insertError);
+                    this.state.products = initialProductsData;
+                } else {
+                    const { data: newData } = await supabase.from('products').select('*');
+                    this.state.products = newData || initialProductsData;
+                }
             }
         }
         
