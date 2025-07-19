@@ -23,27 +23,6 @@ export type User = {
   comment?: string;
 };
 
-// Initial admin user. The password is 'admin123'.
-export const initialUsersData: User[] = [
-  {
-    id: 1,
-    name: 'Admin Principal',
-    email: 'admin@example.com',
-    password: 'admin123',
-    role: 'admin',
-    temporaryPassword: false
-  },
-  {
-    id: 2,
-    name: 'Juan Mesero',
-    email: 'mesero@example.com',
-    cedula: '10203040',
-    password: '10203040', // Cedula is the password
-    role: 'waiter',
-    temporaryPassword: false
-  },
-];
-
 // --- Hook to use users from the central store ---
 export function useUsers() {
     const { state, isInitialized } = useAppStore();
