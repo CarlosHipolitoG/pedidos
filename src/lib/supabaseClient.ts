@@ -1,3 +1,6 @@
+
+'use client';
+
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Global variable for the Supabase client singleton
@@ -45,7 +48,7 @@ export function getClient(): SupabaseClient {
 
   // If the variables are not set on the client, throw an error.
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Supabase URL and anonymous key must be provided in .env");
+    throw new Error("Supabase URL and anonymous key must be provided in .env and prefixed with NEXT_PUBLIC_");
   }
 
   // Create, store, and return the Supabase client instance.
