@@ -19,7 +19,6 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ProductAvailability } from '@/components/product-availability';
 
 type CartItem = Product & { quantity: number };
 
@@ -459,14 +458,11 @@ export default function MenuPage() {
                         className="object-cover w-full h-48 transition-transform duration-300 group-hover:scale-105"
                         data-ai-hint="beverage drink"
                       />
-                       <ProductAvailability
-                          product={product}
-                          renderOutOfStock={() => (
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                              <span className="text-white font-bold text-lg">AGOTADO</span>
-                            </div>
-                          )}
-                        />
+                       {isMounted && product.disponibilidad === 'PRODUCTO_AGOTADO' && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                            <span className="text-white font-bold text-lg">AGOTADO</span>
+                          </div>
+                        )}
                     </div>
                     <CardHeader>
                       <CardTitle className="text-lg flex-grow h-12">{product.nombre}</CardTitle>
@@ -477,20 +473,14 @@ export default function MenuPage() {
                       </p>
                     </CardContent>
                     <CardFooter className="p-4 pt-0">
-                       <ProductAvailability
-                          product={product}
-                          disabled={activeOrder && (activeOrder.status === 'Completado' || activeOrder.status === 'Pagado')}
-                          renderButton={() => (
-                            <Button
-                              className="w-full"
-                              disabled={product.disponibilidad === 'PRODUCTO_AGOTADO' || (activeOrder && (activeOrder.status === 'Completado' || activeOrder.status === 'Pagado'))}
-                              onClick={() => handleAddToCart(product)}
-                            >
-                              <Plus className="mr-2 h-4 w-4" />
-                              {activeOrder ? 'Añadir al Pedido' : 'Agregar al Carrito'}
-                            </Button>
-                          )}
-                        />
+                       <Button
+                          className="w-full"
+                          disabled={product.disponibilidad === 'PRODUCTO_AGOTADO' || (activeOrder && (activeOrder.status === 'Completado' || activeOrder.status === 'Pagado'))}
+                          onClick={() => handleAddToCart(product)}
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          {activeOrder ? 'Añadir al Pedido' : 'Agregar al Carrito'}
+                        </Button>
                     </CardFooter>
                   </Card>
                 ))}
