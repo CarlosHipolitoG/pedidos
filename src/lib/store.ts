@@ -1,12 +1,13 @@
 
 'use client';
 
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useEffect} from 'react';
 import type {Order} from './orders';
 import type {Product} from './products';
 import type {User} from './users';
 import type {Settings} from './settings';
 import { initialProductsData, initialUsersData, initialSettings } from './initial-data';
+import { supabase } from './supabaseClient';
 
 
 // Define the shape of our entire application's data
@@ -24,12 +25,12 @@ class AppStore {
     orders: [],
     products: [],
     users: [],
-    settings: initialSettings, // Start with some default settings
+    settings: initialSettings,
   };
   private listeners: Set<(state: AppData) => void> = new Set();
   private isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
-  private pollingInterval: NodeJS.Timeout | null = null;
+  private realtimeChannel: any = null;
 
 
   private constructor() {}
@@ -51,7 +52,7 @@ class AppStore {
         await this.fetchData();
         this.isInitialized = true;
         this.broadcast();
-        this.startPolling();
+        this.initializeRealtimeSync(); // Set up real-time listeners
       } catch (error) {
         console.error('Initialization failed:', error);
         // Fallback to initial data if API fails on first load
@@ -63,7 +64,6 @@ class AppStore {
         };
         this.isInitialized = true;
         this.broadcast();
-        this.startPolling();
       } finally {
         this.initializationPromise = null;
       }
@@ -79,21 +79,43 @@ class AppStore {
             return;
         }
         const data = await response.json();
-
-        if (JSON.stringify(this.state) !== JSON.stringify(data)) {
-            this.state = data;
-            this.broadcast();
-        }
+        this.state = data;
+        this.broadcast();
     } catch (error) {
-        console.warn("[AppStore] Polling failed:", error);
+        console.error("[AppStore] Fetching data failed:", error);
+        // If fetch fails, we re-throw to be caught by the initializer
+        throw error;
     }
   }
-  
-  private startPolling(interval = 5000) {
-      if (this.pollingInterval) {
-          clearInterval(this.pollingInterval);
-      }
-      this.pollingInterval = setInterval(() => this.fetchData(), interval);
+
+  private initializeRealtimeSync() {
+    // Ensure we only have one channel subscription.
+    if (this.realtimeChannel) {
+      supabase.removeChannel(this.realtimeChannel);
+      this.realtimeChannel = null;
+    }
+
+    const channel = supabase.channel('public-db-changes');
+    channel
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public' },
+        (payload) => {
+          console.log('Realtime change received!', payload);
+          // On any change, refetch all data to ensure consistency
+          this.fetchData();
+        }
+      )
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to Supabase Realtime!');
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Realtime subscription error:', err);
+        }
+      });
+
+    this.realtimeChannel = channel;
   }
 
   // Subscribe to state changes
@@ -104,6 +126,10 @@ class AppStore {
     }
     return () => {
       this.listeners.delete(listener);
+      if (this.listeners.size === 0 && this.realtimeChannel) {
+          supabase.removeChannel(this.realtimeChannel);
+          this.realtimeChannel = null;
+      }
     };
   }
 
@@ -118,10 +144,7 @@ class AppStore {
   public async updateState(updater: (currentState: AppData) => AppData) {
     await this.ensureInitialized();
     
-    if (this.pollingInterval) clearInterval(this.pollingInterval);
-
     const newState = updater(this.state);
-    
     const hasChanges = JSON.stringify(this.state) !== JSON.stringify(newState);
     
     this.state = newState;
@@ -141,8 +164,6 @@ class AppStore {
           console.error('Failed to save state to server:', error);
         }
     }
-
-    this.startPolling();
   }
 
   public async ensureInitialized() {
