@@ -11,7 +11,7 @@ import { es } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download, Settings, Trash2, Users, Info, X } from 'lucide-react';
+import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download, Settings, Trash2, Users, Info, X, PackagePlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -281,6 +281,12 @@ export default function AdminDashboardPage() {
                         <SelectItem value="Pagado">Pagado</SelectItem>
                     </SelectContent>
                 </Select>
+                 <Button asChild>
+                    <Link href="/admin/take-order">
+                        <PackagePlus className="mr-2 h-4 w-4" />
+                        Tomar Pedido
+                    </Link>
+                </Button>
                  <Button variant="outline" asChild>
                     <Link href="/admin/my-orders">
                         <History className="mr-2 h-4 w-4" />
@@ -501,3 +507,5 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
+    
