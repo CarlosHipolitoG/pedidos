@@ -24,7 +24,7 @@ export default function AdminSettingsPage() {
         barName: settings.barName,
         logoUrl: image_settings.logoUrl,
         backgroundUrl: image_settings.backgroundUrl,
-        promotionalImages: promotional_images,
+        promotionalImages: promotional_images || [],
       });
     }
   }, [settings, image_settings, promotional_images, isInitialized]);
@@ -156,7 +156,7 @@ export default function AdminSettingsPage() {
             <div className="space-y-2">
                 {(formState.promotionalImages || []).map((img) => (
                     <div key={img.id} className="flex items-center gap-2 p-2 border rounded-md">
-                       {img.src && <img src={img.src} alt="preview" className="h-12 w-12 object-cover rounded-md flex-shrink-0"/>}
+                       {img.src && <img src={img.src} alt={img.alt || ''} className="h-12 w-12 object-cover rounded-md flex-shrink-0"/>}
                         <div className="flex-grow min-w-0">
                           <p className="text-sm break-all">{img.src}</p>
                         </div>
