@@ -39,7 +39,8 @@ export default function AdminSettingsPage() {
   const handleAddImage = () => {
     if (newImageUrl.trim() === '') return;
     const newImage: PromotionalImage = {
-        id: Date.now(), // simple unique id for local state
+        // Use a temporary negative ID for new items to distinguish them
+        id: -Date.now(), 
         src: newImageUrl.trim(),
         alt: 'Promoción',
         hint: 'promotion event'

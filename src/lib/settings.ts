@@ -3,6 +3,7 @@
 
 import {useAppStore, store} from './store';
 import { getClient } from './supabaseClient';
+import { useMemo } from 'react';
 
 export type PromotionalImage = {
   id: number;
@@ -13,7 +14,7 @@ export type PromotionalImage = {
 
 // This structure now combines data from different tables
 export type Settings = {
-  barName: string; 
+  barName: string;
   logoUrl: string | null;
   backgroundUrl: string | null;
   promotionalImages: PromotionalImage[];
@@ -22,16 +23,17 @@ export type Settings = {
 // --- Hook to get combined settings from the store ---
 export function useSettings() {
     const { state, isInitialized } = useAppStore();
-    // Combine the settings into a single, consistent object.
-    const combinedSettings: Settings = {
+    
+    // useMemo will prevent creating a new object on every render, fixing the infinite loop.
+    const settings = useMemo(() => ({
       barName: state.settings?.barName || '',
       logoUrl: state.image_settings?.logoUrl || null,
       backgroundUrl: state.image_settings?.backgroundUrl || null,
       promotionalImages: state.promotional_images || []
-    };
+    }), [state.settings, state.image_settings, state.promotional_images]);
 
     return {
-        settings: combinedSettings,
+        settings,
         isInitialized
     };
 }
@@ -71,37 +73,41 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
     const { data: dbImages, error: fetchError } = await supabase.from('promotional_images').select('id');
     if (fetchError) {
       console.error("Error fetching promotional images for sync:", fetchError);
-      return; 
+      return;
     }
     const dbImageIds = dbImages.map(img => img.id);
 
     const localImages = newSettings.promotionalImages || [];
-    const localImageIds = localImages.map(img => img.id).filter(id => typeof id === 'number');
+    const localImageIds = localImages.map(img => img.id).filter(id => typeof id === 'number' && id > 0);
 
     const imagesToInsert = localImages
-      .filter(img => typeof img.id !== 'number' || !dbImageIds.includes(img.id))
-      .map(({ src, alt, hint }) => ({ src, alt, hint })); // Prepare for insert
+      .filter(img => typeof img.id !== 'number' || img.id <= 0) // New images have temp negative IDs
+      .map(({ src, alt, hint }) => ({ src, alt, hint }));
 
     const imagesToUpdate = localImages
-      .filter(img => typeof img.id === 'number' && dbImageIds.includes(img.id));
+      .filter(img => typeof img.id === 'number' && img.id > 0 && dbImageIds.includes(img.id));
 
     const imageIdsToDelete = dbImageIds.filter(id => !localImageIds.includes(id));
 
     if (imagesToInsert.length > 0) {
       const { error: insertError } = await supabase.from('promotional_images').insert(imagesToInsert);
-      if (insertError) console.error("Error inserting new promotional images:", insertError);
+      if (insertError) {
+        console.error("Error inserting new promotional images:", insertError);
+      }
     }
 
     if (imagesToUpdate.length > 0) {
       const updatePromises = imagesToUpdate.map(img =>
         supabase.from('promotional_images').update({ src: img.src, alt: img.alt, hint: img.hint }).eq('id', img.id)
       );
-      await Promise.all(updatePromises);
+      await Promise.all(updatePromises.map(p => p.catch(e => console.error("Error updating image", e))));
     }
 
     if (imageIdsToDelete.length > 0) {
       const { error: deleteError } = await supabase.from('promotional_images').delete().in('id', imageIdsToDelete);
-      if (deleteError) console.error("Error deleting old promotional images:", deleteError);
+      if (deleteError) {
+        console.error("Error deleting old promotional images:", deleteError);
+      }
     }
 
   } catch (error) {
