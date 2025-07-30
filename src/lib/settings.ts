@@ -28,9 +28,10 @@ export function useSettings() {
         const generalSettings = state.settings;
         if (!generalSettings) return null;
 
+        // Direct mapping from the fetched Supabase data to the application's Settings type
         return {
             barName: generalSettings.barName,
-            logoUrl: generalSettings.logo_url,
+            logoUrl: generalSettings.logo_url, // Directly use logo_url from the state
             backgroundUrl: generalSettings.background_url,
             promotionalImages: state.promotional_images || [],
             taxRate: generalSettings.taxRate ?? 19,

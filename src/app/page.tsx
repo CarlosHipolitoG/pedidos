@@ -104,7 +104,7 @@ export default function HomePage() {
             <Card className="w-full bg-card/80 backdrop-blur-sm">
                 <CardHeader>
                     <div className="flex flex-col items-center gap-4">
-                        {isInitialized && settings?.logoUrl && (
+                        {settings?.logoUrl && (
                            <img src={settings.logoUrl} alt="Logo" className="h-24 w-auto" crossOrigin="anonymous" />
                         )}
                         <CardTitle className="text-2xl text-center">
