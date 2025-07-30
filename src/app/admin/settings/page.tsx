@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSettings, updateSettings, PromotionalImage, Settings } from '@/lib/settings';
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, PlusCircle, Trash2, Shield, Utensils, User, Percent, Upload } from 'lucide-react';
+import { ArrowLeft, Save, PlusCircle, Trash2, Shield, Utensils, User, Percent } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
@@ -18,7 +18,6 @@ export default function AdminSettingsPage() {
   const [formState, setFormState] = useState<Settings>({ barName: '', logoUrl: '', backgroundUrl: '', promotionalImages: [], taxRate: 0 });
   const [newImageUrl, setNewImageUrl] = useState('');
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isInitialized && settings) {
@@ -36,17 +35,6 @@ export default function AdminSettingsPage() {
     setFormState(prev => ({ ...prev, [field]: value }));
   };
   
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        handleInputChange('logoUrl', reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSaveChanges = async () => {
     await updateSettings(formState);
     toast({
@@ -152,26 +140,19 @@ export default function AdminSettingsPage() {
                <p className="text-xs text-muted-foreground">Define el porcentaje de impuestos a aplicar sobre el subtotal de cada pedido.</p>
             </div>
            <div className="space-y-2">
-                <Label>Logotipo del Negocio</Label>
-                <div className="flex items-center gap-4">
-                    {formState.logoUrl && (
-                        <div className="p-2 bg-muted rounded-md flex justify-center border">
-                           <img src={formState.logoUrl} alt="Vista previa del logo" className="h-20 w-20 object-contain rounded-md" />
-                        </div>
-                    )}
-                    <Input
-                        type="file"
-                        className="hidden"
-                        ref={fileInputRef}
-                        onChange={handleLogoUpload}
-                        accept="image/png, image/jpeg, image/webp, image/svg+xml"
-                    />
-                    <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-                        <Upload className="mr-2 h-4 w-4" />
-                        {formState.logoUrl ? 'Cambiar Logo' : 'Subir Logo'}
-                    </Button>
-                </div>
-                 <p className="text-xs text-muted-foreground">Sube el logo de tu negocio. Se recomienda un archivo PNG con fondo transparente.</p>
+                <Label htmlFor="logoUrl">URL del Logotipo</Label>
+                <Input
+                  id="logoUrl"
+                  value={formState.logoUrl || ''}
+                  onChange={(e) => handleInputChange('logoUrl', e.target.value)}
+                  placeholder="https://ejemplo.com/logo.png"
+                />
+                 {formState.logoUrl && (
+                    <div className="p-2 bg-muted rounded-md flex justify-center border">
+                       <img src={formState.logoUrl} alt="Vista previa del logo" className="h-20 w-20 object-contain rounded-md" />
+                    </div>
+                )}
+                 <p className="text-xs text-muted-foreground">Pega la URL de una imagen para el logo de tu negocio.</p>
             </div>
 
           <div className="space-y-2">
@@ -227,5 +208,3 @@ export default function AdminSettingsPage() {
     </div>
   );
 }
-
-    

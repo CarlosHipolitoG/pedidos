@@ -310,5 +310,3 @@ export async function deleteOrder(orderId: number): Promise<void> {
         console.error("Error deleting order:", error);
     }
 }
-
-    

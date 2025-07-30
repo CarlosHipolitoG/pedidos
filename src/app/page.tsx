@@ -15,22 +15,21 @@ import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/com
 import Autoplay from "embla-carousel-autoplay"
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
-import { useUsers } from '@/lib/users';
 
 export default function HomePage() {
-  const [email, setEmail] = useState('');
-  const { settings, isInitialized: isSettingsInitialized } = useSettings();
-  const { users, isInitialized: isUsersInitialized } = useUsers();
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const { settings, isInitialized } = useSettings();
   const router = useRouter();
-  const { toast } = useToast();
   const [emblaApi, setEmblaApi] = useState<CarouselApi | undefined>(undefined);
-  
-  const isInitialized = isSettingsInitialized && isUsersInitialized;
 
   const autoplayPlugin = useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true })
   );
+
+  useEffect(() => {
+    localStorage.removeItem('activeOrderId'); // Clear any previous order
+  }, []);
 
   useEffect(() => {
     if (emblaApi && settings?.promotionalImages) {
@@ -43,28 +42,10 @@ export default function HomePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !isInitialized) return;
-
-    const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-    if (existingUser) {
-      localStorage.setItem('customerName', existingUser.name);
-      localStorage.setItem('customerPhone', existingUser.phone || '');
-      localStorage.setItem('customerEmail', existingUser.email);
-      localStorage.removeItem('activeOrderId');
-      toast({
-        title: `¡Bienvenido de nuevo, ${existingUser.name}!`,
-        description: 'Serás dirigido al menú.',
-      });
-      router.push('/menu');
-    } else {
-      toast({
-        title: 'Perfil no encontrado',
-        description: 'No existe un perfil con ese correo. Por favor, crea uno.',
-        variant: 'destructive',
-      });
-      router.push('/create-profile');
-    }
+    if (!name || !phone) return;
+    localStorage.setItem('customerName', name);
+    localStorage.setItem('customerPhone', phone);
+    router.push('/menu');
   };
 
   return (
@@ -145,7 +126,7 @@ export default function HomePage() {
                                 {`¡Bienvenido a ${settings.barName || 'HOLIDAYS FRIENDS'}!`}
                             </CardTitle>
                             <CardDescription className="text-center">
-                                Ingresa con tu correo para ver el menú o revisa tus pedidos.
+                                Para una mejor experiencia, regístrate o ingresa.
                             </CardDescription>
                         </div>
                     )}
@@ -153,21 +134,32 @@ export default function HomePage() {
                 <CardContent>
                     <form onSubmit={handleSubmit}>
                         <div className="space-y-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="email">Correo Electrónico</Label>
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Nombre</Label>
                                 <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="tu.correo@example.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    id="name"
+                                    type="text"
+                                    placeholder="Tu nombre"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="phone">Número de Celular</Label>
+                                <Input
+                                    id="phone"
+                                    type="tel"
+                                    placeholder="Tu número de celular"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
                                     required
                                 />
                             </div>
                             
                             <div className="space-y-2 pt-4">
-                                <Button type="submit" className="w-full" disabled={!email || !isInitialized}>
-                                    Ingresar / Continuar
+                                <Button type="submit" className="w-full" disabled={!name || !phone || !isInitialized}>
+                                    Ver el Menú
                                 </Button>
                                  <Button variant="outline" className="w-full" asChild>
                                     <Link href="/create-profile">
@@ -189,5 +181,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    

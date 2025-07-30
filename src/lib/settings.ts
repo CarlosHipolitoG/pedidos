@@ -17,7 +17,7 @@ export type Settings = {
   logoUrl: string | null;
   backgroundUrl: string | null;
   promotionalImages: PromotionalImage[];
-  taxRate: number;
+  taxRate?: number;
 };
 
 // --- Hook to get combined settings from the store ---

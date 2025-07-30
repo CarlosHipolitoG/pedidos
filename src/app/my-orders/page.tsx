@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Order, useOrders, getOrdersByCustomerPhone, updateProductQuantityInOrder, removeProductFromOrder, getOrdersByCustomerEmail } from '@/lib/orders';
+import { Order, useOrders, getOrdersByCustomerPhone, updateProductQuantityInOrder, removeProductFromOrder } from '@/lib/orders';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
@@ -18,10 +18,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
-import { getUserFromStorage } from '@/lib/users';
 
 export default function MyOrdersPage() {
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
   const [searched, setSearched] = useState(false);
   const { orders, isInitialized } = useOrders();
@@ -31,41 +30,23 @@ export default function MyOrdersPage() {
 
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!email) return;
-
-    const user = getUserFromStorage(email);
-    if (!user) {
-        toast({
-            title: "Usuario no encontrado",
-            description: "No se encontró un perfil con ese correo electrónico.",
-            variant: "destructive"
-        });
-        setFoundOrders([]);
-        setSearched(true);
-        return;
-    }
-    
-    // Login the user for this session
-    localStorage.setItem('customerName', user.name);
-    localStorage.setItem('customerPhone', user.phone || '');
-    localStorage.setItem('customerEmail', user.email);
-
-    const customerOrders = getOrdersByCustomerEmail(email).filter(
+    if (!phone) return;
+    const customerOrders = getOrdersByCustomerPhone(phone).filter(
       (order) => order.status !== 'Pagado'
     );
     setFoundOrders(customerOrders);
     setSearched(true);
-    localStorage.setItem('customerEmail', email);
+    localStorage.setItem('customerPhone', phone);
   };
   
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 30 * 1000);
     
-    const storedEmail = localStorage.getItem('customerEmail');
-    if (storedEmail) {
-        setEmail(storedEmail);
+    const storedPhone = localStorage.getItem('customerPhone');
+    if (storedPhone) {
+        setPhone(storedPhone);
         if (isInitialized) {
-             const customerOrders = getOrdersByCustomerEmail(storedEmail).filter(
+             const customerOrders = getOrdersByCustomerPhone(storedPhone).filter(
                 (order) => order.status !== 'Pagado'
             );
             setFoundOrders(customerOrders);
@@ -78,11 +59,11 @@ export default function MyOrdersPage() {
   }, [isInitialized]);
 
   useEffect(() => {
-    if (searched && email && isInitialized) {
+    if (searched && phone && isInitialized) {
         handleSearch();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orders, email, searched, isInitialized]);
+  }, [orders, phone, searched, isInitialized]);
 
   
   const handleGoToMenu = (orderId: number) => {
@@ -142,23 +123,23 @@ export default function MyOrdersPage() {
         <CardHeader>
           <CardTitle className="text-2xl text-center">Mis Pedidos</CardTitle>
           <CardDescription className="text-center">
-            Ingresa tu correo electrónico para ver tu historial de pedidos activos.
+            Ingresa tu número de celular para ver tu historial de pedidos activos.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSearch} className="flex items-center gap-4 mb-8">
             <div className="flex-grow space-y-2">
-              <Label htmlFor="email" className="sr-only">Correo Electrónico</Label>
+              <Label htmlFor="phone" className="sr-only">Número de Celular</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="Tu correo electrónico..."
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="phone"
+                type="tel"
+                placeholder="Tu número de celular..."
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 required
               />
             </div>
-            <Button type="submit" disabled={!email}>
+            <Button type="submit" disabled={!phone}>
                 <History className="mr-2 h-4 w-4"/>
                 Buscar Pedidos
             </Button>
@@ -258,7 +239,7 @@ export default function MyOrdersPage() {
                 </>
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
-                  <p>No se encontraron pedidos activos para este correo.</p>
+                  <p>No se encontraron pedidos activos para este número.</p>
                 </div>
               )}
             </div>
@@ -268,5 +249,3 @@ export default function MyOrdersPage() {
     </div>
   );
 }
-
-    
