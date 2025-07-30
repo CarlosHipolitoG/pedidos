@@ -89,7 +89,7 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
         const supabase = getClient();
         const now = Date.now();
         const settings = store.getState().settings;
-        const taxRate = settings?.settings_data?.taxRate ?? 19;
+        const taxRate = settings?.taxRate ?? 19;
 
         const itemsWithTimestamp: OrderItem[] = payload.items.map(item => ({
             ...item,
@@ -173,7 +173,7 @@ export function updateOrderStatus(orderId: number, status: OrderStatus) {
 export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'addedAt'>, attendedBy?: string) {
     let updatedOrder: Order | undefined;
     const settings = store.getState().settings;
-    const taxRate = settings?.settings_data?.taxRate ?? 19;
+    const taxRate = settings?.taxRate ?? 19;
 
     store.updateState(currentState => {
         const newOrders = currentState.orders.map(order => {
@@ -216,7 +216,7 @@ export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'add
 export function updateProductQuantityInOrder(orderId: number, itemId: number, newQuantity: number) {
     let updatedOrder: Order | undefined;
     const settings = store.getState().settings;
-    const taxRate = settings?.settings_data?.taxRate ?? 19;
+    const taxRate = settings?.taxRate ?? 19;
 
     store.updateState(currentState => {
         const newOrders = currentState.orders.map(order => {
@@ -258,7 +258,7 @@ export function removeProductFromOrder(orderId: number, itemId: number): boolean
     let success = false;
     let updatedOrder: Order | undefined;
     const settings = store.getState().settings;
-    const taxRate = settings?.settings_data?.taxRate ?? 19;
+    const taxRate = settings?.taxRate ?? 19;
 
     store.updateState(currentState => {
         const newOrders = currentState.orders.map(order => {

@@ -28,14 +28,12 @@ export function useSettings() {
         const settingsData = state.settings;
         if (!settingsData) return null;
 
-        const taxRate = settingsData.settings_data?.taxRate ?? 19;
-
         return {
-            barName: settingsData.settings_data.barName,
+            barName: settingsData.barName,
             logoUrl: settingsData.logo_url,
             backgroundUrl: settingsData.background_url,
             promotionalImages: state.promotional_images || [],
-            taxRate: taxRate,
+            taxRate: settingsData.taxRate ?? 19,
         };
     }, [state.settings, state.promotional_images]);
 
@@ -55,7 +53,8 @@ export const updateSettings = async (formState: Settings): Promise<void> => {
   const { error: settingsError } = await supabase
     .from('settings')
     .update({
-      settings_data: { barName: formState.barName, taxRate: formState.taxRate },
+      barName: formState.barName, 
+      taxRate: formState.taxRate,
       logo_url: formState.logoUrl,
       background_url: formState.backgroundUrl
     })
