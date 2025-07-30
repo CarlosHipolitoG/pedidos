@@ -48,7 +48,7 @@ export function useOrders() {
 
 // --- Data Manipulation Functions ---
 
-const calculateTotals = (items: (OrderItem | Omit<OrderItem, 'addedAt'>)[], taxRate: number = 0) => {
+const calculateTotals = (items: (OrderItem | Omit<OrderItem, 'addedAt'>)[]) => {
     const subtotal = items.reduce((sum, item) => sum + item.precio * item.quantity, 0);
     const tax = 0; // Se elimina el cálculo de impuestos
     const total = subtotal; // El total es ahora igual al subtotal

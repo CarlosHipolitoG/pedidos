@@ -272,7 +272,6 @@ export default function AdminDashboardPage() {
       'Tipo Venta': order.orderedBy.type,
       'Estado': order.status,
       'Subtotal': order.subtotal,
-      'IVA': order.tax,
       'Total': order.total
     }));
     downloadCSV(reportData, 'informe-ventas-totales');

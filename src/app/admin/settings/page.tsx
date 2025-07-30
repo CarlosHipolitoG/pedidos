@@ -15,7 +15,7 @@ import Image from 'next/image';
 
 export default function AdminSettingsPage() {
   const { settings, isInitialized } = useSettings();
-  const [formState, setFormState] = useState<Settings>({ barName: '', logoUrl: '', backgroundUrl: '', taxRate: 0, promotionalImages: [] });
+  const [formState, setFormState] = useState<Settings>({ barName: '', logoUrl: '', backgroundUrl: '', promotionalImages: [] });
   const [newImageUrl, setNewImageUrl] = useState('');
   const { toast } = useToast();
 
@@ -25,7 +25,6 @@ export default function AdminSettingsPage() {
           barName: settings.barName || '',
           logoUrl: settings.logoUrl || '',
           backgroundUrl: settings.backgroundUrl || '',
-          taxRate: settings.taxRate ?? 0,
           promotionalImages: settings.promotionalImages || []
       });
     }
