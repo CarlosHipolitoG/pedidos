@@ -2,7 +2,6 @@
 'use client';
 
 import {useAppStore, store} from './store';
-import { getClient } from './supabaseClient';
 import { useMemo } from 'react';
 
 export type PromotionalImage = {
@@ -24,16 +23,17 @@ export type Settings = {
 export function useSettings() {
     const { state, isInitialized } = useAppStore();
     
+    // The settings object combines data from two different tables in the store state
     const settings = useMemo(() => {
-        const settingsData = state.settings;
-        if (!settingsData) return null;
+        const generalSettings = state.settings;
+        if (!generalSettings) return null;
 
         return {
-            barName: settingsData.barName,
-            logoUrl: settingsData.logo_url,
-            backgroundUrl: settingsData.background_url,
+            barName: generalSettings.barName,
+            logoUrl: generalSettings.logo_url,
+            backgroundUrl: generalSettings.background_url,
             promotionalImages: state.promotional_images || [],
-            taxRate: settingsData.taxRate ?? 19,
+            taxRate: generalSettings.taxRate ?? 19, // Use default if not set
         };
     }, [state.settings, state.promotional_images]);
 
