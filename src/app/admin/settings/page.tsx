@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useSettings, updateSettings, PromotionalImage, Settings } from '@/lib/settings';
+import { useSettings, updateSettings, Settings } from '@/lib/settings';
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save, PlusCircle, Trash2, Shield, Utensils, User, Percent } from 'lucide-react';
 import Link from 'next/link';
@@ -15,7 +15,8 @@ import Image from 'next/image';
 
 export default function AdminSettingsPage() {
   const { settings, isInitialized } = useSettings();
-  const [formState, setFormState] = useState<Settings>({ barName: '', logoUrl: '', backgroundUrl: '', promotionalImages: [], taxRate: 0 });
+  const [formState, setFormState] = useState<Omit<Settings, 'promotionalImages'>>({ barName: '', logoUrl: '', backgroundUrl: '', taxRate: 0 });
+  const [promoImages, setPromoImages] = useState<Settings['promotionalImages']>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
   const { toast } = useToast();
 
@@ -25,18 +26,22 @@ export default function AdminSettingsPage() {
           barName: settings.barName || '',
           logoUrl: settings.logoUrl || '',
           backgroundUrl: settings.backgroundUrl || '',
-          promotionalImages: settings.promotionalImages || [],
-          taxRate: settings.taxRate ?? 19, // Default to 19 if null/undefined
+          taxRate: settings.taxRate ?? 19,
       });
+      setPromoImages(settings.promotionalImages || []);
     }
   }, [settings, isInitialized]);
 
-  const handleInputChange = (field: keyof Omit<Settings, 'promotionalImages'>, value: any) => {
+  const handleInputChange = (field: keyof typeof formState, value: any) => {
     setFormState(prev => ({ ...prev, [field]: value }));
   };
   
   const handleSaveChanges = async () => {
-    await updateSettings(formState);
+    const finalSettings: Settings = {
+      ...formState,
+      promotionalImages: promoImages
+    };
+    await updateSettings(finalSettings);
     toast({
       title: "Configuración Guardada",
       description: "Los cambios se han guardado exitosamente en la base de datos.",
@@ -45,25 +50,25 @@ export default function AdminSettingsPage() {
 
   const handleAddImage = () => {
     if (newImageUrl.trim() === '') return;
-    const newImage: PromotionalImage = {
+    const newImage = {
         id: -Date.now(),
         src: newImageUrl.trim(),
         alt: 'Promoción',
         hint: 'promotion event'
     };
-    setFormState(prev => ({
-        ...prev,
-        promotionalImages: [...(prev.promotionalImages || []), newImage]
-    }));
+    setPromoImages(prev => [...prev, newImage]);
     setNewImageUrl('');
   };
 
   const handleRemoveImage = (id: number) => {
-    setFormState(prev => ({
-        ...prev,
-        promotionalImages: (prev.promotionalImages || []).filter(img => img.id !== id)
-    }));
+    setPromoImages(prev => prev.filter(img => img.id !== id));
   };
+  
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.style.display = 'none'; // Oculta la imagen si hay un error
+    // También podrías mostrar una imagen de fallback
+  };
+
 
   if (!isInitialized || !settings) {
     return (
@@ -149,7 +154,7 @@ export default function AdminSettingsPage() {
                 />
                  {formState.logoUrl && (
                     <div className="p-2 bg-muted rounded-md flex justify-center border">
-                       <img src={formState.logoUrl} alt="Vista previa del logo" className="h-20 w-20 object-contain rounded-md" />
+                       <img src={formState.logoUrl} alt="Vista previa del logo" className="h-20 w-20 object-contain rounded-md" onError={handleImageError} />
                     </div>
                 )}
                  <p className="text-xs text-muted-foreground">Pega la URL de una imagen para el logo de tu negocio.</p>
@@ -165,7 +170,7 @@ export default function AdminSettingsPage() {
             />
              {formState.backgroundUrl && (
                 <div className="p-4 bg-muted rounded-md flex justify-center">
-                    <img src={formState.backgroundUrl} alt="Vista previa del fondo" className="h-24 w-auto object-contain rounded-md" />
+                    <img src={formState.backgroundUrl} alt="Vista previa del fondo" className="h-24 w-auto object-contain rounded-md" onError={handleImageError} />
                 </div>
             )}
           </div>
@@ -173,9 +178,9 @@ export default function AdminSettingsPage() {
           <div className="space-y-4">
             <Label>Imágenes del Banner Promocional</Label>
             <div className="space-y-2">
-                {(formState.promotionalImages || []).map((img) => (
+                {promoImages.map((img) => (
                     <div key={img.id} className="flex items-center gap-2 p-2 border rounded-md">
-                       {img.src && <img src={img.src} alt={img.alt || ''} className="h-12 w-12 object-cover rounded-md flex-shrink-0"/>}
+                       {img.src && <img src={img.src} alt={img.alt || ''} className="h-12 w-12 object-cover rounded-md flex-shrink-0" onError={handleImageError}/>}
                         <div className="flex-grow min-w-0">
                           <p className="text-sm break-all">{img.src}</p>
                         </div>
