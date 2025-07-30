@@ -66,6 +66,7 @@ class AppStore {
 
       } catch (error) {
         // Fallback to initial data if fetch fails
+        console.error("Initialization failed, falling back to initial data:", error);
         this.state = {
             orders: [],
             products: initialProductsData.map((p, i) => ({ ...p, id: i + 1 })),
@@ -87,14 +88,15 @@ class AppStore {
         
         // Parallel fetching for better performance
         const [productsResponse, ordersResponse, settingsResponse, usersResponse] = await Promise.all([
-            supabase.from('products').select('*'),
+            supabase.from('products').select('*').order('id', { ascending: true }),
             supabase.from('orders').select('*').order('timestamp', { ascending: false }),
             supabase.from('settings').select('settings_data').eq('id', 1).maybeSingle(),
-            supabase.from('users').select('*'),
+            supabase.from('users').select('*').order('id', { ascending: true }),
         ]);
         
         // Handle Products
         if (productsResponse.error || !productsResponse.data || productsResponse.data.length === 0) {
+            console.warn("Could not fetch products, using initial data.", productsResponse.error);
             this.state.products = initialProductsData.map((p, i) => ({ ...p, id: i + 1 }));
         } else {
             this.state.products = productsResponse.data;
@@ -102,6 +104,7 @@ class AppStore {
         
         // Handle Orders
         if (ordersResponse.error) {
+             console.warn("Could not fetch orders.", ordersResponse.error);
             this.state.orders = [];
         } else {
              this.state.orders = (ordersResponse.data || []).map((o: any) => ({
@@ -117,18 +120,16 @@ class AppStore {
         }
 
         // Handle Settings
-        if (settingsResponse.error || !settingsResponse.data) {
+        if (settingsResponse.error || !settingsResponse.data || !settingsResponse.data.settings_data) {
+           console.warn("Could not fetch settings, using initial data.", settingsResponse.error);
            this.state.settings = initialSettings;
         } else {
-          if (settingsResponse.data && settingsResponse.data.settings_data) {
-             this.state.settings = settingsResponse.data.settings_data;
-          } else {
-             this.state.settings = initialSettings;
-          }
+           this.state.settings = settingsResponse.data.settings_data;
         }
         
         // Handle Users
         if (usersResponse.error || !usersResponse.data || usersResponse.data.length === 0) {
+             console.warn("Could not fetch users, using initial data.", usersResponse.error);
              this.state.users = initialUsersData;
         } else {
             this.state.users = usersResponse.data;
@@ -136,6 +137,7 @@ class AppStore {
 
 
     } catch (error: any) {
+        console.error("Critical error in fetchData, falling back to all initial data:", error);
         this.state = {
             products: initialProductsData.map((p, i) => ({ ...p, id: i + 1 })),
             orders: [],
@@ -152,19 +154,16 @@ class AppStore {
 
       const supabase = getClient();
       
-      const tables = ['orders', 'products', 'settings', 'users'];
-      
       this.realtimeChannel = supabase
-        .channel('public-dynamic-db-changes')
+        .channel('public-db-changes')
         .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
-            if (tables.includes(payload.table)) {
-                this.fetchData();
-            }
+            console.log('Realtime change received:', payload);
+            this.fetchData();
         })
         .subscribe((status, err) => {
-             if (status === 'CHANNEL_ERROR' && err) {
+             if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
                 console.error('Realtime channel error:', err);
-            }
+             }
         });
   }
   
@@ -218,10 +217,12 @@ export function useAppStore() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-        store.ensureInitialized().then(() => {
-          setIsInitialized(store.getIsInitialized());
-          setState(store.getState());
-        });
+        const initializeApp = async () => {
+            await store.ensureInitialized();
+            setIsInitialized(store.getIsInitialized());
+            setState(store.getState());
+        };
+        initializeApp();
         
         const unsubscribe = store.subscribe((newState) => {
             setState(newState);
