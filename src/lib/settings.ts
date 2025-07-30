@@ -68,12 +68,14 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
     const { data: dbImages, error: fetchError } = await supabase.from('promotional_images').select('id');
     if (fetchError) {
         console.error("Error fetching promotional images for sync:", fetchError);
+        // Do not proceed if we can't get current state
         return;
     }
     const dbImageIds = dbImages.map(img => img.id);
 
     // Step B: Separate local images into insert, update, and delete lists
-    const imagesToInsert = localImages.filter(img => img.id > 1000000000 || !dbImageIds.includes(img.id));
+    // New images have a large temporary ID from Date.now() or are simply not in dbImageIds
+    const imagesToInsert = localImages.filter(img => !dbImageIds.includes(img.id));
     const imagesToUpdate = localImages.filter(img => dbImageIds.includes(img.id));
     const localImageIds = localImages.map(img => img.id);
     const imageIdsToDelete = dbImageIds.filter(id => !localImageIds.includes(id));
@@ -87,7 +89,6 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
     }
 
     if (imagesToUpdate.length > 0) {
-        // The id already exists, so we just update the other fields
         const updatePromises = imagesToUpdate.map(img =>
             supabase.from('promotional_images').update({ src: img.src, alt: img.alt, hint: img.hint }).eq('id', img.id)
         );
