@@ -60,41 +60,41 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
     console.error("Error updating image settings in Supabase:", imageSettingsError);
   }
 
-  // 3. Sync promotional images
+  // 3. Sync promotional images using upsert
   try {
+    const localImages = newSettings.promotionalImages || [];
+    
+    // Upsert all local images
+    if (localImages.length > 0) {
+      const upsertData = localImages.map(img => ({
+          // If the ID is a large temporary one, we let the DB generate it
+          id: img.id > 1000000000 ? undefined : img.id,
+          src: img.src,
+          alt: img.alt,
+          hint: img.hint
+      }));
+
+      const { error: upsertError } = await supabase.from('promotional_images').upsert(upsertData, { onConflict: 'id' });
+      if (upsertError) {
+          console.error("Error upserting promotional images:", upsertError);
+      }
+    }
+
+    // Delete images that are in the DB but not in the local state anymore
     const { data: currentDbImages, error: fetchError } = await supabase.from('promotional_images').select('id');
     if (fetchError) {
-        console.error("Error fetching current images for sync:", fetchError);
-        return;
-    }
+      console.error("Error fetching current images for sync:", fetchError);
+    } else {
+      const localImageIds = localImages.map(img => img.id);
+      const dbImageIds = currentDbImages.map(dbImg => dbImg.id);
+      const imageIdsToDelete = dbImageIds.filter(id => !localImageIds.includes(id));
 
-    const localImages = newSettings.promotionalImages || [];
-    const localImageIds = localImages.map(img => img.id);
-    const dbImageIds = currentDbImages.map(dbImg => dbImg.id);
-    
-    // DELETE images that are in the DB but not in the local state anymore
-    const imageIdsToDelete = dbImageIds.filter(id => !localImageIds.includes(id));
-    if (imageIdsToDelete.length > 0) {
+      if (imageIdsToDelete.length > 0) {
         const { error: deleteError } = await supabase.from('promotional_images').delete().in('id', imageIdsToDelete);
-        if (deleteError) console.error("Error deleting promotional images:", deleteError);
-    }
-    
-    // UPSERT (Insert or Update) all local images
-    if (localImages.length > 0) {
-        const upsertData = localImages.map(img => {
-            // If it's a new image (with a temporary large ID), prepare it for insertion by removing the id.
-            // Supabase will generate a real ID.
-            if (img.id >= 1000000000000) {
-                return { src: img.src, alt: img.alt, hint: img.hint };
-            }
-            // If it's an existing image, include its ID for the upsert.
-            return { id: img.id, src: img.src, alt: img.alt, hint: img.hint };
-        });
-
-        const { error: upsertError } = await supabase.from('promotional_images').upsert(upsertData);
-        if (upsertError) {
-            console.error("Error upserting promotional images:", upsertError);
+        if (deleteError) {
+          console.error("Error deleting old promotional images:", deleteError);
         }
+      }
     }
 
   } catch (error) {
