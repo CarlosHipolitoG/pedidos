@@ -62,36 +62,47 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
 
   // 3. Sincronizar las imágenes promocionales
   try {
-    const { data: currentDbImages } = await supabase.from('promotional_images').select('id');
-    const currentDbIds = currentDbImages?.map(img => img.id) || [];
-    const newImageIds = newSettings.promotionalImages.map(img => img.id);
-
-    const idsToDelete = currentDbIds.filter(id => !newImageIds.includes(id));
-    if (idsToDelete.length > 0) {
-      await supabase.from('promotional_images').delete().in('id', idsToDelete);
+    const { data: currentDbImages, error: fetchError } = await supabase.from('promotional_images').select('id, src, alt, hint');
+    if(fetchError) {
+        console.error("Error fetching current images:", fetchError);
+        return;
     }
     
-    // CORRECCIÓN: Separar los datos para inserción y actualización
-    const imagesToUpsert = newSettings.promotionalImages
-      .filter(img => img.id < 1000000) // Filtrar solo imágenes existentes
-      .map(({ id, ...rest }) => ({ id, ...rest }));
+    const currentDbImageIds = currentDbImages?.map(img => img.id) || [];
+    const localImages = newSettings.promotionalImages || [];
+    const localImageIds = localImages.map(img => img.id);
 
-    const imagesToInsert = newSettings.promotionalImages
-      .filter(img => img.id >= 1000000) // Filtrar solo imágenes nuevas con ID temporal
-      .map(({ src, alt, hint }) => ({ src, alt, hint })); // Omitir el ID temporal
+    // Determinar qué hacer con cada imagen
+    const imagesToInsert = localImages
+        .filter(img => img.id >= 1000000) // Nuevas imágenes con ID temporal
+        .map(({ src, alt, hint }) => ({ src, alt, hint })); // Omitir el ID para inserción
 
-    if (imagesToUpsert.length > 0) {
-        const { error: upsertError } = await supabase.from('promotional_images').upsert(imagesToUpsert, { onConflict: 'id' });
-        if (upsertError) {
-            console.error("Error upserting promotional images:", upsertError);
-        }
-    }
+    const imagesToUpdate = localImages
+        .filter(img => {
+            const dbImg = currentDbImages.find(db_img => db_img.id === img.id);
+            // Existe y ha cambiado
+            return dbImg && (dbImg.src !== img.src || dbImg.alt !== img.alt || dbImg.hint !== img.hint);
+        })
+        .map(({ id, src, alt, hint }) => ({ id, src, alt, hint }));
+        
+    const imageIdsToDelete = currentDbImageIds.filter(id => !localImageIds.includes(id));
 
+    // Realizar operaciones en la BD
     if (imagesToInsert.length > 0) {
         const { error: insertError } = await supabase.from('promotional_images').insert(imagesToInsert);
-         if (insertError) {
-            console.error("Error inserting new promotional images:", insertError);
-        }
+        if (insertError) console.error("Error inserting new promotional images:", insertError);
+    }
+
+    if (imagesToUpdate.length > 0) {
+       for(const image of imagesToUpdate) {
+           const { error: updateError } = await supabase.from('promotional_images').update({ src: image.src, alt: image.alt, hint: image.hint }).eq('id', image.id);
+           if (updateError) console.error(`Error updating image ${image.id}:`, updateError);
+       }
+    }
+
+    if (imageIdsToDelete.length > 0) {
+        const { error: deleteError } = await supabase.from('promotional_images').delete().in('id', imageIdsToDelete);
+        if (deleteError) console.error("Error deleting promotional images:", deleteError);
     }
 
   } catch (error) {
