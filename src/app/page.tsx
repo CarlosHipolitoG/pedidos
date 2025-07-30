@@ -104,17 +104,6 @@ export default function HomePage() {
             <Card className="w-full bg-card/80 backdrop-blur-sm">
                 <CardHeader>
                     <div className="flex flex-col items-center">
-                        {settings?.logoUrl ? (
-                             <img 
-                                src={settings.logoUrl} 
-                                alt="Logo" 
-                                className="h-20 w-auto object-contain rounded-md mb-4"
-                                data-ai-hint="logo"
-                                crossOrigin='anonymous'
-                            />
-                        ) : (
-                           isInitialized ? null : <Skeleton className="h-20 w-20 rounded-full mb-4" />
-                        )}
                         <CardTitle className="text-2xl text-center">
                             {isInitialized && settings ? `¡Bienvenido a ${settings.barName || 'HOLIDAYS FRIENDS'}!` : <Skeleton className="h-8 w-48" />}
                         </CardTitle>
