@@ -564,7 +564,7 @@ export default function AdminDashboardPage() {
                <div ref={receiptRef} style={{ width: '320px', backgroundColor: 'white', color: 'black', fontFamily: "'Courier New', monospace", padding: '20px', border: '1px solid #ccc', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }}>
                   {settings.logoUrl && (
                     <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-                      <img src={settings.logoUrl} alt="Logo" style={{ maxWidth: '80px', maxHeight: '80px', crossOrigin: 'anonymous' }} />
+                      <img src={settings.logoUrl} alt="Logo" style={{ maxWidth: '80px', maxHeight: '80px' }} crossOrigin="anonymous" />
                     </div>
                   )}
                   <h2 style={{ textAlign: 'center', margin: '0 0 10px 0', fontSize: '18px' }}>{settings.barName}</h2>
@@ -613,4 +613,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
