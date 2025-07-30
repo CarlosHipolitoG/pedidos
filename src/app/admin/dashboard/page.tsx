@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useSettings } from '@/lib/settings';
-import { generateInvoice, GenerateInvoiceOutput } from '@/ai/flows/generate-invoice-flow';
 import { useToast } from '@/hooks/use-toast';
 import { toPng } from 'html-to-image';
 
@@ -46,7 +45,7 @@ export default function AdminDashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [generatedInvoice, setGeneratedInvoice] = useState<GenerateInvoiceOutput | null>(null);
+  const [generatedInvoiceHtml, setGeneratedInvoiceHtml] = useState<string | null>(null);
   const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(productSearchTerm, 300);
@@ -117,40 +116,65 @@ export default function AdminDashboardPage() {
     }, 2000); // Highlight for 2 seconds
   };
   
-  const handleGenerateInvoice = async (order: Order) => {
-    if (!settings) {
-      toast({ title: "Error", description: "La configuración no está cargada.", variant: "destructive" });
-      return;
-    }
+  const generateInvoiceHtmlContent = (order: Order): string => {
+    if (!settings) return '<p>Error: Settings not loaded.</p>';
 
+    const itemsHtml = order.items.map(item => `
+        <tr>
+            <td style="padding: 5px; text-align: left;">${item.quantity}x ${item.nombre}</td>
+            <td style="padding: 5px; text-align: right;">$${(item.precio * item.quantity).toLocaleString('es-CO')}</td>
+        </tr>
+    `).join('');
+
+    return `
+      <div style="width: 320px; margin: auto; background: white; color: black; font-family: 'Courier New', monospace; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+          ${settings.logoUrl ? `<div style="text-align: center; margin-bottom: 15px;"><img src="${settings.logoUrl}" alt="Logo" style="max-width: 80px; max-height: 80px;"></div>` : ''}
+          <h2 style="text-align: center; margin: 0 0 10px 0;">${settings.barName}</h2>
+          <p style="text-align: center; font-size: 12px; margin: 0;">Recibo de Venta</p>
+          <hr style="border: none; border-top: 1px dashed #000; margin: 15px 0;" />
+          <p style="font-size: 12px; margin: 2px 0;"><strong>Pedido #:</strong> ${order.id}</p>
+          <p style="font-size: 12px; margin: 2px 0;"><strong>Cliente:</strong> ${order.customer.name}</p>
+          <p style="font-size: 12px; margin: 2px 0;"><strong>Fecha:</strong> ${format(new Date(order.timestamp), "d/MM/yy, h:mm a", { locale: es })}</p>
+          <hr style="border: none; border-top: 1px dashed #000; margin: 15px 0;" />
+          <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+              <thead>
+                  <tr>
+                      <th style="text-align: left;">Producto</th>
+                      <th style="text-align: right;">Subtotal</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  ${itemsHtml}
+              </tbody>
+          </table>
+          <hr style="border: none; border-top: 1px dashed #000; margin: 15px 0;" />
+          <div style="text-align: right; font-size: 16px; font-weight: bold;">
+              <p>TOTAL: $${order.total.toLocaleString('es-CO')}</p>
+          </div>
+          <hr style="border: none; border-top: 1px dashed #000; margin: 15px 0;" />
+          <p style="text-align: center; font-size: 12px; margin-top: 15px;">¡Gracias por tu compra!</p>
+      </div>
+    `;
+  };
+
+  const handleGenerateInvoice = (order: Order) => {
     setIsGeneratingInvoice(true);
     setIsInvoiceModalOpen(true);
-    setGeneratedInvoice(null);
     setSelectedOrder(order);
-    
+    setGeneratedInvoiceHtml(null);
+
     try {
-      const invoiceData = await generateInvoice({
-        orderId: order.id,
-        customerName: order.customer.name,
-        orderDate: format(new Date(order.timestamp), "d 'de' LLLL 'de' yyyy, h:mm a", { locale: es }),
-        items: order.items.map(item => ({
-            quantity: item.quantity,
-            nombre: item.nombre,
-            precio: item.precio,
-        })),
-        total: order.total,
-        barName: settings.barName,
-        logoUrl: settings.logoUrl || undefined,
-      });
-      setGeneratedInvoice(invoiceData);
+      const htmlContent = generateInvoiceHtmlContent(order);
+      setGeneratedInvoiceHtml(htmlContent);
     } catch (error) {
-      console.error("Error generating invoice:", error);
-      toast({ title: "Error", description: "No se pudo generar el recibo.", variant: "destructive" });
+      console.error("Error generating invoice HTML:", error);
+      toast({ title: "Error", description: "No se pudo generar el HTML del recibo.", variant: "destructive" });
       setIsInvoiceModalOpen(false);
     } finally {
       setIsGeneratingInvoice(false);
     }
   };
+
 
   const handleDownloadImage = () => {
     if (!receiptRef.current) {
@@ -585,12 +609,12 @@ export default function AdminDashboardPage() {
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : generatedInvoice ? (
+          ) : generatedInvoiceHtml ? (
             <div className="mt-4">
               <div
                 ref={receiptRef}
                 className="bg-white p-4 border rounded-lg"
-                dangerouslySetInnerHTML={{ __html: generatedInvoice.htmlContent }}
+                dangerouslySetInnerHTML={{ __html: generatedInvoiceHtml }}
               />
             </div>
           ) : (
@@ -598,7 +622,7 @@ export default function AdminDashboardPage() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsInvoiceModalOpen(false)}>Cerrar</Button>
-            <Button onClick={handleDownloadImage} disabled={isGeneratingInvoice || !generatedInvoice}>
+            <Button onClick={handleDownloadImage} disabled={isGeneratingInvoice || !generatedInvoiceHtml}>
               <Download className="mr-2 h-4 w-4" />
               Descargar Recibo
             </Button>
