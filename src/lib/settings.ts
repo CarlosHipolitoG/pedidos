@@ -24,7 +24,6 @@ export type Settings = {
 export function useSettings() {
     const { state, isInitialized } = useAppStore();
     
-    // The settings object combines data from two different tables in the store state
     const settings = useMemo(() => {
         const generalSettings = state.settings;
         if (!generalSettings) return null;
@@ -34,7 +33,7 @@ export function useSettings() {
             logoUrl: generalSettings.logo_url,
             backgroundUrl: generalSettings.background_url,
             promotionalImages: state.promotional_images || [],
-            taxRate: generalSettings.taxRate ?? 19, // Use default if not set
+            taxRate: generalSettings.taxRate ?? 19,
         };
     }, [state.settings, state.promotional_images]);
 
