@@ -81,7 +81,7 @@ export function getOrdersByAttendedBy(userName: string): Order[] {
         .sort((a, b) => b.timestamp - a.timestamp);
 }
 
-export async function addOrder(payload: NewOrderPayload): Promise<Order | null> {
+export async function addOrder(payload: NewOrderPayload & { total: number }): Promise<Order | null> {
     try {
         const supabase = getClient();
         const now = Date.now();
