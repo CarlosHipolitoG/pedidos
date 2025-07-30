@@ -44,7 +44,7 @@ async function syncUserInSupabase(userData: Partial<User>, isNew: boolean, userI
         const { id, ...dataToSync } = userData;
 
         if (isNew) {
-            const { error } = await supabase.from('users').insert(dataToSync);
+            const { error } = await supabase.from('users').insert([dataToSync]);
             if (error) throw error;
         } else if (userIdToUpdate) {
             const { error } = await supabase.from('users').update(dataToSync).eq('id', userIdToUpdate);
@@ -59,7 +59,7 @@ async function syncUserInSupabase(userData: Partial<User>, isNew: boolean, userI
 export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tempPassword?: string } => {
     let tempPassword: string | undefined;
     let newUser: User | null = null;
-    let userToSync: Partial<User> = {};
+    let userToSync: Partial<User> | null = null;
     
     store.updateState(currentState => {
         const currentUsers = currentState.users || [];
@@ -92,14 +92,15 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tem
         }
         
         newUser = finalUserData;
-        const { id, ...dataToInsert } = newUser; // Exclude 'id' for insertion
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, ...dataToInsert } = newUser;
         userToSync = dataToInsert;
 
         const users = [...currentUsers, finalUserData].sort((a, b) => a.id - b.id);
         return { ...currentState, users };
     });
 
-    if (Object.keys(userToSync).length > 0) {
+    if (userToSync) {
         syncUserInSupabase(userToSync, true);
     }
 
@@ -112,6 +113,7 @@ export const updateUser = (userId: number, updatedData: Partial<User>): void => 
         const users = currentState.users.map(user => {
             if (user.id === userId) {
                 const finalUpdatedUser = { ...user, ...updatedData };
+                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { id, ...syncData } = finalUpdatedUser; // prepare data for Supabase
                 userToSync = syncData;
                 return finalUpdatedUser;
@@ -122,8 +124,6 @@ export const updateUser = (userId: number, updatedData: Partial<User>): void => 
     });
 
     if (Object.keys(userToSync).length > 0) {
-        // Exclude id from the object sent to supabase
-        delete userToSync.id;
         syncUserInSupabase(userToSync, false, userId);
     }
 };
@@ -185,6 +185,7 @@ export const updateUserPassword = (email: string, newPassword_plaintext: string)
     });
 
     if (success && userToUpdate) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, ...syncData } = userToUpdate;
         syncUserInSupabase(syncData, false, id);
     }
