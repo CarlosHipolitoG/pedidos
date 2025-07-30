@@ -184,7 +184,7 @@ export default function WaiterDashboardPage() {
         <div className="flex items-center gap-4">
             <Button variant="outline" onClick={handleChangeCustomer}>
                 <UserPlus className="mr-2"/>
-                Cambiar Cliente
+                Nuevo Pedido
             </Button>
             <Button variant="outline" asChild>
                 <Link href="/waiter/my-orders">
@@ -217,7 +217,7 @@ export default function WaiterDashboardPage() {
       <Dialog open={isCustomerModalOpen} onOpenChange={setIsCustomerModalOpen}>
           <DialogContent className="sm:max-w-[425px]" onInteractOutside={(e) => e.preventDefault()}>
                <DialogHeader>
-                    <DialogTitle>Identificar Cliente</DialogTitle>
+                    <DialogTitle>Tomar Nuevo Pedido</DialogTitle>
                     <DialogDescription>
                         Ingresa los datos del cliente para iniciar un nuevo pedido.
                     </DialogDescription>
@@ -394,3 +394,5 @@ export default function WaiterDashboardPage() {
     </div>
   );
 }
+
+    
