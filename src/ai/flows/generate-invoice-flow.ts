@@ -32,7 +32,7 @@ const GenerateInvoiceInputSchema = z.object({
 
 export type GenerateInvoiceInput = z.infer<typeof GenerateInvoiceInputSchema>;
 
-export const GenerateInvoiceOutputSchema = z.object({
+const GenerateInvoiceOutputSchema = z.object({
   subject: z.string().describe('El asunto para el correo electrónico de la factura.'),
   htmlBody: z.string().describe('El contenido del correo en formato HTML.'),
   textBody: z.string().describe('El contenido del correo en formato de texto plano.'),
