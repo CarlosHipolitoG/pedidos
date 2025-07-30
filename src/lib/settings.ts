@@ -24,7 +24,7 @@ export type Settings = {
 export function useSettings() {
     const { state, isInitialized } = useAppStore();
     
-    const settings = useMemo(() => {
+    const settings: Settings | null = useMemo(() => {
         const generalSettings = state.settings;
         if (!generalSettings) return null;
 
