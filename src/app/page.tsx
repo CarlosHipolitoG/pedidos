@@ -103,33 +103,28 @@ export default function HomePage() {
 
             <Card className="w-full bg-card/80 backdrop-blur-sm">
                 <CardHeader>
-                    {!isInitialized || !settings ? (
-                        <div className="flex flex-col items-center">
-                            <Skeleton className="h-20 w-20 rounded-full mb-4" />
-                            <Skeleton className="h-8 w-48" />
-                            <Skeleton className="h-4 w-64 mt-2" />
-                        </div>
-                    ) : (
-                        <div className="flex flex-col items-center">
-                            {settings.logoUrl && (
-                                <Image 
-                                    src={settings.logoUrl} 
-                                    alt="Logo" 
-                                    width={80} 
-                                    height={80} 
-                                    className="rounded-full mb-4"
-                                    data-ai-hint="logo"
-                                    crossOrigin='anonymous'
-                                />
-                            )}
-                            <CardTitle className="text-2xl text-center">
-                                {`¡Bienvenido a ${settings.barName || 'HOLIDAYS FRIENDS'}!`}
-                            </CardTitle>
-                            <CardDescription className="text-center">
-                                Para una mejor experiencia, regístrate o ingresa.
-                            </CardDescription>
-                        </div>
-                    )}
+                    <div className="flex flex-col items-center">
+                        {isInitialized && settings?.logoUrl ? (
+                             <Image 
+                                src={settings.logoUrl} 
+                                alt="Logo" 
+                                width={80} 
+                                height={80} 
+                                className="rounded-full mb-4"
+                                data-ai-hint="logo"
+                                crossOrigin='anonymous'
+                                priority
+                            />
+                        ) : (
+                           <Skeleton className="h-20 w-20 rounded-full mb-4" />
+                        )}
+                        <CardTitle className="text-2xl text-center">
+                            {isInitialized && settings ? `¡Bienvenido a ${settings.barName || 'HOLIDAYS FRIENDS'}!` : <Skeleton className="h-8 w-48" />}
+                        </CardTitle>
+                        <CardDescription className="text-center">
+                             {isInitialized ? 'Para una mejor experiencia, regístrate o ingresa.' : <Skeleton className="h-4 w-64 mt-2" />}
+                        </CardDescription>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit}>
