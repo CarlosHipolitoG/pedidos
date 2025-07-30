@@ -45,8 +45,6 @@ export default function AdminDashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [generatedInvoiceHtml, setGeneratedInvoiceHtml] = useState<string | null>(null);
-  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(productSearchTerm, 300);
   const [formattedDates, setFormattedDates] = useState<Record<string, string>>({});
@@ -71,7 +69,10 @@ export default function AdminDashboardPage() {
         newFormattedDates[`order-${order.id}`] = format(new Date(order.timestamp), "d 'de' LLLL, h:mm a", { locale: es });
         
         order.items.forEach(item => {
-            newFormattedItemDates[`item-${order.id}-${item.addedAt}`] = format(new Date(item.addedAt), "h:mm a", { locale: es });
+            // Check if item has addedAt before formatting
+            if(item.addedAt){
+                newFormattedItemDates[`item-${order.id}-${item.id}-${item.addedAt}`] = format(new Date(item.addedAt), "h:mm a", { locale: es });
+            }
         });
     });
     setFormattedDates(newFormattedDates);
@@ -116,65 +117,10 @@ export default function AdminDashboardPage() {
     }, 2000); // Highlight for 2 seconds
   };
   
-  const generateInvoiceHtmlContent = (order: Order): string => {
-    if (!settings) return '<p>Error: Settings not loaded.</p>';
-
-    const itemsHtml = order.items.map(item => `
-        <tr>
-            <td style="padding: 5px; text-align: left;">${item.quantity}x ${item.nombre}</td>
-            <td style="padding: 5px; text-align: right;">$${(item.precio * item.quantity).toLocaleString('es-CO')}</td>
-        </tr>
-    `).join('');
-
-    return `
-      <div style="width: 320px; margin: auto; background: white; color: black; font-family: 'Courier New', monospace; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-          ${settings.logoUrl ? `<div style="text-align: center; margin-bottom: 15px;"><img src="${settings.logoUrl}" alt="Logo" style="max-width: 80px; max-height: 80px;"></div>` : ''}
-          <h2 style="text-align: center; margin: 0 0 10px 0;">${settings.barName}</h2>
-          <p style="text-align: center; font-size: 12px; margin: 0;">Recibo de Venta</p>
-          <hr style="border: none; border-top: 1px dashed #000; margin: 15px 0;" />
-          <p style="font-size: 12px; margin: 2px 0;"><strong>Pedido #:</strong> ${order.id}</p>
-          <p style="font-size: 12px; margin: 2px 0;"><strong>Cliente:</strong> ${order.customer.name}</p>
-          <p style="font-size: 12px; margin: 2px 0;"><strong>Fecha:</strong> ${format(new Date(order.timestamp), "d/MM/yy, h:mm a", { locale: es })}</p>
-          <hr style="border: none; border-top: 1px dashed #000; margin: 15px 0;" />
-          <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
-              <thead>
-                  <tr>
-                      <th style="text-align: left;">Producto</th>
-                      <th style="text-align: right;">Subtotal</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  ${itemsHtml}
-              </tbody>
-          </table>
-          <hr style="border: none; border-top: 1px dashed #000; margin: 15px 0;" />
-          <div style="text-align: right; font-size: 16px; font-weight: bold;">
-              <p>TOTAL: $${order.total.toLocaleString('es-CO')}</p>
-          </div>
-          <hr style="border: none; border-top: 1px dashed #000; margin: 15px 0;" />
-          <p style="text-align: center; font-size: 12px; margin-top: 15px;">¡Gracias por tu compra!</p>
-      </div>
-    `;
-  };
-
   const handleGenerateInvoice = (order: Order) => {
-    setIsGeneratingInvoice(true);
-    setIsInvoiceModalOpen(true);
     setSelectedOrder(order);
-    setGeneratedInvoiceHtml(null);
-
-    try {
-      const htmlContent = generateInvoiceHtmlContent(order);
-      setGeneratedInvoiceHtml(htmlContent);
-    } catch (error) {
-      console.error("Error generating invoice HTML:", error);
-      toast({ title: "Error", description: "No se pudo generar el HTML del recibo.", variant: "destructive" });
-      setIsInvoiceModalOpen(false);
-    } finally {
-      setIsGeneratingInvoice(false);
-    }
+    setIsInvoiceModalOpen(true);
   };
-
 
   const handleDownloadImage = () => {
     if (!receiptRef.current) {
@@ -182,17 +128,25 @@ export default function AdminDashboardPage() {
         return;
     }
 
-    toPng(receiptRef.current, { cacheBust: true, })
-        .then((dataUrl) => {
-            const link = document.createElement('a');
-            link.download = `recibo-pedido-${selectedOrder?.id}.png`;
-            link.href = dataUrl;
-            link.click();
-        })
-        .catch((err) => {
-            console.error(err);
-            toast({ title: "Error", description: "No se pudo generar la imagen del recibo.", variant: "destructive" });
-        });
+    toPng(receiptRef.current, { 
+      cacheBust: true, 
+      pixelRatio: 2,
+      style: {
+        // We need to inline styles for the image generation to work correctly
+        width: '320px',
+        margin: '0',
+      }
+    })
+    .then((dataUrl) => {
+      const link = document.createElement('a');
+      link.download = `recibo-pedido-${selectedOrder?.id}.png`;
+      link.href = dataUrl;
+      link.click();
+    })
+    .catch((err) => {
+      console.error("html-to-image error:", err);
+      toast({ title: "Error de Descarga", description: "No se pudo generar la imagen del recibo. Inténtalo de nuevo.", variant: "destructive" });
+    });
   };
 
 
@@ -598,31 +552,58 @@ export default function AdminDashboardPage() {
       </Dialog>
       
       <Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-xs w-auto">
           <DialogHeader>
             <DialogTitle>Recibo del Pedido #{selectedOrder?.id}</DialogTitle>
             <DialogDescription>
               A continuación se muestra una vista previa del recibo. Puedes descargarlo como imagen.
             </DialogDescription>
           </DialogHeader>
-          {isGeneratingInvoice ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : generatedInvoiceHtml ? (
-            <div className="mt-4">
-              <div
-                ref={receiptRef}
-                className="bg-white p-4 border rounded-lg"
-                dangerouslySetInnerHTML={{ __html: generatedInvoiceHtml }}
-              />
-            </div>
-          ) : (
-            <p className="text-center py-8 text-muted-foreground">No se pudo generar la vista previa del recibo.</p>
-          )}
-          <DialogFooter>
+          <div className="mt-4 -mx-2 flex justify-center">
+            {selectedOrder && settings ? (
+               <div ref={receiptRef} style={{ width: '320px', backgroundColor: 'white', color: 'black', fontFamily: "'Courier New', monospace", padding: '20px', border: '1px solid #ccc', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }}>
+                  {settings.logoUrl && (
+                    <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+                      <img src={settings.logoUrl} alt="Logo" style={{ maxWidth: '80px', maxHeight: '80px', crossOrigin: 'anonymous' }} />
+                    </div>
+                  )}
+                  <h2 style={{ textAlign: 'center', margin: '0 0 10px 0', fontSize: '18px' }}>{settings.barName}</h2>
+                  <p style={{ textAlign: 'center', fontSize: '12px', margin: '0' }}>Recibo de Venta</p>
+                  <hr style={{ border: 'none', borderTop: '1px dashed #000', margin: '15px 0' }} />
+                  <p style={{ fontSize: '12px', margin: '2px 0' }}><strong>Pedido #:</strong> {selectedOrder.id}</p>
+                  <p style={{ fontSize: '12px', margin: '2px 0' }}><strong>Cliente:</strong> {selectedOrder.customer.name}</p>
+                  <p style={{ fontSize: '12px', margin: '2px 0' }}><strong>Fecha:</strong> {format(new Date(selectedOrder.timestamp), "d/MM/yy, h:mm a", { locale: es })}</p>
+                  <hr style={{ border: 'none', borderTop: '1px dashed #000', margin: '15px 0' }} />
+                  <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', padding: '5px' }}>Producto</th>
+                        <th style={{ textAlign: 'right', padding: '5px' }}>Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedOrder.items.map(item => (
+                        <tr key={item.id}>
+                          <td style={{ padding: '5px', textAlign: 'left' }}>{item.quantity}x {item.nombre}</td>
+                          <td style={{ padding: '5px', textAlign: 'right' }}>${(item.precio * item.quantity).toLocaleString('es-CO')}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <hr style={{ border: 'none', borderTop: '1px dashed #000', margin: '15px 0' }} />
+                  <div style={{ textAlign: 'right', fontSize: '16px', fontWeight: 'bold' }}>
+                    <p>TOTAL: ${selectedOrder.total.toLocaleString('es-CO')}</p>
+                  </div>
+                  <hr style={{ border: 'none', borderTop: '1px dashed #000', margin: '15px 0' }} />
+                  <p style={{ textAlign: 'center', fontSize: '12px', marginTop: '15px' }}>¡Gracias por tu compra!</p>
+                </div>
+            ) : (
+                <p className="text-center py-8 text-muted-foreground">Cargando vista previa del recibo...</p>
+            )}
+          </div>
+          <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setIsInvoiceModalOpen(false)}>Cerrar</Button>
-            <Button onClick={handleDownloadImage} disabled={isGeneratingInvoice || !generatedInvoiceHtml}>
+            <Button onClick={handleDownloadImage} disabled={!selectedOrder}>
               <Download className="mr-2 h-4 w-4" />
               Descargar Recibo
             </Button>
@@ -632,3 +613,4 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
