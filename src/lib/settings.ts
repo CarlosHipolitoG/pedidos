@@ -23,11 +23,11 @@ export type Settings = {
 export function useSettings() {
     const { state, isInitialized } = useAppStore();
     // Devolvemos las partes del estado directamente para evitar re-renderizados innecesarios.
-    return { 
+    return {
         settings: state.settings,
         image_settings: state.image_settings,
         promotional_images: state.promotional_images,
-        isInitialized 
+        isInitialized
     };
 }
 
@@ -35,7 +35,7 @@ export function useSettings() {
 
 export const updateSettings = async (newSettings: Settings): Promise<void> => {
   const supabase = getClient();
-  
+
   // 1. Actualizar el nombre del bar en la tabla 'settings' (la original)
   const { error: settingsError } = await supabase
     .from('settings')
@@ -49,8 +49,8 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
   // 2. Actualizar las URLs del logo y fondo en la nueva tabla 'image_settings'
   const { error: imageSettingsError } = await supabase
     .from('image_settings')
-    .update({ 
-      logo_url: newSettings.logoUrl, 
+    .update({
+      logo_url: newSettings.logoUrl,
       background_url: newSettings.backgroundUrl,
       updated_at: new Date().toISOString()
     })
@@ -63,29 +63,31 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
   // 3. Sincronizar las imágenes promocionales
   try {
     const { data: currentDbImages, error: fetchError } = await supabase.from('promotional_images').select('id, src, alt, hint');
-    if(fetchError) {
+    if (fetchError) {
         console.error("Error fetching current images:", fetchError);
         return;
     }
-    
-    const currentDbImageIds = currentDbImages?.map(img => img.id) || [];
+
     const localImages = newSettings.promotionalImages || [];
-    const localImageIds = localImages.map(img => img.id);
 
-    // Determinar qué hacer con cada imagen
+    // Imágenes para insertar: aquellas en local que no tienen un ID en la BD
     const imagesToInsert = localImages
-        .filter(img => img.id >= 1000000) // Nuevas imágenes con ID temporal
-        .map(({ src, alt, hint }) => ({ src, alt, hint })); // Omitir el ID para inserción
+        .filter(img => !currentDbImages.some(dbImg => dbImg.id === img.id))
+        .map(img => ({ src: img.src, alt: img.alt, hint: img.hint })); // Corregido: Crear objeto nuevo sin 'id'
 
+    // Imágenes para actualizar: aquellas que están en ambos y tienen diferente contenido
     const imagesToUpdate = localImages
         .filter(img => {
-            const dbImg = currentDbImages.find(db_img => db_img.id === img.id);
-            // Existe y ha cambiado
+            const dbImg = currentDbImages.find(dbImg => dbImg.id === img.id);
             return dbImg && (dbImg.src !== img.src || dbImg.alt !== img.alt || dbImg.hint !== img.hint);
         })
         .map(({ id, src, alt, hint }) => ({ id, src, alt, hint }));
-        
-    const imageIdsToDelete = currentDbImageIds.filter(id => !localImageIds.includes(id));
+
+    // IDs para eliminar: aquellos que están en la BD pero no en local
+    const localImageIds = localImages.map(img => img.id);
+    const imageIdsToDelete = currentDbImages
+        .filter(dbImg => !localImageIds.includes(dbImg.id))
+        .map(dbImg => dbImg.id);
 
     // Realizar operaciones en la BD
     if (imagesToInsert.length > 0) {
@@ -117,7 +119,7 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
 export const addPromotionalImage = (newImage: Omit<PromotionalImage, 'id'>) => {
     store.updateState(currentState => {
         // Usamos un ID temporal muy grande para diferenciarlo de los IDs de la BD
-        const nextId = Date.now(); 
+        const nextId = Date.now();
         return {
             ...currentState,
             promotional_images: [...currentState.promotional_images, { ...newImage, id: nextId }]
