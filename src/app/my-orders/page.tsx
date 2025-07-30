@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
 
+
 export default function MyOrdersPage() {
   const [phone, setPhone] = useState('');
   const [foundOrders, setFoundOrders] = useState<Order[]>([]);
@@ -28,49 +29,60 @@ export default function MyOrdersPage() {
   const [now, setNow] = useState(Date.now());
   const { toast } = useToast();
 
-  const handleSearch = useCallback(() => {
-    if (!phone || !isInitialized) return;
+
+  const handleSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!phone) return;
     const customerOrders = getOrdersByCustomerPhone(phone).filter(
       (order) => order.status !== 'Pagado'
     );
     setFoundOrders(customerOrders);
     setSearched(true);
-  }, [phone, isInitialized]);
-
-  const submitSearch = (e?: React.FormEvent) => {
-    e?.preventDefault();
+    // save phone for future sessions
     localStorage.setItem('customerPhone', phone);
-    handleSearch();
   };
-
-  useEffect(() => {
-    const storedPhone = localStorage.getItem('customerPhone');
-    if (storedPhone) {
-      setPhone(storedPhone);
-    }
-  }, []);
-
+ 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 30 * 1000);
+   
+    const storedPhone = localStorage.getItem('customerPhone');
+    if (storedPhone) {
+        setPhone(storedPhone);
+        if (isInitialized) {
+            const customerOrders = getOrdersByCustomerPhone(storedPhone).filter(
+                (order) => order.status !== 'Pagado'
+            );
+            setFoundOrders(customerOrders);
+            setSearched(true);
+        }
+    }
+
+
     return () => clearInterval(interval);
-  }, []);
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInitialized]);
+
 
   useEffect(() => {
-    if (isInitialized && phone) {
-      handleSearch();
+    if (searched && phone && isInitialized) {
+        handleSearch();
     }
-  }, [isInitialized, phone, orders, handleSearch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orders, phone, searched, isInitialized]);
 
+
+ 
   const handleGoToMenu = (orderId: number) => {
-    const order = foundOrders.find(o => o.id === orderId);
-    if (order?.customer) {
-        localStorage.setItem('customerName', order.customer.name);
-        localStorage.setItem('customerPhone', order.customer.phone);
-        if(order.customer.email) localStorage.setItem('customerEmail', order.customer.email);
+    const customer = foundOrders.find(o => o.id === orderId)?.customer;
+    if (customer) {
+        localStorage.setItem('customerName', customer.name);
+        localStorage.setItem('customerPhone', customer.phone);
+        if(customer.email) localStorage.setItem('customerEmail', customer.email);
     }
     localStorage.setItem('activeOrderId', orderId.toString());
     router.push('/menu');
   };
+
 
   const handleUpdateQuantity = (orderId: number, itemId: number, newQuantity: number) => {
       if (newQuantity <= 0) {
@@ -79,6 +91,7 @@ export default function MyOrdersPage() {
           updateProductQuantityInOrder(orderId, itemId, newQuantity);
       }
   };
+
 
   const handleRemoveItem = (orderId: number, itemId: number) => {
       const success = removeProductFromOrder(orderId, itemId);
@@ -90,6 +103,7 @@ export default function MyOrdersPage() {
           });
       }
   };
+
 
   const getStatusBadgeVariant = (status: Order['status']) => {
     switch (status) {
@@ -105,6 +119,7 @@ export default function MyOrdersPage() {
         return 'outline';
     }
   };
+
 
   return (
     <div className="container mx-auto py-8 relative">
@@ -122,7 +137,7 @@ export default function MyOrdersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={submitSearch} className="flex items-center gap-4 mb-8">
+          <form onSubmit={handleSearch} className="flex items-center gap-4 mb-8">
             <div className="flex-grow space-y-2">
               <Label htmlFor="phone" className="sr-only">Número de Celular</Label>
               <Input
@@ -140,6 +155,7 @@ export default function MyOrdersPage() {
             </Button>
           </form>
 
+
           {searched && (
             <div>
               {foundOrders.length > 0 ? (
@@ -147,9 +163,9 @@ export default function MyOrdersPage() {
                   <h3 className="text-lg font-semibold mb-4">Pedidos de: {foundOrders[0].customer.name}</h3>
                   <Accordion type="single" collapsible className="w-full" defaultValue="item-0">
                     {foundOrders.map((order, index) => (
-                      <AccordionItem 
-                        key={order.id} 
-                        value={`item-${index}`} 
+                      <AccordionItem
+                        key={order.id}
+                        value={`item-${index}`}
                         className="border-border rounded-lg mb-2 bg-card"
                       >
                         <AccordionTrigger className="px-4 hover:no-underline">
@@ -234,7 +250,7 @@ export default function MyOrdersPage() {
                 </>
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
-                  <p>No se encontraron pedidos activos para este número de celular.</p>
+                  <p>No se encontraron pedidos activos o pendientes para este número.</p>
                 </div>
               )}
             </div>
