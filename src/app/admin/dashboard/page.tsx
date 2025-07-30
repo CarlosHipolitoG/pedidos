@@ -120,7 +120,7 @@ export default function AdminDashboardPage() {
     const subtotal = order.subtotal ?? order.items.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
     const taxRate = currentSettings?.taxRate ?? 0;
     const tax = order.tax ?? subtotal * (taxRate / 100);
-    const total = order.total ?? subtotal + tax;
+    const total = subtotal + tax;
 
     const itemsHtml = order.items.map(item => `
         <tr>
@@ -136,8 +136,8 @@ export default function AdminDashboardPage() {
           <meta charset="UTF-8">
           <title>Recibo Pedido #${order.id}</title>
           <style>
-              body { font-family: 'Courier New', monospace; width: 320px; margin: 20px auto; background-color: #f7f7f7; }
-              .receipt-container { background-color: white; color: black; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+              body { font-family: 'Courier New', monospace; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; background-color: #f7f7f7; }
+              .receipt-container { background-color: white; color: black; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 320px; }
               .logo { text-align: center; margin-bottom: 15px; }
               .logo img { max-width: 80px; max-height: 80px; }
               h2 { text-align: center; margin: 0 0 10px 0; font-size: 18px; }
@@ -341,7 +341,7 @@ export default function AdminDashboardPage() {
     const subtotal = order.subtotal ?? order.items.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
     const taxRate = settings.taxRate ?? 0;
     const tax = order.tax ?? subtotal * (taxRate / 100);
-    const total = order.total ?? subtotal + tax;
+    const total = subtotal + tax;
 
     return (
         <div className="receipt-container bg-white text-black p-5 border border-gray-300 shadow-lg" style={{ width: '320px' }}>
