@@ -105,7 +105,7 @@ export default function HomePage() {
                 <CardHeader>
                     <div className="flex flex-col items-center">
                         {isInitialized && settings?.logoUrl ? (
-                             <Image 
+                             <img 
                                 src={settings.logoUrl} 
                                 alt="Logo" 
                                 width={80} 
@@ -113,7 +113,6 @@ export default function HomePage() {
                                 className="rounded-full mb-4"
                                 data-ai-hint="logo"
                                 crossOrigin='anonymous'
-                                priority
                             />
                         ) : (
                            <Skeleton className="h-20 w-20 rounded-full mb-4" />
