@@ -71,20 +71,29 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
       await supabase.from('promotional_images').delete().in('id', idsToDelete);
     }
     
-    const upsertData = newSettings.promotionalImages.map(({ id, ...rest }) => ({
-        ...rest,
-        // Solo incluye el 'id' para los registros existentes. Los nuevos (con id temporal grande) 
-        // dejarán que la base de datos genere uno nuevo.
-        ...(id < 1000000 && { id }), 
-    }));
+    // CORRECCIÓN: Separar los datos para inserción y actualización
+    const imagesToUpsert = newSettings.promotionalImages
+      .filter(img => img.id < 1000000) // Filtrar solo imágenes existentes
+      .map(({ id, ...rest }) => ({ id, ...rest }));
 
+    const imagesToInsert = newSettings.promotionalImages
+      .filter(img => img.id >= 1000000) // Filtrar solo imágenes nuevas con ID temporal
+      .map(({ src, alt, hint }) => ({ src, alt, hint })); // Omitir el ID temporal
 
-    if (upsertData.length > 0) {
-        const { error: upsertError } = await supabase.from('promotional_images').upsert(upsertData, { onConflict: 'id' });
+    if (imagesToUpsert.length > 0) {
+        const { error: upsertError } = await supabase.from('promotional_images').upsert(imagesToUpsert, { onConflict: 'id' });
         if (upsertError) {
             console.error("Error upserting promotional images:", upsertError);
         }
     }
+
+    if (imagesToInsert.length > 0) {
+        const { error: insertError } = await supabase.from('promotional_images').insert(imagesToInsert);
+         if (insertError) {
+            console.error("Error inserting new promotional images:", insertError);
+        }
+    }
+
   } catch (error) {
     console.error("Error managing promotional images:", error);
   }
