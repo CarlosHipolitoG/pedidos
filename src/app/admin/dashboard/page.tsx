@@ -116,6 +116,12 @@ export default function AdminDashboardPage() {
   };
   
   const generateInvoiceHtmlContent = (order: Order, currentSettings: typeof settings) => {
+    // Backward compatibility for orders without tax fields
+    const subtotal = order.subtotal ?? order.items.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
+    const taxRate = currentSettings?.taxRate ?? 0;
+    const tax = order.tax ?? subtotal * (taxRate / 100);
+    const total = order.total ?? subtotal + tax;
+
     const itemsHtml = order.items.map(item => `
         <tr>
             <td style="padding: 5px; text-align: left;">${item.quantity}x ${item.nombre}</td>
@@ -123,8 +129,6 @@ export default function AdminDashboardPage() {
         </tr>
     `).join('');
 
-    const taxRate = currentSettings?.taxRate ?? 0;
-    
     return `
       <!DOCTYPE html>
       <html lang="es">
@@ -170,17 +174,17 @@ export default function AdminDashboardPage() {
                   <tbody>
                       <tr>
                           <td>Subtotal:</td>
-                          <td style="text-align: right;">$${order.subtotal.toLocaleString('es-CO')}</td>
+                          <td style="text-align: right;">$${subtotal.toLocaleString('es-CO')}</td>
                       </tr>
                       <tr>
                           <td>IVA (${taxRate}%):</td>
-                          <td style="text-align: right;">$${order.tax.toLocaleString('es-CO')}</td>
+                          <td style="text-align: right;">$${tax.toLocaleString('es-CO')}</td>
                       </tr>
                   </tbody>
               </table>
               <hr>
               <div class="total">
-                  <p>TOTAL: $${order.total.toLocaleString('es-CO')}</p>
+                  <p>TOTAL: $${total.toLocaleString('es-CO')}</p>
               </div>
               <hr>
               <p style="text-align: center; margin-top: 15px;">¡Gracias por tu compra!</p>
@@ -333,6 +337,12 @@ export default function AdminDashboardPage() {
   const ReceiptPreview = ({ order, settings }: { order: Order | null; settings: typeof settings | null }) => {
     if (!order || !settings) return null;
 
+    // Backward compatibility for orders without tax fields
+    const subtotal = order.subtotal ?? order.items.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
+    const taxRate = settings.taxRate ?? 0;
+    const tax = order.tax ?? subtotal * (taxRate / 100);
+    const total = order.total ?? subtotal + tax;
+
     return (
         <div className="receipt-container bg-white text-black p-5 border border-gray-300 shadow-lg" style={{ width: '320px' }}>
             {settings.logoUrl && (
@@ -368,17 +378,17 @@ export default function AdminDashboardPage() {
                  <tbody>
                     <tr>
                         <td className="p-1">Subtotal:</td>
-                        <td className="p-1 text-right">${order.subtotal.toLocaleString('es-CO')}</td>
+                        <td className="p-1 text-right">${subtotal.toLocaleString('es-CO')}</td>
                     </tr>
                     <tr>
                         <td className="p-1">IVA ({settings.taxRate}%):</td>
-                        <td className="p-1 text-right">${order.tax.toLocaleString('es-CO')}</td>
+                        <td className="p-1 text-right">${tax.toLocaleString('es-CO')}</td>
                     </tr>
                 </tbody>
             </table>
             <hr className="border-none border-t border-dashed border-black my-2" />
             <div className="total text-right text-base font-bold">
-                <p>TOTAL: $${order.total.toLocaleString('es-CO')}</p>
+                <p>TOTAL: $${total.toLocaleString('es-CO')}</p>
             </div>
             <hr className="border-none border-t border-dashed border-black my-4" />
             <p className="text-center mt-4 text-xs">¡Gracias por tu compra!</p>
@@ -697,3 +707,4 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
