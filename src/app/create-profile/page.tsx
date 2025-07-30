@@ -130,7 +130,15 @@ export default function CreateProfilePage() {
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
-                            <Calendar mode="single" selected={birthDate} onSelect={setBirthDate} initialFocus />
+                            <Calendar
+                                mode="single"
+                                selected={birthDate}
+                                onSelect={setBirthDate}
+                                initialFocus
+                                captionLayout="dropdown-buttons"
+                                fromYear={new Date().getFullYear() - 100}
+                                toYear={new Date().getFullYear()}
+                             />
                         </PopoverContent>
                     </Popover>
                 </div>
