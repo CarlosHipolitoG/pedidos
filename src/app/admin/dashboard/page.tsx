@@ -116,7 +116,6 @@ export default function AdminDashboardPage() {
   };
   
   const generateInvoiceHtmlContent = (order: Order, currentSettings: typeof settings) => {
-    // Backward compatibility for orders without tax fields
     const subtotal = order.subtotal ?? order.items.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
     const taxRate = currentSettings?.taxRate ?? 0;
     const tax = order.tax ?? subtotal * (taxRate / 100);
@@ -688,7 +687,7 @@ export default function AdminDashboardPage() {
           <DialogHeader className="p-6 pb-2">
             <DialogTitle>Recibo del Pedido #{selectedOrder?.id}</DialogTitle>
           </DialogHeader>
-          <div className="flex-grow overflow-y-auto px-6">
+          <div className="flex-grow overflow-y-auto flex justify-center">
              <ReceiptPreview order={selectedOrder} settings={settings} />
           </div>
           <DialogFooter className="p-6 pt-4 border-t bg-background">
@@ -703,4 +702,5 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
 
