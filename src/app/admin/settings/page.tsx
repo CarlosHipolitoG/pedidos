@@ -25,7 +25,7 @@ export default function AdminSettingsPage() {
           barName: settings.barName || '',
           logoUrl: settings.logoUrl || '',
           backgroundUrl: settings.backgroundUrl || '',
-          taxRate: settings.taxRate ?? 19,
+          taxRate: settings.taxRate ?? 0,
           promotionalImages: settings.promotionalImages || []
       });
     }
@@ -124,21 +124,6 @@ export default function AdminSettingsPage() {
               placeholder="Ej: HOLIDAYS FRIENDS"
             />
           </div>
-           <div className="space-y-2">
-              <Label htmlFor="taxRate">Tasa de Impuestos (IVA)</Label>
-              <div className="relative">
-                  <Input
-                    id="taxRate"
-                    type="number"
-                    value={formState.taxRate}
-                    onChange={(e) => handleInputChange('taxRate', parseFloat(e.target.value) || 0)}
-                    placeholder="Ej: 19"
-                    className="pl-8"
-                  />
-                  <Percent className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              </div>
-               <p className="text-xs text-muted-foreground">Define el porcentaje de impuestos a aplicar sobre el subtotal de cada pedido.</p>
-            </div>
             
             <div className="space-y-2">
             <Label htmlFor="logoUrl">URL del Logo</Label>

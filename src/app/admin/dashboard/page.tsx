@@ -117,9 +117,7 @@ export default function AdminDashboardPage() {
   
   const generateInvoiceHtmlContent = (order: Order, currentSettings: typeof settings) => {
     const subtotal = order.subtotal ?? order.items.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
-    const taxRate = currentSettings?.taxRate ?? 0;
-    const tax = order.tax ?? subtotal * (taxRate / 100);
-    const total = subtotal + tax;
+    const total = order.total;
 
     const itemsHtml = order.items.map(item => `
         <tr>
@@ -174,10 +172,6 @@ export default function AdminDashboardPage() {
                       <tr>
                           <td>Subtotal:</td>
                           <td style="text-align: right;">$${subtotal.toLocaleString('es-CO')}</td>
-                      </tr>
-                      <tr>
-                          <td>IVA (${taxRate}%):</td>
-                          <td style="text-align: right;">$${tax.toLocaleString('es-CO')}</td>
                       </tr>
                   </tbody>
               </table>
@@ -300,7 +294,7 @@ export default function AdminDashboardPage() {
     const reportData = Object.values(productSales).map(p => ({
       'Producto': p.nombre,
       'Cantidad Vendida': p.cantidad,
-      'Total Ventas (Sin IVA)': p.total
+      'Total Ventas': p.total
     })).sort((a,b) => b['Cantidad Vendida'] - a['Cantidad Vendida']);
     downloadCSV(reportData, 'informe-ventas-por-producto');
   };
@@ -337,9 +331,7 @@ export default function AdminDashboardPage() {
     if (!order || !settings) return null;
 
     const subtotal = order.subtotal ?? order.items.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
-    const taxRate = settings.taxRate ?? 0;
-    const tax = order.tax ?? subtotal * (taxRate / 100);
-    const total = subtotal + tax;
+    const total = order.total;
 
     return (
         <div className="receipt-container bg-white text-black p-5 border border-gray-300 shadow-lg" style={{ fontFamily: "'Courier New', monospace", width: '320px' }}>
@@ -377,10 +369,6 @@ export default function AdminDashboardPage() {
                     <tr>
                         <td className="p-1">Subtotal:</td>
                         <td className="p-1 text-right">${subtotal.toLocaleString('es-CO')}</td>
-                    </tr>
-                    <tr>
-                        <td className="p-1">IVA ({settings.taxRate}%):</td>
-                        <td className="p-1 text-right">${tax.toLocaleString('es-CO')}</td>
                     </tr>
                 </tbody>
             </table>
@@ -702,5 +690,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
-

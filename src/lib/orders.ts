@@ -48,10 +48,10 @@ export function useOrders() {
 
 // --- Data Manipulation Functions ---
 
-const calculateTotals = (items: (OrderItem | Omit<OrderItem, 'addedAt'>)[], taxRate: number) => {
+const calculateTotals = (items: (OrderItem | Omit<OrderItem, 'addedAt'>)[], taxRate: number = 0) => {
     const subtotal = items.reduce((sum, item) => sum + item.precio * item.quantity, 0);
-    const tax = subtotal * (taxRate / 100);
-    const total = subtotal + tax;
+    const tax = 0; // Se elimina el cálculo de impuestos
+    const total = subtotal; // El total es ahora igual al subtotal
     return { subtotal, tax, total };
 }
 
@@ -88,15 +88,13 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
     try {
         const supabase = getClient();
         const now = Date.now();
-        const settings = store.getState().settings;
-        const taxRate = settings?.taxRate ?? 19;
-
+        
         const itemsWithTimestamp: OrderItem[] = payload.items.map(item => ({
             ...item,
             addedAt: now
         }));
         
-        const { subtotal, tax, total } = calculateTotals(itemsWithTimestamp, taxRate);
+        const { subtotal, tax, total } = calculateTotals(itemsWithTimestamp);
 
         const newOrderDataForSupabase = {
             timestamp: new Date(now).toISOString(),
@@ -172,8 +170,6 @@ export function updateOrderStatus(orderId: number, status: OrderStatus) {
 
 export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'addedAt'>, attendedBy?: string) {
     let updatedOrder: Order | undefined;
-    const settings = store.getState().settings;
-    const taxRate = settings?.taxRate ?? 19;
 
     store.updateState(currentState => {
         const newOrders = currentState.orders.map(order => {
@@ -189,7 +185,7 @@ export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'add
                     newItems = [...order.items, { ...product, addedAt: now }];
                 }
                 
-                const { subtotal, tax, total } = calculateTotals(newItems, taxRate);
+                const { subtotal, tax, total } = calculateTotals(newItems);
                 const newStatus = (order.status === 'Completado' || order.status === 'Pagado') ? 'Pendiente' : order.status;
 
                 updatedOrder = { ...order, items: newItems, subtotal, tax, total, status: newStatus, timestamp: now, attendedBy };
@@ -215,8 +211,6 @@ export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'add
 
 export function updateProductQuantityInOrder(orderId: number, itemId: number, newQuantity: number) {
     let updatedOrder: Order | undefined;
-    const settings = store.getState().settings;
-    const taxRate = settings?.taxRate ?? 19;
 
     store.updateState(currentState => {
         const newOrders = currentState.orders.map(order => {
@@ -235,7 +229,7 @@ export function updateProductQuantityInOrder(orderId: number, itemId: number, ne
                 const newItems = [...order.items];
                 newItems[itemIndex] = { ...item, quantity: newQuantity };
                 
-                const { subtotal, tax, total } = calculateTotals(newItems, taxRate);
+                const { subtotal, tax, total } = calculateTotals(newItems);
                 updatedOrder = { ...order, items: newItems, subtotal, tax, total };
                 return updatedOrder;
             }
@@ -257,8 +251,6 @@ export function updateProductQuantityInOrder(orderId: number, itemId: number, ne
 export function removeProductFromOrder(orderId: number, itemId: number): boolean {
     let success = false;
     let updatedOrder: Order | undefined;
-    const settings = store.getState().settings;
-    const taxRate = settings?.taxRate ?? 19;
 
     store.updateState(currentState => {
         const newOrders = currentState.orders.map(order => {
@@ -276,7 +268,7 @@ export function removeProductFromOrder(orderId: number, itemId: number): boolean
                 }
 
                 const newItems = order.items.filter(item => item.id !== itemId);
-                const { subtotal, tax, total } = calculateTotals(newItems, taxRate);
+                const { subtotal, tax, total } = calculateTotals(newItems);
                 success = true;
                 updatedOrder = { ...order, items: newItems, subtotal, tax, total };
                 return updatedOrder;
