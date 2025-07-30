@@ -20,17 +20,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { isInitialized } = useAppStore();
+  const { isInitialized: isAppInitialized } = useAppStore();
   const { settings, isInitialized: isSettingsInitialized } = useSettings();
   const [isMounted, setIsMounted] = useState(false);
+  const isInitialized = isAppInitialized && isSettingsInitialized;
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
   
   useEffect(() => {
-    if (isSettingsInitialized && settings) {
-      document.title = settings.barName || 'Holidays Friends';
+    if (isInitialized && settings) {
+      document.title = settings.barName || 'HOLIDAYS FRIENDS';
       
       const body = document.body;
       if (settings.backgroundUrl) {
@@ -40,7 +41,7 @@ export default function RootLayout({
           body.style.setProperty('--dynamic-background-image', `url('https://storage.googleapis.com/project-spark-b6b15e45/dc407172-5953-4565-a83a-48a58ca7694f.png')`);
       }
     }
-  }, [settings, isSettingsInitialized]);
+  }, [settings, isInitialized]);
 
   return (
     <html lang="en">

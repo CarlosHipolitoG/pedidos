@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Shield, Utensils, User, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useSettings, PromotionalImage } from '@/lib/settings';
+import { useSettings } from '@/lib/settings';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
 import { cn } from '@/lib/utils';
@@ -19,7 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function HomePage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const { settings, isInitialized: isSettingsInitialized } = useSettings();
+  const { settings, isInitialized } = useSettings();
   const router = useRouter();
   const [emblaApi, setEmblaApi] = useState<CarouselApi | undefined>(undefined);
   
@@ -28,7 +28,7 @@ export default function HomePage() {
   );
 
   useEffect(() => {
-    if (emblaApi) {
+    if (emblaApi && settings.promotionalImages) {
         emblaApi.reInit();
         if (settings.promotionalImages.length > 0) {
             autoplayPlugin.current.play();
@@ -68,7 +68,7 @@ export default function HomePage() {
         </div>
 
         <div className="z-10 relative flex flex-col items-center justify-center gap-6 w-full max-w-md">
-            {isSettingsInitialized && settings.promotionalImages && settings.promotionalImages.length > 0 && (
+            {isInitialized && settings.promotionalImages && settings.promotionalImages.length > 0 && (
                  <Card className="w-full bg-card/80 backdrop-blur-sm shadow-xl">
                      <CardContent className="p-0">
                          <Carousel
@@ -83,11 +83,11 @@ export default function HomePage() {
                                     <CarouselItem key={img.id}>
                                         <div className="relative aspect-video w-full">
                                             <Image
-                                                src={img.src}
-                                                alt={img.alt}
+                                                src={img.src || ''}
+                                                alt={img.alt || 'Promotional Image'}
                                                 fill={true}
                                                 className="object-cover rounded-lg"
-                                                data-ai-hint={img.hint}
+                                                data-ai-hint={img.hint || ''}
                                                 sizes="(max-width: 768px) 100vw, 33vw"
                                                 priority={true}
                                             />
@@ -102,7 +102,7 @@ export default function HomePage() {
 
             <Card className="w-full bg-card/80 backdrop-blur-sm">
                 <CardHeader>
-                    {!isSettingsInitialized || !settings ? (
+                    {!isInitialized || !settings ? (
                         <div className="flex flex-col items-center">
                             <Skeleton className="h-20 w-20 rounded-full mb-4" />
                             <Skeleton className="h-8 w-48" />

@@ -11,7 +11,7 @@ export type PromotionalImage = {
   hint: string | null;
 };
 
-// Esta estructura ahora combina datos de diferentes tablas
+// This structure now combines data from different tables
 export type Settings = {
   barName: string; 
   logoUrl: string | null;
@@ -19,34 +19,40 @@ export type Settings = {
   promotionalImages: PromotionalImage[];
 };
 
-// --- Hook para obtener las configuraciones combinadas del store ---
+// --- Hook to get combined settings from the store ---
 export function useSettings() {
     const { state, isInitialized } = useAppStore();
-    // Devolvemos las partes individuales del estado para evitar re-renderizados innecesarios.
+    // Combine the settings into a single, consistent object.
+    const combinedSettings: Settings = {
+      barName: state.settings?.barName || '',
+      logoUrl: state.image_settings?.logoUrl || null,
+      backgroundUrl: state.image_settings?.backgroundUrl || null,
+      promotionalImages: state.promotional_images || []
+    };
+
     return {
-        settings: state.settings,
-        image_settings: state.image_settings,
-        promotional_images: state.promotional_images,
+        settings: combinedSettings,
         isInitialized
     };
 }
 
-// --- Funciones de Manipulación de Datos ---
+
+// --- Data Manipulation Functions ---
 
 export const updateSettings = async (newSettings: Settings): Promise<void> => {
   const supabase = getClient();
 
-  // 1. Actualizar el nombre del bar en la tabla 'settings'
+  // 1. Update bar name in 'settings' table
   const { error: settingsError } = await supabase
     .from('settings')
     .update({ settings_data: { barName: newSettings.barName } })
     .eq('id', 1);
 
   if (settingsError) {
-    console.error("Error al actualizar el nombre del bar en Supabase:", settingsError);
+    console.error("Error updating bar name in Supabase:", settingsError);
   }
 
-  // 2. Actualizar las URLs del logo y del fondo en la tabla 'image_settings'
+  // 2. Update logo and background URLs in 'image_settings' table
   const { error: imageSettingsError } = await supabase
     .from('image_settings')
     .update({
@@ -57,57 +63,51 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
     .eq('id', 1);
 
   if (imageSettingsError) {
-    console.error("Error al actualizar la configuración de imágenes en Supabase:", imageSettingsError);
+    console.error("Error updating image settings in Supabase:", imageSettingsError);
   }
 
-  // 3. Sincronizar las imágenes promocionales
+  // 3. Synchronize promotional images
   try {
-    const localImages = newSettings.promotionalImages || [];
-    
-    // Paso A: Obtener todas las imágenes actuales de la base de datos
-    const { data: dbImages, error: fetchError } = await supabase.from('promotional_images').select('id, src, alt, hint');
+    const { data: dbImages, error: fetchError } = await supabase.from('promotional_images').select('id');
     if (fetchError) {
-        console.error("Error al obtener las imágenes promocionales para la sincronización:", fetchError);
-        return; // No continuar si no podemos obtener el estado actual
+      console.error("Error fetching promotional images for sync:", fetchError);
+      return; 
     }
     const dbImageIds = dbImages.map(img => img.id);
 
-    // Paso B: Separar las imágenes locales en listas para insertar, actualizar y eliminar
-    const imagesToInsert = localImages.filter(img => !dbImageIds.includes(img.id));
-    const imagesToUpdate = localImages.filter(img => {
-      const dbImg = dbImages.find(i => i.id === img.id);
-      return dbImg && (dbImg.src !== img.src || dbImg.alt !== img.alt || dbImg.hint !== img.hint);
-    });
-    const localImageIds = localImages.map(img => img.id);
+    const localImages = newSettings.promotionalImages || [];
+    const localImageIds = localImages.map(img => img.id).filter(id => typeof id === 'number');
+
+    const imagesToInsert = localImages
+      .filter(img => typeof img.id !== 'number' || !dbImageIds.includes(img.id))
+      .map(({ src, alt, hint }) => ({ src, alt, hint })); // Prepare for insert
+
+    const imagesToUpdate = localImages
+      .filter(img => typeof img.id === 'number' && dbImageIds.includes(img.id));
+
     const imageIdsToDelete = dbImageIds.filter(id => !localImageIds.includes(id));
-    
-    // Paso C: Realizar operaciones en la base de datos
+
     if (imagesToInsert.length > 0) {
-        // IMPORTANTE: Crear nuevos objetos sin el 'id' temporal para la inserción
-        const insertData = imagesToInsert.map(({ src, alt, hint }) => ({ src, alt, hint }));
-        const { error: insertError } = await supabase.from('promotional_images').insert(insertData);
-        if (insertError) console.error("Error al insertar nuevas imágenes promocionales:", insertError);
+      const { error: insertError } = await supabase.from('promotional_images').insert(imagesToInsert);
+      if (insertError) console.error("Error inserting new promotional images:", insertError);
     }
 
     if (imagesToUpdate.length > 0) {
-        const updatePromises = imagesToUpdate.map(img =>
-            supabase.from('promotional_images').update({ src: img.src, alt: img.alt, hint: img.hint }).eq('id', img.id)
-        );
-        const results = await Promise.all(updatePromises);
-        results.forEach(res => {
-            if (res.error) console.error("Error al actualizar imagen promocional:", res.error);
-        });
+      const updatePromises = imagesToUpdate.map(img =>
+        supabase.from('promotional_images').update({ src: img.src, alt: img.alt, hint: img.hint }).eq('id', img.id)
+      );
+      await Promise.all(updatePromises);
     }
 
     if (imageIdsToDelete.length > 0) {
-        const { error: deleteError } = await supabase.from('promotional_images').delete().in('id', imageIdsToDelete);
-        if (deleteError) console.error("Error al eliminar imágenes promocionales antiguas:", deleteError);
+      const { error: deleteError } = await supabase.from('promotional_images').delete().in('id', imageIdsToDelete);
+      if (deleteError) console.error("Error deleting old promotional images:", deleteError);
     }
 
   } catch (error) {
-    console.error("Un error inesperado ocurrió durante la sincronización de imágenes promocionales:", error);
+    console.error("An unexpected error occurred during promotional images sync:", error);
   }
 
-  // 4. Finalmente, refrescar el estado local desde la BD para asegurar consistencia
+  // 4. Finally, refresh the local state from the DB to ensure consistency
   await store.fetchData();
 };

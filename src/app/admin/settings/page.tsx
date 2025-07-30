@@ -13,21 +13,16 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminSettingsPage() {
-  const { settings, image_settings, promotional_images, isInitialized } = useSettings();
+  const { settings, isInitialized } = useSettings();
   const [formState, setFormState] = useState<Settings>({ barName: '', logoUrl: '', backgroundUrl: '', promotionalImages: [] });
   const [newImageUrl, setNewImageUrl] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isInitialized && settings && image_settings && promotional_images) {
-      setFormState({
-        barName: settings.barName,
-        logoUrl: image_settings.logoUrl,
-        backgroundUrl: image_settings.backgroundUrl,
-        promotionalImages: promotional_images || [],
-      });
+    if (isInitialized && settings) {
+      setFormState(settings);
     }
-  }, [settings, image_settings, promotional_images, isInitialized]);
+  }, [settings, isInitialized]);
 
   const handleInputChange = (field: keyof Omit<Settings, 'promotionalImages'>, value: any) => {
     setFormState(prev => ({ ...prev, [field]: value }));
