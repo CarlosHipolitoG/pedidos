@@ -33,9 +33,6 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useSettings } from '@/lib/settings';
-import { useToast } from '@/hooks/use-toast';
-import { toPng } from 'html-to-image';
-
 
 export default function AdminDashboardPage() {
   const { orders, isInitialized: isOrdersInitialized } = useOrders();
@@ -51,8 +48,9 @@ export default function AdminDashboardPage() {
   const [formattedItemDates, setFormattedItemDates] = useState<Record<string, string>>({});
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'Todos'>('Todos');
   const [isDemoNoticeVisible, setIsDemoNoticeVisible] = useState(false);
-  const { toast } = useToast();
   const receiptRef = useRef<HTMLDivElement>(null);
+  const [receiptHtml, setReceiptHtml] = useState('');
+
   
   const isMountedAndInitialized = isOrdersInitialized && isProductsInitialized && isSettingsInitialized;
 
@@ -117,38 +115,83 @@ export default function AdminDashboardPage() {
     }, 2000); // Highlight for 2 seconds
   };
   
+  const generateInvoiceHtmlContent = (order: Order, currentSettings: typeof settings) => {
+    const itemsHtml = order.items.map(item => `
+        <tr>
+            <td style="padding: 5px; text-align: left;">${item.quantity}x ${item.nombre}</td>
+            <td style="padding: 5px; text-align: right;">$${(item.precio * item.quantity).toLocaleString('es-CO')}</td>
+        </tr>
+    `).join('');
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <meta charset="UTF-8">
+          <style>
+              body { font-family: 'Courier New', monospace; width: 320px; margin: 0 auto; }
+              .receipt-container { background-color: white; color: black; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+              .logo { text-align: center; margin-bottom: 15px; }
+              .logo img { max-width: 80px; max-height: 80px; }
+              h2 { text-align: center; margin: 0 0 10px 0; font-size: 18px; }
+              hr { border: none; border-top: 1px dashed #000; margin: 15px 0; }
+              p { font-size: 12px; margin: 2px 0; }
+              table { width: 100%; font-size: 12px; border-collapse: collapse; }
+              th, td { padding: 5px; }
+              .total { text-align: right; font-size: 16px; font-weight: bold; }
+          </style>
+      </head>
+      <body>
+          <div class="receipt-container">
+              ${currentSettings?.logoUrl ? `<div class="logo"><img src="${currentSettings.logoUrl}" alt="Logo"></div>` : ''}
+              <h2>${currentSettings?.barName || 'Recibo'}</h2>
+              <p style="text-align: center;">Recibo de Venta</p>
+              <hr>
+              <p><strong>Pedido #:</strong> ${order.id}</p>
+              <p><strong>Cliente:</strong> ${order.customer.name}</p>
+              <p><strong>Fecha:</strong> ${format(new Date(order.timestamp), "d/MM/yy, h:mm a", { locale: es })}</p>
+              <hr>
+              <table>
+                  <thead>
+                      <tr>
+                          <th style="text-align: left;">Producto</th>
+                          <th style="text-align: right;">Subtotal</th>
+                      </tr>
+                  </thead>
+                  <tbody>${itemsHtml}</tbody>
+              </table>
+              <hr>
+              <div class="total">
+                  <p>TOTAL: $${order.total.toLocaleString('es-CO')}</p>
+              </div>
+              <hr>
+              <p style="text-align: center; margin-top: 15px;">¡Gracias por tu compra!</p>
+          </div>
+      </body>
+      </html>
+    `;
+};
+
+
   const handleGenerateInvoice = (order: Order) => {
     setSelectedOrder(order);
+    const htmlContent = generateInvoiceHtmlContent(order, settings);
+    setReceiptHtml(htmlContent);
     setIsInvoiceModalOpen(true);
   };
-
+  
   const handleDownloadImage = () => {
-    if (!receiptRef.current) {
-        toast({ title: "Error", description: "No se pudo encontrar la referencia del recibo.", variant: "destructive" });
-        return;
-    }
-
-    toPng(receiptRef.current, { 
-      cacheBust: true, 
-      pixelRatio: 2,
-      style: {
-        // We need to inline styles for the image generation to work correctly
-        width: '320px',
-        margin: '0',
-      }
-    })
-    .then((dataUrl) => {
-      const link = document.createElement('a');
-      link.download = `recibo-pedido-${selectedOrder?.id}.png`;
-      link.href = dataUrl;
-      link.click();
-    })
-    .catch((err) => {
-      console.error("html-to-image error:", err);
-      toast({ title: "Error de Descarga", description: "No se pudo generar la imagen del recibo. Inténtalo de nuevo.", variant: "destructive" });
-    });
+    if (!receiptHtml || !selectedOrder) return;
+    const encodedHtml = encodeURIComponent(receiptHtml);
+    const downloadUrl = `https://image.thum.io/get/width/320/crop/0/html/${encodedHtml}`;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `recibo-pedido-${selectedOrder.id}.png`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
-
 
   const filteredProducts = (products || []).filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
@@ -560,46 +603,14 @@ export default function AdminDashboardPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4 -mx-2 flex justify-center">
-            {selectedOrder && settings ? (
-               <div ref={receiptRef} style={{ width: '320px', backgroundColor: 'white', color: 'black', fontFamily: "'Courier New', monospace", padding: '20px', border: '1px solid #ccc', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }}>
-                  {settings.logoUrl && (
-                    <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-                      <img src={settings.logoUrl} alt="Logo" style={{ maxWidth: '80px', maxHeight: '80px' }} crossOrigin="anonymous" />
-                    </div>
-                  )}
-                  <h2 style={{ textAlign: 'center', margin: '0 0 10px 0', fontSize: '18px' }}>{settings.barName}</h2>
-                  <p style={{ textAlign: 'center', fontSize: '12px', margin: '0' }}>Recibo de Venta</p>
-                  <hr style={{ border: 'none', borderTop: '1px dashed #000', margin: '15px 0' }} />
-                  <p style={{ fontSize: '12px', margin: '2px 0' }}><strong>Pedido #:</strong> {selectedOrder.id}</p>
-                  <p style={{ fontSize: '12px', margin: '2px 0' }}><strong>Cliente:</strong> {selectedOrder.customer.name}</p>
-                  <p style={{ fontSize: '12px', margin: '2px 0' }}><strong>Fecha:</strong> {format(new Date(selectedOrder.timestamp), "d/MM/yy, h:mm a", { locale: es })}</p>
-                  <hr style={{ border: 'none', borderTop: '1px dashed #000', margin: '15px 0' }} />
-                  <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr>
-                        <th style={{ textAlign: 'left', padding: '5px' }}>Producto</th>
-                        <th style={{ textAlign: 'right', padding: '5px' }}>Subtotal</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedOrder.items.map(item => (
-                        <tr key={item.id}>
-                          <td style={{ padding: '5px', textAlign: 'left' }}>{item.quantity}x {item.nombre}</td>
-                          <td style={{ padding: '5px', textAlign: 'right' }}>${(item.precio * item.quantity).toLocaleString('es-CO')}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <hr style={{ border: 'none', borderTop: '1px dashed #000', margin: '15px 0' }} />
-                  <div style={{ textAlign: 'right', fontSize: '16px', fontWeight: 'bold' }}>
-                    <p>TOTAL: ${selectedOrder.total.toLocaleString('es-CO')}</p>
-                  </div>
-                  <hr style={{ border: 'none', borderTop: '1px dashed #000', margin: '15px 0' }} />
-                  <p style={{ textAlign: 'center', fontSize: '12px', marginTop: '15px' }}>¡Gracias por tu compra!</p>
-                </div>
-            ) : (
-                <p className="text-center py-8 text-muted-foreground">Cargando vista previa del recibo...</p>
-            )}
+             {selectedOrder && (
+                <div
+                    ref={receiptRef}
+                    className="p-4 bg-white text-black"
+                    style={{ width: '320px' }}
+                    dangerouslySetInnerHTML={{ __html: receiptHtml.replace(/<!DOCTYPE html>|<html>|<head>.*?<\/head>|<body>|<\/body><\/html>/g, '') }}
+                 />
+              )}
           </div>
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setIsInvoiceModalOpen(false)}>Cerrar</Button>
