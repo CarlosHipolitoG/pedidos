@@ -81,7 +81,7 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
             customer: payload.customer,
             items: itemsWithTimestamp,
             total: payload.total,
-            status: 'Pendiente',
+            status: 'Pendiente' as OrderStatus,
             orderedBy: payload.orderedBy,
             attendedBy: payload.orderedBy.type === 'Mesero' ? payload.orderedBy.name : undefined,
         };
@@ -269,3 +269,5 @@ export async function deleteOrder(orderId: number): Promise<void> {
         console.error("Error deleting order:", error);
     }
 }
+
+    

@@ -128,7 +128,7 @@ class AppStore {
         }
         
         // Handle Users
-        if (usersResponse.error || !usersResponse.data || usersResponse.data.length === 0) {
+        if (usersResponse.error || !usersResponse.data || !usersResponse.data.length === 0) {
              console.warn("Could not fetch users, using initial data.", usersResponse.error);
              this.state.users = initialUsersData;
         } else {
@@ -235,3 +235,5 @@ export function useAppStore() {
 
   return { state, isInitialized };
 }
+
+    

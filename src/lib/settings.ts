@@ -50,3 +50,5 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
      console.error("Error in updateSettings:", error);
   }
 };
+
+    

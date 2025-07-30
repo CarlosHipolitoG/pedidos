@@ -21,16 +21,14 @@ export function useProducts() {
     return { products: state.products, isInitialized };
 }
 
-async function syncProductInSupabase(product: Product, isNew: boolean) {
+async function syncProductInSupabase(productData: Omit<Product, 'id'>, productId?: number) {
     try {
         const supabase = getClient();
-        const { id, ...productData } = product;
-
-        if (isNew) {
-            const { error } = await supabase.from('products').insert(productData).select().single();
+        if (productId) { // Update
+            const { error } = await supabase.from('products').update(productData).eq('id', productId);
             if (error) throw error;
-        } else {
-            const { error } = await supabase.from('products').update(productData).eq('id', id);
+        } else { // Insert
+            const { error } = await supabase.from('products').insert(productData).select().single();
             if (error) throw error;
         }
     } catch (error) {
@@ -52,37 +50,30 @@ async function deleteProductFromSupabase(productId: number) {
 // --- Data Manipulation Functions ---
 
 export const addProduct = (productData: Omit<Product, 'id'>): void => {
-    let newProduct: Product | null = null;
     store.updateState(currentState => {
         const currentProducts = currentState.products || [];
         const nextProductId = (currentProducts.reduce((maxId, p) => Math.max(p.id, maxId), 0) || 0) + 1;
-        newProduct = {
+        const newProduct = {
             ...productData,
             id: nextProductId,
         };
         const newProducts = [...currentProducts, newProduct].sort((a,b) => a.id - b.id);
         return { ...currentState, products: newProducts };
     });
-    if (newProduct) {
-        syncProductInSupabase(newProduct, true);
-    }
+    syncProductInSupabase(productData);
 };
 
 export const updateProduct = (productId: number, updatedData: Partial<Omit<Product, 'id'>>): void => {
-    let productToSync: Product | null = null;
     store.updateState(currentState => {
         const newProducts = currentState.products.map(p => {
             if (p.id === productId) {
-                productToSync = { ...p, ...updatedData };
-                return productToSync;
+                return { ...p, ...updatedData };
             }
             return p;
         }).sort((a,b) => a.id - b.id);
         return { ...currentState, products: newProducts };
     });
-    if (productToSync) {
-        syncProductInSupabase(productToSync, false);
-    }
+    syncProductInSupabase(updatedData, productId);
 };
 
 export const deleteProduct = (productId: number): void => {
@@ -92,3 +83,5 @@ export const deleteProduct = (productId: number): void => {
     });
      deleteProductFromSupabase(productId);
 };
+
+    

@@ -749,3 +749,5 @@ export const initialSettings: Settings = {
       { id: 4, src: "https://storage.googleapis.com/project-spark-b6b15e45/05459f37-64cd-4e89-9a7c-1795c6439167.png", alt: "Promoción 4", hint: "happy hour" },
   ]
 };
+
+    

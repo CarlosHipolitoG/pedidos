@@ -44,7 +44,6 @@ async function syncUserInSupabase(userData: Partial<User>, isNew: boolean, userI
         const { id, ...dataToSync } = userData;
 
         if (isNew) {
-            // Exclude id for insert operations
             const { error } = await supabase.from('users').insert(dataToSync);
             if (error) throw error;
         } else if (userIdToUpdate) {
@@ -60,6 +59,7 @@ async function syncUserInSupabase(userData: Partial<User>, isNew: boolean, userI
 export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tempPassword?: string } => {
     let tempPassword: string | undefined;
     let newUser: User | null = null;
+    let userToSync: Partial<User> = {};
     
     store.updateState(currentState => {
         const currentUsers = currentState.users || [];
@@ -93,17 +93,21 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tem
         
         newUser = finalUserData;
         const { id, ...dataToInsert } = newUser; // Exclude 'id' for insertion
-        syncUserInSupabase(dataToInsert, true);
+        userToSync = dataToInsert;
 
         const users = [...currentUsers, finalUserData].sort((a, b) => a.id - b.id);
         return { ...currentState, users };
     });
 
+    if (Object.keys(userToSync).length > 0) {
+        syncUserInSupabase(userToSync, true);
+    }
+
     return { newUser, tempPassword };
 };
 
 export const updateUser = (userId: number, updatedData: Partial<Omit<User, 'id' | 'password' | 'temporaryPassword'>>): void => {
-    let userToSync: User | null = null;
+    let userToSync: Partial<User> = {};
     store.updateState(currentState => {
         const users = currentState.users.map(user => {
             if (user.id === userId) {
@@ -112,7 +116,8 @@ export const updateUser = (userId: number, updatedData: Partial<Omit<User, 'id' 
                     finalUpdatedUser.password = updatedData.cedula;
                     finalUpdatedUser.temporaryPassword = false;
                 }
-                userToSync = finalUpdatedUser;
+                 const { id, ...syncData } = finalUpdatedUser;
+                 userToSync = syncData;
                 return finalUpdatedUser;
             }
             return user;
@@ -120,7 +125,7 @@ export const updateUser = (userId: number, updatedData: Partial<Omit<User, 'id' 
         return { ...currentState, users };
     });
 
-    if (userToSync) {
+    if (Object.keys(userToSync).length > 0) {
         syncUserInSupabase(userToSync, false, userId);
     }
 };
@@ -182,7 +187,8 @@ export const updateUserPassword = (email: string, newPassword_plaintext: string)
     });
 
     if (success && userToUpdate) {
-        syncUserInSupabase(userToUpdate, false, userToUpdate.id);
+        const { id, ...syncData } = userToUpdate;
+        syncUserInSupabase(syncData, false, id);
     }
 
     return success;
@@ -193,3 +199,5 @@ export const getUserFromStorage = (email: string): User | null => {
     if(!user) return null;
     return user;
 }
+
+    
