@@ -15,8 +15,7 @@ import Image from 'next/image';
 
 export default function AdminSettingsPage() {
   const { settings, isInitialized } = useSettings();
-  const [formState, setFormState] = useState<Omit<Settings, 'promotionalImages'>>({ barName: '', logoUrl: '', backgroundUrl: '', taxRate: 0 });
-  const [promoImages, setPromoImages] = useState<Settings['promotionalImages']>([]);
+  const [formState, setFormState] = useState<Settings>({ barName: '', logoUrl: '', backgroundUrl: '', taxRate: 0, promotionalImages: [] });
   const [newImageUrl, setNewImageUrl] = useState('');
   const { toast } = useToast();
 
@@ -27,21 +26,17 @@ export default function AdminSettingsPage() {
           logoUrl: settings.logoUrl || '',
           backgroundUrl: settings.backgroundUrl || '',
           taxRate: settings.taxRate ?? 19,
+          promotionalImages: settings.promotionalImages || []
       });
-      setPromoImages(settings.promotionalImages || []);
     }
   }, [settings, isInitialized]);
 
-  const handleInputChange = (field: keyof typeof formState, value: any) => {
+  const handleInputChange = (field: keyof Omit<Settings, 'promotionalImages'>, value: any) => {
     setFormState(prev => ({ ...prev, [field]: value }));
   };
   
   const handleSaveChanges = async () => {
-    const finalSettings: Settings = {
-      ...formState,
-      promotionalImages: promoImages
-    };
-    await updateSettings(finalSettings);
+    await updateSettings(formState);
     toast({
       title: "Configuración Guardada",
       description: "Los cambios se han guardado exitosamente en la base de datos.",
@@ -56,12 +51,12 @@ export default function AdminSettingsPage() {
         alt: 'Promoción',
         hint: 'promotion event'
     };
-    setPromoImages(prev => [...prev, newImage]);
+    setFormState(prev => ({...prev, promotionalImages: [...prev.promotionalImages, newImage]}));
     setNewImageUrl('');
   };
 
   const handleRemoveImage = (id: number) => {
-    setPromoImages(prev => prev.filter(img => img.id !== id));
+    setFormState(prev => ({ ...prev, promotionalImages: prev.promotionalImages.filter(img => img.id !== id) }));
   };
   
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -178,7 +173,7 @@ export default function AdminSettingsPage() {
           <div className="space-y-4">
             <Label>Imágenes del Banner Promocional</Label>
             <div className="space-y-2">
-                {promoImages.map((img) => (
+                {formState.promotionalImages.map((img) => (
                     <div key={img.id} className="flex items-center gap-2 p-2 border rounded-md">
                        {img.src && <img src={img.src} alt={img.alt || ''} className="h-12 w-12 object-cover rounded-md flex-shrink-0" onError={handleImageError}/>}
                         <div className="flex-grow min-w-0">
