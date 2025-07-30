@@ -55,7 +55,7 @@ export const updateSettings = async (formState: Settings): Promise<void> => {
     .update({
       barName: formState.barName, 
       taxRate: formState.taxRate,
-      logoUrl: formState.logoUrl,
+      logo_url: formState.logoUrl, // Corrected from logoUrl
       background_url: formState.backgroundUrl
     })
     .eq('id', 1);
