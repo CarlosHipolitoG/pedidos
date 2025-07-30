@@ -14,6 +14,7 @@ export type PromotionalImage = {
 
 export type Settings = {
   barName: string;
+  logoUrl: string | null;
   backgroundUrl: string | null;
   promotionalImages: PromotionalImage[];
   taxRate?: number;
@@ -29,6 +30,7 @@ export function useSettings() {
 
         return {
             barName: generalSettings.barName,
+            logoUrl: generalSettings.logo_url,
             backgroundUrl: generalSettings.background_url,
             promotionalImages: state.promotional_images || [],
             taxRate: generalSettings.taxRate ?? 19,
@@ -53,6 +55,7 @@ export const updateSettings = async (formState: Settings): Promise<void> => {
     .update({
       barName: formState.barName, 
       taxRate: formState.taxRate,
+      logo_url: formState.logoUrl,
       background_url: formState.backgroundUrl
     })
     .eq('id', 1);

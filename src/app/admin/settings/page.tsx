@@ -15,7 +15,7 @@ import Image from 'next/image';
 
 export default function AdminSettingsPage() {
   const { settings, isInitialized } = useSettings();
-  const [formState, setFormState] = useState<Omit<Settings, 'promotionalImages'>>({ barName: '', backgroundUrl: '', taxRate: 0 });
+  const [formState, setFormState] = useState<Omit<Settings, 'promotionalImages'>>({ barName: '', logoUrl: '', backgroundUrl: '', taxRate: 0 });
   const [promoImages, setPromoImages] = useState<Settings['promotionalImages']>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
   const { toast } = useToast();
@@ -24,6 +24,7 @@ export default function AdminSettingsPage() {
     if (isInitialized && settings) {
       setFormState({
           barName: settings.barName || '',
+          logoUrl: settings.logoUrl || '',
           backgroundUrl: settings.backgroundUrl || '',
           taxRate: settings.taxRate ?? 19,
       });
@@ -143,6 +144,21 @@ export default function AdminSettingsPage() {
               </div>
                <p className="text-xs text-muted-foreground">Define el porcentaje de impuestos a aplicar sobre el subtotal de cada pedido.</p>
             </div>
+            
+            <div className="space-y-2">
+            <Label htmlFor="logoUrl">URL del Logo</Label>
+            <Input
+              id="logoUrl"
+              value={formState.logoUrl || ''}
+              onChange={(e) => handleInputChange('logoUrl', e.target.value)}
+              placeholder="https://ejemplo.com/logo.png"
+            />
+             {formState.logoUrl && (
+                <div className="p-4 bg-muted rounded-md flex justify-center">
+                    <img src={formState.logoUrl} alt="Vista previa del logo" className="h-24 w-auto object-contain rounded-md" onError={handleImageError} />
+                </div>
+            )}
+          </div>
            
           <div className="space-y-2">
             <Label htmlFor="backgroundUrl">URL de la Imagen de Fondo</Label>
