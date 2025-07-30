@@ -337,17 +337,16 @@ export default function AdminDashboardPage() {
   const ReceiptPreview = ({ order, settings }: { order: Order | null; settings: typeof settings | null }) => {
     if (!order || !settings) return null;
 
-    // Backward compatibility for orders without tax fields
     const subtotal = order.subtotal ?? order.items.reduce((sum, item) => sum + (item.precio * item.quantity), 0);
     const taxRate = settings.taxRate ?? 0;
     const tax = order.tax ?? subtotal * (taxRate / 100);
     const total = subtotal + tax;
 
     return (
-        <div className="receipt-container bg-white text-black p-5 border border-gray-300 shadow-lg" style={{ width: '320px' }}>
+        <div className="receipt-container bg-white text-black p-5 border border-gray-300 shadow-lg" style={{ fontFamily: "'Courier New', monospace", width: '320px' }}>
             {settings.logoUrl && (
                 <div className="logo text-center mb-4">
-                    <Image src={settings.logoUrl} alt="Logo" width={80} height={80} className="mx-auto" crossOrigin="anonymous" />
+                    <img src={settings.logoUrl} alt="Logo" style={{ maxWidth: '80px', maxHeight: '80px', margin: '0 auto' }} crossOrigin="anonymous" />
                 </div>
             )}
             <h2 className="text-center m-0 mb-2.5 text-lg font-bold">{settings.barName || 'Recibo'}</h2>
@@ -387,7 +386,7 @@ export default function AdminDashboardPage() {
                 </tbody>
             </table>
             <hr className="border-none border-t border-dashed border-black my-2" />
-            <div className="total text-right text-base font-bold">
+            <div className="text-right text-base font-bold">
                 <p>TOTAL: $${total.toLocaleString('es-CO')}</p>
             </div>
             <hr className="border-none border-t border-dashed border-black my-4" />
@@ -685,16 +684,14 @@ export default function AdminDashboardPage() {
       </Dialog>
       
       <Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
-        <DialogContent className="sm:max-w-xs w-auto p-0">
-          <div className="p-6 pb-2">
-            <DialogHeader>
-              <DialogTitle>Recibo del Pedido #{selectedOrder?.id}</DialogTitle>
-            </DialogHeader>
-          </div>
-          <div className="flex justify-center">
+        <DialogContent className="sm:max-w-xs w-auto flex flex-col p-0">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle>Recibo del Pedido #{selectedOrder?.id}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-grow overflow-y-auto px-6">
              <ReceiptPreview order={selectedOrder} settings={settings} />
           </div>
-          <DialogFooter className="mt-0 p-6 pt-4">
+          <DialogFooter className="p-6 pt-4 border-t bg-background">
             <Button variant="outline" onClick={() => setIsInvoiceModalOpen(false)}>Cerrar</Button>
             <Button onClick={handleDownloadHtml} disabled={!selectedOrder}>
               <Download className="mr-2 h-4 w-4" />
