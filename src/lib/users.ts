@@ -44,67 +44,72 @@ async function syncUserInSupabase(userData: Partial<User>, isNew: boolean, userI
         const { id, ...dataToSync } = userData;
 
         if (isNew) {
-            const { error } = await supabase.from('users').insert([dataToSync]);
+            const { data, error } = await supabase.from('users').insert([dataToSync]).select().single();
             if (error) throw error;
+            return data;
         } else if (userIdToUpdate) {
-            const { error } = await supabase.from('users').update(dataToSync).eq('id', userIdToUpdate);
+            const { data, error } = await supabase.from('users').update(dataToSync).eq('id', userIdToUpdate).select().single();
             if (error) throw error;
+            return data;
         }
     } catch (error) {
         console.error("Error syncing user in Supabase:", error);
+        return null;
     }
 }
 
 
-export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tempPassword?: string } => {
+export const addUser = async (userData: Omit<User, 'id' | 'password' | 'temporaryPassword'>): Promise<{ newUser: User | null, tempPassword?: string }> => {
     let tempPassword: string | undefined;
-    let newUser: User | null = null;
-    let userToSync: Partial<User> | null = null;
     
-    store.updateState(currentState => {
-        const currentUsers = currentState.users || [];
-        const nextUserId = (currentUsers.reduce((maxId, u) => Math.max(u.id, maxId), 0) || 0) + 1;
-        
-        let finalUserData: User;
+    let dataToInsert: Omit<User, 'id'>;
 
-        if (userData.role === 'client') {
-            finalUserData = {
-                ...userData,
-                id: nextUserId,
-                password: undefined,
-                temporaryPassword: false,
-            };
-        } else if (userData.role === 'waiter' && userData.cedula) {
-             finalUserData = {
-                ...userData,
-                id: nextUserId,
-                password: userData.cedula,
-                temporaryPassword: false,
-            };
-        } else { // Admin or other roles
-            tempPassword = Math.random().toString(36).slice(-8);
-            finalUserData = {
-                ...userData,
-                id: nextUserId,
-                password: tempPassword,
-                temporaryPassword: true,
-            };
-        }
-        
-        newUser = finalUserData;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id, ...dataToInsert } = newUser;
-        userToSync = dataToInsert;
-
-        const users = [...currentUsers, finalUserData].sort((a, b) => a.id - b.id);
-        return { ...currentState, users };
-    });
-
-    if (userToSync) {
-        syncUserInSupabase(userToSync, true);
+    if (userData.role === 'client') {
+        dataToInsert = {
+            ...userData,
+            password: undefined,
+            temporaryPassword: false,
+        };
+    } else if (userData.role === 'waiter' && userData.cedula) {
+         dataToInsert = {
+            ...userData,
+            password: userData.cedula,
+            temporaryPassword: false,
+        };
+    } else { // Admin or other roles
+        tempPassword = Math.random().toString(36).slice(-8);
+        dataToInsert = {
+            ...userData,
+            password: tempPassword,
+            temporaryPassword: true,
+        };
     }
 
-    return { newUser, tempPassword };
+    try {
+        const supabase = getClient();
+        const { data: newSupabaseUser, error } = await supabase
+            .from('users')
+            .insert(dataToInsert)
+            .select()
+            .single();
+
+        if (error) {
+            throw error;
+        }
+
+        const newUser: User = newSupabaseUser;
+
+        store.updateState(currentState => {
+            const users = [...(currentState.users || []), newUser].sort((a, b) => a.id - b.id);
+            return { ...currentState, users };
+        });
+
+        return { newUser, tempPassword };
+
+    } catch (error) {
+        console.error("Error adding user:", error);
+        return { newUser: null, tempPassword: undefined };
+    }
 };
 
 export const updateUser = (userId: number, updatedData: Partial<User>): void => {
@@ -129,14 +134,17 @@ export const updateUser = (userId: number, updatedData: Partial<User>): void => 
 };
 
 export const deleteUser = async (userId: number): Promise<void> => {
-    store.updateState(currentState => {
-        const users = currentState.users.filter(user => user.id !== userId);
-        return { ...currentState, users };
-    });
     try {
         const supabase = getClient();
         const { error } = await supabase.from('users').delete().eq('id', userId);
         if (error) throw error;
+
+        // Only update local state if supabase operation was successful
+        store.updateState(currentState => {
+            const users = currentState.users.filter(user => user.id !== userId);
+            return { ...currentState, users };
+        });
+
     } catch (error) {
         console.error("Error deleting user from Supabase:", error);
     }

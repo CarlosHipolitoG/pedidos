@@ -57,7 +57,7 @@ export default function AdminUsersPage() {
     });
   };
 
-  const handleSaveUser = () => {
+  const handleSaveUser = async () => {
     if (!editingUser || !editingUser.name || !editingUser.email || !editingUser.role) {
         toast({ title: "Error", description: "El nombre, email y rol son requeridos.", variant: "destructive" });
         return;
@@ -85,7 +85,7 @@ export default function AdminUsersPage() {
       toast({ title: "Usuario Actualizado", description: `Los datos de ${editingUser.name} han sido actualizados.` });
     } else {
       // Adding new user
-      const result = addUser(editingUser as Omit<User, 'id' | 'password' | 'temporaryPassword'>);
+      const result = await addUser(editingUser as Omit<User, 'id' | 'password' | 'temporaryPassword'>);
       if (result.newUser) {
         const baseUrl = window.location.origin;
         const loginPath = result.newUser.role === 'admin' ? '/admin' : '/waiter';
@@ -133,6 +133,8 @@ export default function AdminUsersPage() {
             duration: 20000 
         });
 
+      } else {
+        toast({ title: "Error", description: "No se pudo registrar el usuario. El email podría ya estar en uso.", variant: "destructive" });
       }
     }
     setIsModalOpen(false);
