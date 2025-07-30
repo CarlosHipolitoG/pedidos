@@ -38,62 +38,45 @@ const getUserByEmail = (email: string): User | undefined => {
     return users.find(user => user.email.toLowerCase() === email.toLowerCase());
 }
 
-async function syncUserInSupabase(userData: Partial<User>, isNew: boolean, userIdToUpdate?: number) {
-    try {
-        const supabase = getClient();
-        const { id, ...dataToSync } = userData;
-
-        if (isNew) {
-            const { data, error } = await supabase.from('users').insert([dataToSync]).select().single();
-            if (error) throw error;
-            return data;
-        } else if (userIdToUpdate) {
-            const { data, error } = await supabase.from('users').update(dataToSync).eq('id', userIdToUpdate).select().single();
-            if (error) throw error;
-            return data;
-        }
-    } catch (error) {
-        console.error("Error syncing user in Supabase:", error);
-        return null;
-    }
-}
-
-
 export const addUser = async (userData: Omit<User, 'id' | 'password' | 'temporaryPassword'>): Promise<{ newUser: User | null, tempPassword?: string }> => {
     let tempPassword: string | undefined;
     
-    let dataToInsert: Omit<User, 'id'>;
+    // Explicitly copy only the fields we expect, including the role
+    const dataToPrepare: Partial<User> = {
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        role: userData.role, // Make sure role is included
+        cedula: userData.cedula,
+        birthDate: userData.birthDate,
+        address: userData.address,
+        emergencyContact: userData.emergencyContact,
+        commentCategory: userData.commentCategory,
+        comment: userData.comment,
+    };
 
     if (userData.role === 'client') {
-        dataToInsert = {
-            ...userData,
-            password: undefined,
-            temporaryPassword: false,
-        };
+        dataToPrepare.password = undefined;
+        dataToPrepare.temporaryPassword = false;
     } else if (userData.role === 'waiter' && userData.cedula) {
-         dataToInsert = {
-            ...userData,
-            password: userData.cedula,
-            temporaryPassword: false,
-        };
+        dataToPrepare.password = userData.cedula;
+        dataToPrepare.temporaryPassword = false;
     } else { // Admin or other roles
         tempPassword = Math.random().toString(36).slice(-8);
-        dataToInsert = {
-            ...userData,
-            password: tempPassword,
-            temporaryPassword: true,
-        };
+        dataToPrepare.password = tempPassword;
+        dataToPrepare.temporaryPassword = true;
     }
 
     try {
         const supabase = getClient();
         const { data: newSupabaseUser, error } = await supabase
             .from('users')
-            .insert(dataToInsert)
+            .insert(dataToPrepare)
             .select()
             .single();
 
         if (error) {
+            console.error("Error inserting user into Supabase:", error);
             throw error;
         }
 
@@ -112,24 +95,33 @@ export const addUser = async (userData: Omit<User, 'id' | 'password' | 'temporar
     }
 };
 
-export const updateUser = (userId: number, updatedData: Partial<User>): void => {
-    let userToSync: Partial<User> = {};
-    store.updateState(currentState => {
-        const users = currentState.users.map(user => {
-            if (user.id === userId) {
-                const finalUpdatedUser = { ...user, ...updatedData };
-                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { id, ...syncData } = finalUpdatedUser; // prepare data for Supabase
-                userToSync = syncData;
-                return finalUpdatedUser;
-            }
-            return user;
-        });
-        return { ...currentState, users };
-    });
+export const updateUser = async (userId: number, updatedData: Partial<User>): Promise<void> => {
+    try {
+        const supabase = getClient();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, ...dataToSync } = updatedData;
 
-    if (Object.keys(userToSync).length > 0) {
-        syncUserInSupabase(userToSync, false, userId);
+        const { data: updatedSupabaseUser, error } = await supabase
+            .from('users')
+            .update(dataToSync)
+            .eq('id', userId)
+            .select()
+            .single();
+        
+        if (error) {
+            console.error("Error updating user in Supabase:", error);
+            throw error;
+        }
+        
+        store.updateState(currentState => {
+            const users = currentState.users.map(user => 
+                user.id === userId ? { ...user, ...updatedSupabaseUser } : user
+            );
+            return { ...currentState, users };
+        });
+
+    } catch(error) {
+         console.error("Error updating user:", error);
     }
 };
 
@@ -137,16 +129,19 @@ export const deleteUser = async (userId: number): Promise<void> => {
     try {
         const supabase = getClient();
         const { error } = await supabase.from('users').delete().eq('id', userId);
-        if (error) throw error;
+        
+        if (error) {
+            console.error("Error deleting user from Supabase:", error);
+            throw error;
+        }
 
-        // Only update local state if supabase operation was successful
         store.updateState(currentState => {
             const users = currentState.users.filter(user => user.id !== userId);
             return { ...currentState, users };
         });
 
     } catch (error) {
-        console.error("Error deleting user from Supabase:", error);
+        console.error("Error deleting user:", error);
     }
 };
 
@@ -195,7 +190,7 @@ export const updateUserPassword = (email: string, newPassword_plaintext: string)
     if (success && userToUpdate) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, ...syncData } = userToUpdate;
-        syncUserInSupabase(syncData, false, id);
+        updateUser(id, syncData);
     }
 
     return success;
