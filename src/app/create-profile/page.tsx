@@ -135,7 +135,7 @@ export default function CreateProfilePage() {
                                 selected={birthDate}
                                 onSelect={setBirthDate}
                                 initialFocus
-                                captionLayout="dropdown-buttons"
+                                captionLayout="dropdown"
                                 fromYear={new Date().getFullYear() - 100}
                                 toYear={new Date().getFullYear()}
                              />
