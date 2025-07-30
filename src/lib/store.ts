@@ -10,14 +10,14 @@ import { getClient } from './supabaseClient';
 
 // Definir tipos para los nuevos almacenes de datos
 type ImageSettings = {
-    logoUrl: string;
-    backgroundUrl: string;
+    logoUrl: string | null;
+    backgroundUrl: string | null;
 };
 type PromotionalImage = {
     id: number;
-    src: string;
-    alt: string;
-    hint: string;
+    src: string | null;
+    alt: string | null;
+    hint: string | null;
 };
 type GeneralSettings = {
     barName: string;

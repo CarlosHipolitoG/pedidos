@@ -29,7 +29,7 @@ export default function AdminSettingsPage() {
     }
   }, [settings, image_settings, promotional_images, isInitialized]);
 
-  const handleInputChange = (field: keyof Settings, value: any) => {
+  const handleInputChange = (field: keyof Omit<Settings, 'promotionalImages'>, value: any) => {
     setFormState(prev => ({ ...prev, [field]: value }));
   };
 
@@ -126,7 +126,7 @@ export default function AdminSettingsPage() {
             <Label htmlFor="logoUrl">URL del Logotipo</Label>
             <Input
               id="logoUrl"
-              value={formState.logoUrl}
+              value={formState.logoUrl || ''}
               onChange={(e) => handleInputChange('logoUrl', e.target.value)}
               placeholder="https://ejemplo.com/logo.png"
             />
@@ -140,7 +140,7 @@ export default function AdminSettingsPage() {
             <Label htmlFor="backgroundUrl">URL de la Imagen de Fondo</Label>
             <Input
               id="backgroundUrl"
-              value={formState.backgroundUrl}
+              value={formState.backgroundUrl || ''}
               onChange={(e) => handleInputChange('backgroundUrl', e.target.value)}
               placeholder="https://ejemplo.com/fondo.jpg"
             />
@@ -156,7 +156,7 @@ export default function AdminSettingsPage() {
             <div className="space-y-2">
                 {(formState.promotionalImages || []).map((img) => (
                     <div key={img.id} className="flex items-center gap-2 p-2 border rounded-md">
-                        <img src={img.src} alt="preview" className="h-12 w-12 object-cover rounded-md flex-shrink-0"/>
+                       {img.src && <img src={img.src} alt="preview" className="h-12 w-12 object-cover rounded-md flex-shrink-0"/>}
                         <div className="flex-grow min-w-0">
                           <p className="text-sm break-all">{img.src}</p>
                         </div>

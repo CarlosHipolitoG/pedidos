@@ -6,16 +6,16 @@ import { getClient } from './supabaseClient';
 
 export type PromotionalImage = {
   id: number;
-  src: string;
-  alt: string;
-  hint: string;
+  src: string | null;
+  alt: string | null;
+  hint: string | null;
 };
 
 // Esta estructura ahora combina datos de diferentes tablas
 export type Settings = {
   barName: string; // seguirá viniendo de la tabla 'settings' por ahora
-  logoUrl: string;
-  backgroundUrl: string;
+  logoUrl: string | null;
+  backgroundUrl: string | null;
   promotionalImages: PromotionalImage[];
 };
 
@@ -37,7 +37,6 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
   const supabase = getClient();
   
   // 1. Actualizar el nombre del bar en la tabla 'settings' (la original)
-  // Esta tabla todavía podría no tener políticas RLS, por lo que podría funcionar de manera diferente
   const { error: settingsError } = await supabase
     .from('settings')
     .update({ settings_data: { barName: newSettings.barName } })
@@ -71,15 +70,20 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
     if (idsToDelete.length > 0) {
       await supabase.from('promotional_images').delete().in('id', idsToDelete);
     }
-
+    
     const upsertData = newSettings.promotionalImages.map(({ id, ...rest }) => ({
         ...rest,
-        ...(id < 1000000 && { id }), // No incluyas el id si es uno temporal muy grande
+        // Solo incluye el 'id' para los registros existentes. Los nuevos (con id temporal grande) 
+        // dejarán que la base de datos genere uno nuevo.
+        ...(id < 1000000 && { id }), 
     }));
 
-    const { error: upsertError } = await supabase.from('promotional_images').upsert(upsertData);
-    if (upsertError) {
-      console.error("Error upserting promotional images:", upsertError);
+
+    if (upsertData.length > 0) {
+        const { error: upsertError } = await supabase.from('promotional_images').upsert(upsertData);
+        if (upsertError) {
+            console.error("Error upserting promotional images:", upsertError);
+        }
     }
   } catch (error) {
     console.error("Error managing promotional images:", error);
@@ -92,7 +96,8 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
 
 export const addPromotionalImage = (newImage: Omit<PromotionalImage, 'id'>) => {
     store.updateState(currentState => {
-        const nextId = (currentState.promotional_images.reduce((maxId, p) => Math.max(p.id, maxId), 0) || 0) + 1;
+        // Usamos un ID temporal muy grande para diferenciarlo de los IDs de la BD
+        const nextId = Date.now(); 
         return {
             ...currentState,
             promotional_images: [...currentState.promotional_images, { ...newImage, id: nextId }]
