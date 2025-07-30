@@ -3,22 +3,18 @@
 /**
  * @fileOverview Un flujo de Genkit para generar una factura en formato HTML para un pedido.
  * 
- * - generateInvoice - Genera el contenido HTML y de texto plano para un correo de factura.
+ * - generateInvoice - Genera el contenido HTML para un recibo de pedido.
  * - GenerateInvoiceInput - El tipo de entrada para la función generateInvoice.
  * - GenerateInvoiceOutput - El tipo de retorno para la función generateInvoice.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { htmlToText } from 'html-to-text';
 
 // Esquema de Zod para los datos de entrada del flujo
 const GenerateInvoiceInputSchema = z.object({
   orderId: z.number().describe('El ID del pedido.'),
   customerName: z.string().describe('El nombre del cliente.'),
-  customerEmail: z.string().describe('El correo electrónico del cliente.'),
   orderDate: z.string().describe('La fecha en que se realizó el pedido.'),
   items: z.array(z.object({
     quantity: z.number(),
@@ -33,9 +29,7 @@ const GenerateInvoiceInputSchema = z.object({
 export type GenerateInvoiceInput = z.infer<typeof GenerateInvoiceInputSchema>;
 
 const GenerateInvoiceOutputSchema = z.object({
-  subject: z.string().describe('El asunto para el correo electrónico de la factura.'),
-  htmlBody: z.string().describe('El contenido del correo en formato HTML.'),
-  textBody: z.string().describe('El contenido del correo en formato de texto plano.'),
+  htmlContent: z.string().describe('El contenido del recibo en formato HTML, diseñado para ser visualmente atractivo y fácil de leer, como un tiquete de compra.'),
 });
 
 export type GenerateInvoiceOutput = z.infer<typeof GenerateInvoiceOutputSchema>;
@@ -46,35 +40,20 @@ const prompt = ai.definePrompt({
     input: { schema: GenerateInvoiceInputSchema },
     output: { schema: GenerateInvoiceOutputSchema },
     prompt: `
-        Eres un asistente encargado de generar facturas profesionales en formato de correo electrónico para un establecimiento llamado {{{barName}}}.
+        Eres un asistente encargado de generar recibos de compra visualmente atractivos en formato HTML.
+        El diseño debe ser limpio, profesional y similar a un tiquete de compra físico.
 
-        Tu tarea es crear el asunto y el cuerpo HTML de un correo electrónico de factura basado en los detalles del pedido proporcionados.
-        
         **Instrucciones para el HTML:**
-        - El diseño debe ser limpio, profesional y fácil de leer.
-        - Usa un contenedor principal con un ancho máximo de 600px y centrado.
-        - Incluye el logo de la empresa (si se proporciona la URL) en la parte superior, centrado.
-        - El título principal debe ser "Recibo de tu Compra".
-        - Muestra claramente el ID del pedido y la fecha.
-        - Dirígete al cliente por su nombre (Ej: "Hola, {{{customerName}}},").
-        - Presenta los productos en una tabla con las columnas: "Producto", "Cantidad", "Precio Unitario" y "Subtotal".
-        - Muestra el monto total claramente al final de la tabla.
-        - Incluye un pie de página con un mensaje de agradecimiento y el nombre del establecimiento.
-        - Utiliza estilos CSS en línea para garantizar la compatibilidad con todos los clientes de correo electrónico. Los colores primarios deben ser tonos de gris oscuro o negro para el texto (#333) y un color de acento sutil si es necesario. El fondo debe ser blanco o un gris muy claro (#f4f4f4).
-
-        **Datos del Pedido:**
-        - ID Pedido: {{{orderId}}}
-        - Cliente: {{{customerName}}}
-        - Fecha: {{{orderDate}}}
-        - Total: {{{total}}}
-        - Items:
-        {{#each items}}
-        - {{quantity}}x {{nombre}} @ {{precio}}
-        {{/each}}
-        
-        **Datos del Establecimiento:**
-        - Nombre: {{{barName}}}
-        {{#if logoUrl}}- Logo: {{{logoUrl}}}{{/if}}
+        - El contenedor principal debe tener un ancho máximo de 350px, estar centrado y tener un fondo blanco.
+        - Usa una fuente monoespaciada o sans-serif simple para facilitar la lectura.
+        - Incluye el logo de la empresa (si se proporciona) en la parte superior, centrado y con un tamaño máximo de 80px.
+        - Muestra el nombre del establecimiento ({{{barName}}}) de forma prominente.
+        - Incluye los detalles del pedido: "Pedido #{{{orderId}}}", "Fecha: {{{orderDate}}}", "Cliente: {{{customerName}}}".
+        - Presenta los productos en un formato de lista o tabla simple, mostrando cantidad, nombre y subtotal.
+        - Usa una línea separadora (como '--------------------------------') antes y después de la lista de productos y antes del total.
+        - Muestra el monto TOTAL claramente al final.
+        - Incluye un pie de página con un mensaje de agradecimiento.
+        - Utiliza estilos CSS en línea para garantizar la compatibilidad.
     `,
 });
 
@@ -87,15 +66,9 @@ const generateInvoiceFlow = ai.defineFlow(
   async (input) => {
     const { output } = await prompt(input);
     if (!output) {
-        throw new Error("No se pudo generar la factura.");
+        throw new Error("No se pudo generar el recibo.");
     }
-    
-    // Convertir el HTML a texto plano para el cuerpo alternativo del correo
-    const textBody = htmlToText(output.htmlBody, {
-        wordwrap: 130
-    });
-    
-    return { ...output, textBody };
+    return output;
   }
 );
 

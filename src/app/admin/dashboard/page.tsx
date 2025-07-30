@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
@@ -11,9 +11,9 @@ import { es } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download, Settings, Trash2, Users, Info, X, PackagePlus, Mail } from 'lucide-react';
+import { PlusCircle, Search, DollarSign, History, ListOrdered, Loader2, Download, Settings, Trash2, Users, Info, X, PackagePlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useProducts, Product } from '@/lib/products';
 import Image from 'next/image';
@@ -35,6 +35,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useSettings } from '@/lib/settings';
 import { generateInvoice, GenerateInvoiceOutput } from '@/ai/flows/generate-invoice-flow';
 import { useToast } from '@/hooks/use-toast';
+import { toPng } from 'html-to-image';
 
 
 export default function AdminDashboardPage() {
@@ -54,6 +55,7 @@ export default function AdminDashboardPage() {
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'Todos'>('Todos');
   const [isDemoNoticeVisible, setIsDemoNoticeVisible] = useState(false);
   const { toast } = useToast();
+  const receiptRef = useRef<HTMLDivElement>(null);
   
   const isMountedAndInitialized = isOrdersInitialized && isProductsInitialized && isSettingsInitialized;
 
@@ -70,7 +72,7 @@ export default function AdminDashboardPage() {
         newFormattedDates[`order-${order.id}`] = format(new Date(order.timestamp), "d 'de' LLLL, h:mm a", { locale: es });
         
         order.items.forEach(item => {
-            newFormattedItemDates[`item-${order.id}-${item.id}-${item.addedAt}`] = format(new Date(item.addedAt), "h:mm a", { locale: es });
+            newFormattedItemDates[`item-${order.id}-${item.addedAt}`] = format(new Date(item.addedAt), "h:mm a", { locale: es });
         });
     });
     setFormattedDates(newFormattedDates);
@@ -121,21 +123,16 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    if (!order.customer.email) {
-      toast({ title: "Error", description: "El cliente no tiene un correo electrónico registrado para enviar el recibo.", variant: "destructive" });
-      return;
-    }
-
     setIsGeneratingInvoice(true);
     setIsInvoiceModalOpen(true);
     setGeneratedInvoice(null);
+    setSelectedOrder(order);
     
     try {
       const invoiceData = await generateInvoice({
         orderId: order.id,
         customerName: order.customer.name,
-        customerEmail: order.customer.email,
-        orderDate: format(new Date(order.timestamp), "d 'de' LLLL 'de' yyyy", { locale: es }),
+        orderDate: format(new Date(order.timestamp), "d 'de' LLLL 'de' yyyy, h:mm a", { locale: es }),
         items: order.items.map(item => ({
             quantity: item.quantity,
             nombre: item.nombre,
@@ -153,6 +150,25 @@ export default function AdminDashboardPage() {
     } finally {
       setIsGeneratingInvoice(false);
     }
+  };
+
+  const handleDownloadImage = () => {
+    if (!receiptRef.current) {
+        toast({ title: "Error", description: "No se pudo encontrar la referencia del recibo.", variant: "destructive" });
+        return;
+    }
+
+    toPng(receiptRef.current, { cacheBust: true, })
+        .then((dataUrl) => {
+            const link = document.createElement('a');
+            link.download = `recibo-pedido-${selectedOrder?.id}.png`;
+            link.href = dataUrl;
+            link.click();
+        })
+        .catch((err) => {
+            console.error(err);
+            toast({ title: "Error", description: "No se pudo generar la imagen del recibo.", variant: "destructive" });
+        });
   };
 
 
@@ -411,8 +427,8 @@ export default function AdminDashboardPage() {
                         </div>
                       </div>
                     </AccordionTrigger>
-                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleGenerateInvoice(order); }} disabled={!order.customer.email}>
-                      <Mail className="h-5 w-5" />
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleGenerateInvoice(order); }}>
+                      <Download className="h-5 w-5" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -558,11 +574,11 @@ export default function AdminDashboardPage() {
       </Dialog>
       
       <Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Vista Previa del Recibo por Correo</DialogTitle>
+            <DialogTitle>Recibo del Pedido #{selectedOrder?.id}</DialogTitle>
             <DialogDescription>
-              Así es como se verá el correo electrónico que recibirá el cliente. En una aplicación real, esto se enviaría automáticamente.
+              A continuación se muestra una vista previa del recibo. Puedes descargarlo como imagen.
             </DialogDescription>
           </DialogHeader>
           {isGeneratingInvoice ? (
@@ -570,19 +586,23 @@ export default function AdminDashboardPage() {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : generatedInvoice ? (
-            <div className="mt-4 bg-muted/50 p-4 rounded-lg">
-              <p className="font-semibold">Asunto: <span className="font-normal">{generatedInvoice.subject}</span></p>
-              <div className="mt-4 border rounded-md overflow-hidden">
-                <iframe
-                  srcDoc={generatedInvoice.htmlBody}
-                  className="w-full h-[60vh] border-0"
-                  title="Vista Previa de Factura"
-                />
-              </div>
+            <div className="mt-4">
+              <div
+                ref={receiptRef}
+                className="bg-white p-4 border rounded-lg"
+                dangerouslySetInnerHTML={{ __html: generatedInvoice.htmlContent }}
+              />
             </div>
           ) : (
-            <p>No se pudo generar la vista previa.</p>
+            <p className="text-center py-8 text-muted-foreground">No se pudo generar la vista previa del recibo.</p>
           )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsInvoiceModalOpen(false)}>Cerrar</Button>
+            <Button onClick={handleDownloadImage} disabled={isGeneratingInvoice || !generatedInvoice}>
+              <Download className="mr-2 h-4 w-4" />
+              Descargar Recibo
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
