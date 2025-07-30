@@ -30,7 +30,7 @@ export function useSettings() {
 
         return {
             barName: generalSettings.barName,
-            logoUrl: generalSettings.logoUrl,
+            logoUrl: generalSettings.logo_url,
             backgroundUrl: generalSettings.background_url,
             promotionalImages: state.promotional_images || [],
             taxRate: generalSettings.taxRate ?? 19,
