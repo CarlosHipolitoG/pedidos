@@ -685,14 +685,16 @@ export default function AdminDashboardPage() {
       </Dialog>
       
       <Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
-        <DialogContent className="sm:max-w-xs w-auto">
-          <DialogHeader>
-            <DialogTitle>Recibo del Pedido #{selectedOrder?.id}</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4 -mx-2 flex justify-center scale-90">
+        <DialogContent className="sm:max-w-xs w-auto p-0">
+          <div className="p-6 pb-2">
+            <DialogHeader>
+              <DialogTitle>Recibo del Pedido #{selectedOrder?.id}</DialogTitle>
+            </DialogHeader>
+          </div>
+          <div className="flex justify-center">
              <ReceiptPreview order={selectedOrder} settings={settings} />
           </div>
-          <DialogFooter className="mt-4">
+          <DialogFooter className="mt-0 p-6 pt-4">
             <Button variant="outline" onClick={() => setIsInvoiceModalOpen(false)}>Cerrar</Button>
             <Button onClick={handleDownloadHtml} disabled={!selectedOrder}>
               <Download className="mr-2 h-4 w-4" />
@@ -704,3 +706,4 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
