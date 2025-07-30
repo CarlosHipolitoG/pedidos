@@ -688,9 +688,6 @@ export default function AdminDashboardPage() {
         <DialogContent className="sm:max-w-xs w-auto">
           <DialogHeader>
             <DialogTitle>Recibo del Pedido #{selectedOrder?.id}</DialogTitle>
-            <DialogDescription>
-              A continuación se muestra una vista previa del recibo. Puedes descargarlo como un archivo HTML.
-            </DialogDescription>
           </DialogHeader>
           <div className="mt-4 -mx-2 flex justify-center scale-90">
              <ReceiptPreview order={selectedOrder} settings={settings} />
