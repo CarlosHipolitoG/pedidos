@@ -14,8 +14,8 @@ import { validateUser } from '@/lib/users';
 import { useAppStore } from '@/lib/store';
 
 export default function WaiterPage() {
-  const [email, setEmail] = useState('mesero@example.com');
-  const [password, setPassword] = useState('10203040'); // The Cedula for the sample user
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const router = useRouter();
   const { toast } = useToast();
   const { isInitialized } = useAppStore();
