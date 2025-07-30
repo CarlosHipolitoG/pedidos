@@ -65,6 +65,13 @@ export function getOrdersByCustomerPhone(phone: string): Order[] {
         .sort((a, b) => b.timestamp - a.timestamp);
 }
 
+export function getOrdersByCustomerEmail(email: string): Order[] {
+    if (!email) return [];
+    return store.getState().orders
+        .filter(order => order.customer.email?.toLowerCase() === email.toLowerCase())
+        .sort((a, b) => b.timestamp - a.timestamp);
+}
+
 export function getOrdersByWaiterName(waiterName: string): Order[] {
     return store.getState().orders
         .filter(order => (order.orderedBy.type === 'Mesero' && order.orderedBy.name === waiterName) || order.attendedBy === waiterName)
@@ -303,3 +310,5 @@ export async function deleteOrder(orderId: number): Promise<void> {
         console.error("Error deleting order:", error);
     }
 }
+
+    
