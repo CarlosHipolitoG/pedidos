@@ -80,7 +80,7 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
 
 
     if (upsertData.length > 0) {
-        const { error: upsertError } = await supabase.from('promotional_images').upsert(upsertData);
+        const { error: upsertError } = await supabase.from('promotional_images').upsert(upsertData, { onConflict: 'id' });
         if (upsertError) {
             console.error("Error upserting promotional images:", upsertError);
         }
