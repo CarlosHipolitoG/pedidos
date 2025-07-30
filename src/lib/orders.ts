@@ -34,7 +34,7 @@ export type Order = {
     attendedBy?: string; // Name of the waiter or admin who last added a product
 };
 
-export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status' | 'items' | 'attendedBy' | 'subtotal'> & {
+export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status' | 'items' | 'attendedBy' | 'subtotal' | 'total'> & {
     items: Omit<OrderItem, 'addedAt'>[];
 };
 
@@ -48,7 +48,7 @@ export function useOrders() {
 
 const calculateTotals = (items: (OrderItem | Omit<OrderItem, 'addedAt'>)[]) => {
     const subtotal = items.reduce((sum, item) => sum + item.precio * item.quantity, 0);
-    const total = subtotal; // El total es ahora igual al subtotal
+    const total = subtotal; // Total is now equal to subtotal
     return { subtotal, total };
 }
 
@@ -294,3 +294,5 @@ export async function deleteOrder(orderId: number): Promise<void> {
         console.error("Error deleting order:", error);
     }
 }
+
+    
