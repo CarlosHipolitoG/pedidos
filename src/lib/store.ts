@@ -5,7 +5,7 @@ import {useState, useEffect} from 'react';
 import type {Order} from './orders';
 import type {Product} from './products';
 import type {User} from './users';
-import { initialUsersData, initialProductsData } from './initial-data';
+import { initialUsersData, initialProductsData, initialSettings } from './initial-data';
 import { getClient } from './supabaseClient';
 
 // Definir tipos para los nuevos almacenes de datos
@@ -21,7 +21,7 @@ type GeneralSettings = {
     id: number;
     barName: string;
     taxRate?: number;
-    logoUrl: string | null;
+    logo_url: string | null;
     background_url: string | null;
 };
 
