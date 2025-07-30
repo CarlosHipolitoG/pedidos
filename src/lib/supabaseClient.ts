@@ -25,13 +25,7 @@ export function getClient(): SupabaseClient {
     }
     
     // Create the client instance.
-    supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      // Opt-in to making this instance a singleton.
-      global: {
-        // Use the same instance across all calls to `createClient()`.
-        fetch: globalThis.fetch,
-      },
-    });
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     // Store the created instance in the global scope.
     globalThis.supabase = supabase;
