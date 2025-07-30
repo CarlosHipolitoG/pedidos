@@ -130,7 +130,7 @@ export default function MenuPage() {
   };
   
   const totalItemsInCart = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartTotal = cart.reduce((total, item) => total + item.precio * item.quantity, 0);
+  const cartSubtotal = cart.reduce((total, item) => total + item.precio * item.quantity, 0);
 
   const handleConfirmOrder = async () => {
     if (cart.length === 0 || !customerInfo) {
@@ -152,7 +152,7 @@ export default function MenuPage() {
     const newOrder = await addOrder({
         customer: customerInfo,
         items: orderItems,
-        total: cartTotal,
+        total: cartSubtotal, // This is the subtotal, addOrder will calc the real total
         orderedBy: { type: 'Cliente', name: customerInfo.name }
     });
 
@@ -339,8 +339,8 @@ export default function MenuPage() {
                 <SheetFooter className="mt-4">
                   <div className="w-full space-y-2">
                     <div className="flex justify-between font-bold text-lg">
-                      <span>Total:</span>
-                      <span>${cartTotal.toLocaleString('es-CO')}</span>
+                      <span>Subtotal:</span>
+                      <span>${cartSubtotal.toLocaleString('es-CO')}</span>
                     </div>
                     <Button className="w-full" size="lg" onClick={handleConfirmOrder}>
                       Confirmar Pedido

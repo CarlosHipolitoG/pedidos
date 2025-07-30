@@ -3,6 +3,7 @@
 
 import {useAppStore, store} from './store';
 import { getClient } from './supabaseClient';
+import { useSettings } from './settings';
 
 // Data types for orders
 export type OrderItem = {
@@ -27,13 +28,15 @@ export type Order = {
     timestamp: number;
     customer: CustomerInfo;
     items: OrderItem[];
+    subtotal: number;
+    tax: number;
     total: number;
     status: OrderStatus;
     orderedBy: OrderedBy;
     attendedBy?: string; // Name of the waiter or admin who last added a product
 };
 
-export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status' | 'items' | 'attendedBy'> & {
+export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status' | 'items' | 'attendedBy' | 'subtotal' | 'tax'> & {
     items: Omit<OrderItem, 'addedAt'>[];
 };
 
@@ -44,6 +47,13 @@ export function useOrders() {
 }
 
 // --- Data Manipulation Functions ---
+
+const calculateTotals = (items: (OrderItem | Omit<OrderItem, 'addedAt'>)[], taxRate: number) => {
+    const subtotal = items.reduce((sum, item) => sum + item.precio * item.quantity, 0);
+    const tax = subtotal * (taxRate / 100);
+    const total = subtotal + tax;
+    return { subtotal, tax, total };
+}
 
 export function getOrderById(orderId: number): Order | undefined {
     return store.getState().orders.find(order => order.id === orderId);
@@ -71,16 +81,23 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
     try {
         const supabase = getClient();
         const now = Date.now();
+        const settings = store.getState().settings;
+        const taxRate = settings?.settings_data?.taxRate ?? 19;
+
         const itemsWithTimestamp: OrderItem[] = payload.items.map(item => ({
             ...item,
             addedAt: now
         }));
         
+        const { subtotal, tax, total } = calculateTotals(itemsWithTimestamp, taxRate);
+
         const newOrderDataForSupabase = {
             timestamp: new Date(now).toISOString(),
             customer: payload.customer,
             items: itemsWithTimestamp,
-            total: payload.total,
+            subtotal,
+            tax,
+            total,
             status: 'Pendiente' as OrderStatus,
             orderedBy: payload.orderedBy,
             attendedBy: payload.orderedBy.type === 'Mesero' ? payload.orderedBy.name : undefined,
@@ -102,6 +119,8 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
             timestamp: new Date(data.timestamp).getTime(),
             customer: data.customer,
             items: data.items,
+            subtotal: data.subtotal,
+            tax: data.tax,
             total: data.total,
             status: data.status,
             orderedBy: data.orderedBy,
@@ -146,6 +165,9 @@ export function updateOrderStatus(orderId: number, status: OrderStatus) {
 
 export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'addedAt'>, attendedBy?: string) {
     let updatedOrder: Order | undefined;
+    const settings = store.getState().settings;
+    const taxRate = settings?.settings_data?.taxRate ?? 19;
+
     store.updateState(currentState => {
         const newOrders = currentState.orders.map(order => {
             if (order.id === orderId) {
@@ -160,10 +182,10 @@ export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'add
                     newItems = [...order.items, { ...product, addedAt: now }];
                 }
                 
-                const newTotal = newItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
+                const { subtotal, tax, total } = calculateTotals(newItems, taxRate);
                 const newStatus = (order.status === 'Completado' || order.status === 'Pagado') ? 'Pendiente' : order.status;
 
-                updatedOrder = { ...order, items: newItems, total: newTotal, status: newStatus, timestamp: now, attendedBy };
+                updatedOrder = { ...order, items: newItems, subtotal, tax, total, status: newStatus, timestamp: now, attendedBy };
                 return updatedOrder;
             }
             return order;
@@ -174,6 +196,8 @@ export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'add
     if (updatedOrder) {
         updateOrderInSupabase(orderId, {
             items: updatedOrder.items,
+            subtotal: updatedOrder.subtotal,
+            tax: updatedOrder.tax,
             total: updatedOrder.total,
             status: updatedOrder.status,
             timestamp: new Date(updatedOrder.timestamp).toISOString(),
@@ -184,6 +208,9 @@ export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'add
 
 export function updateProductQuantityInOrder(orderId: number, itemId: number, newQuantity: number) {
     let updatedOrder: Order | undefined;
+    const settings = store.getState().settings;
+    const taxRate = settings?.settings_data?.taxRate ?? 19;
+
     store.updateState(currentState => {
         const newOrders = currentState.orders.map(order => {
             if (order.id === orderId) {
@@ -201,8 +228,8 @@ export function updateProductQuantityInOrder(orderId: number, itemId: number, ne
                 const newItems = [...order.items];
                 newItems[itemIndex] = { ...item, quantity: newQuantity };
                 
-                const newTotal = newItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
-                updatedOrder = { ...order, items: newItems, total: newTotal };
+                const { subtotal, tax, total } = calculateTotals(newItems, taxRate);
+                updatedOrder = { ...order, items: newItems, subtotal, tax, total };
                 return updatedOrder;
             }
             return order;
@@ -213,6 +240,8 @@ export function updateProductQuantityInOrder(orderId: number, itemId: number, ne
      if (updatedOrder) {
         updateOrderInSupabase(orderId, {
             items: updatedOrder.items,
+            subtotal: updatedOrder.subtotal,
+            tax: updatedOrder.tax,
             total: updatedOrder.total,
         });
     }
@@ -221,6 +250,9 @@ export function updateProductQuantityInOrder(orderId: number, itemId: number, ne
 export function removeProductFromOrder(orderId: number, itemId: number): boolean {
     let success = false;
     let updatedOrder: Order | undefined;
+    const settings = store.getState().settings;
+    const taxRate = settings?.settings_data?.taxRate ?? 19;
+
     store.updateState(currentState => {
         const newOrders = currentState.orders.map(order => {
             if (order.id === orderId) {
@@ -237,9 +269,9 @@ export function removeProductFromOrder(orderId: number, itemId: number): boolean
                 }
 
                 const newItems = order.items.filter(item => item.id !== itemId);
-                const newTotal = newItems.reduce((sum, item) => sum + item.precio * item.quantity, 0);
+                const { subtotal, tax, total } = calculateTotals(newItems, taxRate);
                 success = true;
-                updatedOrder = { ...order, items: newItems, total: newTotal };
+                updatedOrder = { ...order, items: newItems, subtotal, tax, total };
                 return updatedOrder;
             }
             return order;
@@ -250,6 +282,8 @@ export function removeProductFromOrder(orderId: number, itemId: number): boolean
     if (updatedOrder) {
         updateOrderInSupabase(orderId, {
             items: updatedOrder.items,
+            subtotal: updatedOrder.subtotal,
+            tax: updatedOrder.tax,
             total: updatedOrder.total,
         });
     }
@@ -269,5 +303,3 @@ export async function deleteOrder(orderId: number): Promise<void> {
         console.error("Error deleting order:", error);
     }
 }
-
-    

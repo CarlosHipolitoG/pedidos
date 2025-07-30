@@ -123,6 +123,8 @@ export default function AdminDashboardPage() {
         </tr>
     `).join('');
 
+    const taxRate = currentSettings?.taxRate ?? 0;
+    
     return `
       <!DOCTYPE html>
       <html lang="es">
@@ -139,12 +141,14 @@ export default function AdminDashboardPage() {
               p { font-size: 12px; margin: 2px 0; }
               table { width: 100%; font-size: 12px; border-collapse: collapse; }
               th, td { padding: 5px; }
+              .totals-table { width: 100%; margin-top: 10px; }
+              .totals-table td { padding: 2px 5px; }
               .total { text-align: right; font-size: 16px; font-weight: bold; }
           </style>
       </head>
       <body>
           <div class="receipt-container">
-              ${currentSettings?.logoUrl ? `<div class="logo"><img src="${currentSettings.logoUrl}" alt="Logo"></div>` : ''}
+              ${currentSettings?.logoUrl ? `<div class="logo"><img src="${currentSettings.logoUrl}" alt="Logo" crossOrigin="anonymous"></div>` : ''}
               <h2>${currentSettings?.barName || 'Recibo'}</h2>
               <p style="text-align: center;">Recibo de Venta</p>
               <hr>
@@ -162,6 +166,19 @@ export default function AdminDashboardPage() {
                   <tbody>${itemsHtml}</tbody>
               </table>
               <hr>
+               <table class="totals-table">
+                  <tbody>
+                      <tr>
+                          <td>Subtotal:</td>
+                          <td style="text-align: right;">$${order.subtotal.toLocaleString('es-CO')}</td>
+                      </tr>
+                      <tr>
+                          <td>IVA (${taxRate}%):</td>
+                          <td style="text-align: right;">$${order.tax.toLocaleString('es-CO')}</td>
+                      </tr>
+                  </tbody>
+              </table>
+              <hr>
               <div class="total">
                   <p>TOTAL: $${order.total.toLocaleString('es-CO')}</p>
               </div>
@@ -172,7 +189,6 @@ export default function AdminDashboardPage() {
       </html>
     `;
 };
-
 
   const handleOpenInvoiceModal = (order: Order) => {
     setSelectedOrder(order);
@@ -258,6 +274,8 @@ export default function AdminDashboardPage() {
       'Atendido Por': order.attendedBy || order.orderedBy.name,
       'Tipo Venta': order.orderedBy.type,
       'Estado': order.status,
+      'Subtotal': order.subtotal,
+      'IVA': order.tax,
       'Total': order.total
     }));
     downloadCSV(reportData, 'informe-ventas-totales');
@@ -279,7 +297,7 @@ export default function AdminDashboardPage() {
     const reportData = Object.values(productSales).map(p => ({
       'Producto': p.nombre,
       'Cantidad Vendida': p.cantidad,
-      'Total Ventas': p.total
+      'Total Ventas (Sin IVA)': p.total
     })).sort((a,b) => b['Cantidad Vendida'] - a['Cantidad Vendida']);
     downloadCSV(reportData, 'informe-ventas-por-producto');
   };
@@ -345,7 +363,20 @@ export default function AdminDashboardPage() {
                     ))}
                 </tbody>
             </table>
-            <hr className="border-none border-t border-dashed border-black my-4" />
+            <hr className="border-none border-t border-dashed border-black my-2" />
+            <table className="w-full text-xs mt-2">
+                 <tbody>
+                    <tr>
+                        <td className="p-1">Subtotal:</td>
+                        <td className="p-1 text-right">${order.subtotal.toLocaleString('es-CO')}</td>
+                    </tr>
+                    <tr>
+                        <td className="p-1">IVA ({settings.taxRate}%):</td>
+                        <td className="p-1 text-right">${order.tax.toLocaleString('es-CO')}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <hr className="border-none border-t border-dashed border-black my-2" />
             <div className="total text-right text-base font-bold">
                 <p>TOTAL: $${order.total.toLocaleString('es-CO')}</p>
             </div>

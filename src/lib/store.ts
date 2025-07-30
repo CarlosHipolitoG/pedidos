@@ -19,7 +19,7 @@ type PromotionalImage = {
 // This now represents the single row from the 'settings' table
 type GeneralSettings = {
     id: number;
-    settings_data: { barName: string };
+    settings_data: { barName: string; taxRate?: number };
     logo_url: string | null;
     background_url: string | null;
 };

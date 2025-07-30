@@ -8,20 +8,26 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSettings, updateSettings, PromotionalImage, Settings } from '@/lib/settings';
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, PlusCircle, Trash2, Shield, Utensils, User } from 'lucide-react';
+import { ArrowLeft, Save, PlusCircle, Trash2, Shield, Utensils, User, Percent } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 
 export default function AdminSettingsPage() {
   const { settings, isInitialized } = useSettings();
-  const [formState, setFormState] = useState<Settings>({ barName: '', logoUrl: '', backgroundUrl: '', promotionalImages: [] });
+  const [formState, setFormState] = useState<Settings>({ barName: '', logoUrl: '', backgroundUrl: '', promotionalImages: [], taxRate: 0 });
   const [newImageUrl, setNewImageUrl] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
     if (isInitialized && settings) {
-      setFormState(settings);
+      setFormState({
+          barName: settings.barName || '',
+          logoUrl: settings.logoUrl || '',
+          backgroundUrl: settings.backgroundUrl || '',
+          promotionalImages: settings.promotionalImages || [],
+          taxRate: settings.taxRate ?? 19, // Default to 19 if null/undefined
+      });
     }
   }, [settings, isInitialized]);
 
@@ -118,6 +124,21 @@ export default function AdminSettingsPage() {
               placeholder="Ej: HOLIDAYS FRIENDS"
             />
           </div>
+           <div className="space-y-2">
+              <Label htmlFor="taxRate">Tasa de Impuestos (IVA)</Label>
+              <div className="relative">
+                  <Input
+                    id="taxRate"
+                    type="number"
+                    value={formState.taxRate}
+                    onChange={(e) => handleInputChange('taxRate', parseFloat(e.target.value) || 0)}
+                    placeholder="Ej: 19"
+                    className="pl-8"
+                  />
+                  <Percent className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              </div>
+               <p className="text-xs text-muted-foreground">Define el porcentaje de impuestos a aplicar sobre el subtotal de cada pedido.</p>
+            </div>
           <div className="space-y-2">
             <Label htmlFor="logoUrl">URL del Logotipo</Label>
             <Input

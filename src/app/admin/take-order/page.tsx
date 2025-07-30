@@ -99,7 +99,7 @@ export default function AdminTakeOrderPage() {
   };
   
   const totalItemsInCart = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartTotal = cart.reduce((total, item) => total + item.precio * item.quantity, 0);
+  const subtotal = cart.reduce((total, item) => total + item.precio * item.quantity, 0);
 
   const handleConfirmOrder = async () => {
     if (cart.length === 0 || !customerName || !adminName) {
@@ -121,7 +121,7 @@ export default function AdminTakeOrderPage() {
     const newOrder = await addOrder({
         customer: { name: customerName, phone: customerPhone },
         items: orderItems,
-        total: cartTotal,
+        total: subtotal, // This will be recalculated with tax in addOrder
         orderedBy: { type: 'Mesero', name: adminName } // Using 'Mesero' type but with admin's name
     });
     
@@ -308,8 +308,8 @@ export default function AdminTakeOrderPage() {
                 <SheetFooter className="mt-4">
                 <div className="w-full space-y-2">
                     <div className="flex justify-between font-bold text-lg">
-                    <span>Total a agregar:</span>
-                    <span>${cartTotal.toLocaleString('es-CO')}</span>
+                    <span>Subtotal:</span>
+                    <span>${subtotal.toLocaleString('es-CO')}</span>
                     </div>
                     <Button className="w-full" size="lg" onClick={handleConfirmOrder}>
                         <PackagePlus className="mr-2" />
@@ -384,5 +384,3 @@ export default function AdminTakeOrderPage() {
     </div>
   );
 }
-
-    
