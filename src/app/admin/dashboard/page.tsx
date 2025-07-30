@@ -11,7 +11,7 @@ import { es } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download, Settings, Trash2, Users, Info, X, PackagePlus } from 'lucide-react';
+import { PlusCircle, Search, DollarSign, Edit, History, ListOrdered, Loader2, Download, Settings, Trash2, Users, Info, X, PackagePlus, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -29,25 +29,32 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useSettings } from '@/lib/settings';
+import { generateInvoice, GenerateInvoiceOutput } from '@/ai/flows/generate-invoice-flow';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function AdminDashboardPage() {
   const { orders, isInitialized: isOrdersInitialized } = useOrders();
   const { products, isInitialized: isProductsInitialized } = useProducts();
+  const { settings, isInitialized: isSettingsInitialized } = useSettings();
   const [highlightedProducts, setHighlightedProducts] = useState<Record<string, number[]>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [generatedInvoice, setGeneratedInvoice] = useState<GenerateInvoiceOutput | null>(null);
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [debouncedSearchTerm] = useDebounce(productSearchTerm, 300);
   const [formattedDates, setFormattedDates] = useState<Record<string, string>>({});
   const [formattedItemDates, setFormattedItemDates] = useState<Record<string, string>>({});
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'Todos'>('Todos');
   const [isDemoNoticeVisible, setIsDemoNoticeVisible] = useState(false);
+  const { toast } = useToast();
   
-  const isMountedAndInitialized = isOrdersInitialized && isProductsInitialized;
+  const isMountedAndInitialized = isOrdersInitialized && isProductsInitialized && isSettingsInitialized;
 
   useEffect(() => {
     setIsDemoNoticeVisible(true);
@@ -106,6 +113,47 @@ export default function AdminDashboardPage() {
         }));
     }, 2000); // Highlight for 2 seconds
   };
+  
+  const handleGenerateInvoice = async (order: Order) => {
+    if (!settings) {
+      toast({ title: "Error", description: "La configuración no está cargada.", variant: "destructive" });
+      return;
+    }
+
+    if (!order.customer.email) {
+      toast({ title: "Error", description: "El cliente no tiene un correo electrónico registrado para enviar el recibo.", variant: "destructive" });
+      return;
+    }
+
+    setIsGeneratingInvoice(true);
+    setIsInvoiceModalOpen(true);
+    setGeneratedInvoice(null);
+    
+    try {
+      const invoiceData = await generateInvoice({
+        orderId: order.id,
+        customerName: order.customer.name,
+        customerEmail: order.customer.email,
+        orderDate: format(new Date(order.timestamp), "d 'de' LLLL 'de' yyyy", { locale: es }),
+        items: order.items.map(item => ({
+            quantity: item.quantity,
+            nombre: item.nombre,
+            precio: item.precio,
+        })),
+        total: order.total,
+        barName: settings.barName,
+        logoUrl: settings.logoUrl || undefined,
+      });
+      setGeneratedInvoice(invoiceData);
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+      toast({ title: "Error", description: "No se pudo generar el recibo.", variant: "destructive" });
+      setIsInvoiceModalOpen(false);
+    } finally {
+      setIsGeneratingInvoice(false);
+    }
+  };
+
 
   const filteredProducts = (products || []).filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
@@ -114,7 +162,7 @@ export default function AdminDashboardPage() {
   const filteredOrders = isMountedAndInitialized ? (orders || []).filter(order => {
     if (filterStatus === 'Todos') return true;
     return order.status === filterStatus;
-  }) : [];
+  }).sort((a,b) => b.timestamp - a.timestamp) : [];
 
   const getStatusBadgeVariant = (status: OrderStatus) => {
     switch (status) {
@@ -362,6 +410,9 @@ export default function AdminDashboardPage() {
                         </div>
                       </div>
                     </AccordionTrigger>
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleGenerateInvoice(order); }} disabled={!order.customer.email}>
+                      <Mail className="h-5 w-5" />
+                    </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                           <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
@@ -502,6 +553,35 @@ export default function AdminDashboardPage() {
                     ))}
                 </div>
             </div>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Vista Previa del Recibo por Correo</DialogTitle>
+            <DialogDescription>
+              Así es como se verá el correo electrónico que recibirá el cliente. En una aplicación real, esto se enviaría automáticamente.
+            </DialogDescription>
+          </DialogHeader>
+          {isGeneratingInvoice ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : generatedInvoice ? (
+            <div className="mt-4 bg-muted/50 p-4 rounded-lg">
+              <p className="font-semibold">Asunto: <span className="font-normal">{generatedInvoice.subject}</span></p>
+              <div className="mt-4 border rounded-md overflow-hidden">
+                <iframe
+                  srcDoc={generatedInvoice.htmlBody}
+                  className="w-full h-[60vh] border-0"
+                  title="Vista Previa de Factura"
+                />
+              </div>
+            </div>
+          ) : (
+            <p>No se pudo generar la vista previa.</p>
+          )}
         </DialogContent>
       </Dialog>
     </div>
