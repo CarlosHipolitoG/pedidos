@@ -199,5 +199,3 @@ export const getUserFromStorage = (email: string): User | null => {
     if(!user) return null;
     return user;
 }
-
-    

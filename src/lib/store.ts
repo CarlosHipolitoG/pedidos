@@ -71,15 +71,6 @@ class AppStore {
     this.initializationPromise = (async () => {
       try {
         await this.fetchData(); // Realizar la obtención inicial
-        
-        const userEmail = localStorage.getItem('userEmail');
-        if (userEmail) {
-            const user = this.state.users.find(u => u.email === userEmail);
-            if (user && (user.role === 'admin' || user.role === 'waiter')) {
-                this.setupRealtimeListeners();
-            }
-        }
-
       } catch (error) {
         console.error("Initialization failed, will retry on next interaction:", error);
       } finally {
@@ -147,6 +138,7 @@ class AppStore {
       if (this.realtimeChannel) {
           this.realtimeChannel.unsubscribe();
           this.realtimeChannel = null;
+          console.log("Realtime listeners torn down.");
       }
   }
 
