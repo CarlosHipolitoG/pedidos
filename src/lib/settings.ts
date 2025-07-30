@@ -24,13 +24,19 @@ export type Settings = {
 export function useSettings() {
     const { state, isInitialized } = useAppStore();
     
-    // useMemo will prevent creating a new object on every render, fixing the infinite loop.
-    const settings = useMemo(() => ({
-      barName: state.settings?.barName || '',
-      logoUrl: state.image_settings?.logoUrl || null,
-      backgroundUrl: state.image_settings?.backgroundUrl || null,
-      promotionalImages: state.promotional_images || []
-    }), [state.settings, state.image_settings, state.promotional_images]);
+    // useMemo will prevent creating a new object on every render if the dependencies don't change.
+    const settings = useMemo(() => {
+        const generalSettings = state.settings || { barName: 'HOLIDAYS FRIENDS' };
+        const imageSettings = state.image_settings || { logoUrl: null, backgroundUrl: null };
+        const promotionalImages = state.promotional_images || [];
+
+        return {
+            barName: generalSettings.barName,
+            logoUrl: imageSettings.logoUrl,
+            backgroundUrl: imageSettings.backgroundUrl,
+            promotionalImages: promotionalImages
+        };
+    }, [state.settings, state.image_settings, state.promotional_images]);
 
     return {
         settings,
@@ -41,13 +47,13 @@ export function useSettings() {
 
 // --- Data Manipulation Functions ---
 
-export const updateSettings = async (newSettings: Settings): Promise<void> => {
+export const updateSettings = async (formState: Settings): Promise<void> => {
   const supabase = getClient();
 
   // 1. Update bar name in 'settings' table
   const { error: settingsError } = await supabase
     .from('settings')
-    .update({ settings_data: { barName: newSettings.barName } })
+    .update({ settings_data: { barName: formState.barName } })
     .eq('id', 1);
 
   if (settingsError) {
@@ -58,8 +64,8 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
   const { error: imageSettingsError } = await supabase
     .from('image_settings')
     .update({
-      logo_url: newSettings.logoUrl,
-      background_url: newSettings.backgroundUrl,
+      logo_url: formState.logoUrl,
+      background_url: formState.backgroundUrl,
       updated_at: new Date().toISOString()
     })
     .eq('id', 1);
@@ -73,41 +79,45 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
     const { data: dbImages, error: fetchError } = await supabase.from('promotional_images').select('id');
     if (fetchError) {
       console.error("Error fetching promotional images for sync:", fetchError);
+      // Don't proceed if we can't determine what's in the DB
       return;
     }
     const dbImageIds = dbImages.map(img => img.id);
 
-    const localImages = newSettings.promotionalImages || [];
+    const localImages = formState.promotionalImages || [];
     const localImageIds = localImages.map(img => img.id).filter(id => typeof id === 'number' && id > 0);
 
+    // New images have temporary negative IDs or are not in dbImageIds
     const imagesToInsert = localImages
-      .filter(img => typeof img.id !== 'number' || img.id <= 0) // New images have temp negative IDs
-      .map(({ src, alt, hint }) => ({ src, alt, hint }));
+      .filter(img => !dbImageIds.includes(img.id))
+      .map(({ src, alt, hint }) => ({ src, alt, hint })); // Create new objects without ID
 
     const imagesToUpdate = localImages
-      .filter(img => typeof img.id === 'number' && img.id > 0 && dbImageIds.includes(img.id));
+      .filter(img => dbImageIds.includes(img.id));
 
     const imageIdsToDelete = dbImageIds.filter(id => !localImageIds.includes(id));
 
     if (imagesToInsert.length > 0) {
-      const { error: insertError } = await supabase.from('promotional_images').insert(imagesToInsert);
-      if (insertError) {
-        console.error("Error inserting new promotional images:", insertError);
-      }
+        const { error: insertError } = await supabase.from('promotional_images').insert(imagesToInsert);
+        if (insertError) console.error("Error inserting new promotional images:", insertError);
     }
 
     if (imagesToUpdate.length > 0) {
-      const updatePromises = imagesToUpdate.map(img =>
+      const updatePromises = imagesToUpdate.map(img => 
         supabase.from('promotional_images').update({ src: img.src, alt: img.alt, hint: img.hint }).eq('id', img.id)
       );
-      await Promise.all(updatePromises.map(p => p.catch(e => console.error("Error updating image", e))));
+      // Use Promise.allSettled to wait for all updates and log any that fail
+      const results = await Promise.allSettled(updatePromises);
+      results.forEach(result => {
+        if (result.status === 'rejected') {
+          console.error("Error updating image:", result.reason);
+        }
+      });
     }
 
     if (imageIdsToDelete.length > 0) {
       const { error: deleteError } = await supabase.from('promotional_images').delete().in('id', imageIdsToDelete);
-      if (deleteError) {
-        console.error("Error deleting old promotional images:", deleteError);
-      }
+      if (deleteError) console.error("Error deleting old promotional images:", deleteError);
     }
 
   } catch (error) {
@@ -115,5 +125,6 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
   }
 
   // 4. Finally, refresh the local state from the DB to ensure consistency
+  // Defer this to a manual refresh or rely on realtime to avoid race conditions
   await store.fetchData();
 };
