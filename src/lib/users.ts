@@ -106,18 +106,14 @@ export const addUser = (userData: Omit<User, 'id'>): { newUser: User | null, tem
     return { newUser, tempPassword };
 };
 
-export const updateUser = (userId: number, updatedData: Partial<Omit<User, 'id' | 'password' | 'temporaryPassword'>>): void => {
+export const updateUser = (userId: number, updatedData: Partial<User>): void => {
     let userToSync: Partial<User> = {};
     store.updateState(currentState => {
         const users = currentState.users.map(user => {
             if (user.id === userId) {
-                let finalUpdatedUser = { ...user, ...updatedData };
-                if(finalUpdatedUser.role === 'waiter' && updatedData.cedula) {
-                    finalUpdatedUser.password = updatedData.cedula;
-                    finalUpdatedUser.temporaryPassword = false;
-                }
-                 const { id, ...syncData } = finalUpdatedUser;
-                 userToSync = syncData;
+                const finalUpdatedUser = { ...user, ...updatedData };
+                const { id, ...syncData } = finalUpdatedUser; // prepare data for Supabase
+                userToSync = syncData;
                 return finalUpdatedUser;
             }
             return user;
@@ -126,6 +122,8 @@ export const updateUser = (userId: number, updatedData: Partial<Omit<User, 'id' 
     });
 
     if (Object.keys(userToSync).length > 0) {
+        // Exclude id from the object sent to supabase
+        delete userToSync.id;
         syncUserInSupabase(userToSync, false, userId);
     }
 };

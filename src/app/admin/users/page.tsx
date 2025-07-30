@@ -70,9 +70,19 @@ export default function AdminUsersPage() {
 
     if (editingUser.id) {
       // Editing existing user
-      const { id, ...updateData } = editingUser;
-      updateUser(id, updateData as Omit<User, 'id' | 'password' | 'temporaryPassword'>);
-       toast({ title: "Usuario Actualizado", description: `Los datos de ${editingUser.name} han sido actualizados.` });
+      let updateData = { ...editingUser };
+
+      // If the role is waiter and cedula has changed, also update the password
+      if (updateData.role === 'waiter' && updateData.cedula) {
+        const originalUser = users.find(u => u.id === editingUser.id);
+        if (originalUser && originalUser.cedula !== updateData.cedula) {
+          (updateData as User).password = updateData.cedula;
+          (updateData as User).temporaryPassword = false;
+        }
+      }
+      
+      updateUser(editingUser.id, updateData);
+      toast({ title: "Usuario Actualizado", description: `Los datos de ${editingUser.name} han sido actualizados.` });
     } else {
       // Adding new user
       const result = addUser(editingUser as Omit<User, 'id' | 'password' | 'temporaryPassword'>);
