@@ -120,7 +120,9 @@ class AppStore {
         })
         .subscribe((status, err) => {
              if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-                console.error('Realtime channel state:', status, err ? `Error: ${err.message}`: '');
+                // This is a common occurrence in development and the client will auto-reconnect.
+                // No need to show an error to the user.
+                console.log('Realtime channel state:', status, err ? `Error: ${err.message}`: '');
              }
         });
   }
