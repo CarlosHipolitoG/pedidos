@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save, PlusCircle, Trash2, Shield, Utensils, User } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
+import Image from 'next/image';
 
 export default function AdminSettingsPage() {
   const { settings, isInitialized } = useSettings();
@@ -20,7 +21,12 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     if (isInitialized && settings) {
-      setFormState(settings);
+      setFormState({
+        barName: settings.barName || '',
+        logoUrl: settings.logoUrl || '',
+        backgroundUrl: settings.backgroundUrl || '',
+        promotionalImages: settings.promotionalImages || []
+      });
     }
   }, [settings, isInitialized]);
 
@@ -39,7 +45,6 @@ export default function AdminSettingsPage() {
   const handleAddImage = () => {
     if (newImageUrl.trim() === '') return;
     const newImage: PromotionalImage = {
-        // Use a temporary negative ID for new items to distinguish them
         id: -Date.now(), 
         src: newImageUrl.trim(),
         alt: 'Promoción',
@@ -128,7 +133,7 @@ export default function AdminSettingsPage() {
             />
             {formState.logoUrl && (
                 <div className="p-4 bg-muted rounded-md flex justify-center">
-                    <img src={formState.logoUrl} alt="Vista previa del logo" className="h-20 w-20 object-contain rounded-full" />
+                    <Image src={formState.logoUrl} alt="Vista previa del logo" width={80} height={80} className="h-20 w-20 object-contain rounded-full" />
                 </div>
             )}
           </div>
@@ -142,7 +147,7 @@ export default function AdminSettingsPage() {
             />
              {formState.backgroundUrl && (
                 <div className="p-4 bg-muted rounded-md flex justify-center">
-                    <img src={formState.backgroundUrl} alt="Vista previa del fondo" className="h-24 w-auto object-contain rounded-md" />
+                    <Image src={formState.backgroundUrl} alt="Vista previa del fondo" width={200} height={112} className="h-24 w-auto object-contain rounded-md" />
                 </div>
             )}
           </div>
@@ -152,7 +157,7 @@ export default function AdminSettingsPage() {
             <div className="space-y-2">
                 {(formState.promotionalImages || []).map((img) => (
                     <div key={img.id} className="flex items-center gap-2 p-2 border rounded-md">
-                       {img.src && <img src={img.src} alt={img.alt || ''} className="h-12 w-12 object-cover rounded-md flex-shrink-0"/>}
+                       {img.src && <Image src={img.src} alt={img.alt || ''} width={48} height={48} className="h-12 w-12 object-cover rounded-md flex-shrink-0"/>}
                         <div className="flex-grow min-w-0">
                           <p className="text-sm break-all">{img.src}</p>
                         </div>
