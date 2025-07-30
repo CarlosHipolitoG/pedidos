@@ -150,6 +150,12 @@ export const validateUser = (email: string, password_plaintext: string, required
     if (user.role !== 'client' && user.password !== password_plaintext) {
          return { success: false, message: 'Contraseña incorrecta.' };
     }
+    
+    // If validation is successful and role is admin/waiter, setup realtime
+    if(user.role === 'admin' || user.role === 'waiter') {
+        store.setupRealtimeListeners();
+    }
+
     return { success: true, user, isTemporaryPassword: !!user.temporaryPassword };
 };
 

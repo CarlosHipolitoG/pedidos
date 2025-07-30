@@ -56,14 +56,12 @@ class AppStore {
       try {
         await this.fetchData(); // Perform the initial fetch
         
-        // Only setup realtime for staff (admin/waiter)
-        const userName = localStorage.getItem('userName');
-        
-        if (userName) {
-          const user = this.state.users.find(u => u.name === userName);
-          if (user && (user.role === 'admin' || user.role === 'waiter')) {
-            this.setupRealtimeListeners();
-          }
+        const userEmail = localStorage.getItem('userEmail');
+        if (userEmail) {
+            const user = this.state.users.find(u => u.email === userEmail);
+            if (user && (user.role === 'admin' || user.role === 'waiter')) {
+                this.setupRealtimeListeners();
+            }
         }
 
       } catch (error) {
@@ -96,14 +94,10 @@ class AppStore {
         ]);
         
         // Handle Products
-        if (productsResponse.error) {
+        if (productsResponse.error || !productsResponse.data || productsResponse.data.length === 0) {
             this.state.products = initialProductsData.map((p, i) => ({ ...p, id: i + 1 }));
         } else {
-            if (productsResponse.data?.length) {
-                this.state.products = productsResponse.data;
-            } else {
-                this.state.products = initialProductsData.map((p, i) => ({ ...p, id: i + 1 }));
-            }
+            this.state.products = productsResponse.data;
         }
         
         // Handle Orders
@@ -123,7 +117,7 @@ class AppStore {
         }
 
         // Handle Settings
-        if (settingsResponse.error) {
+        if (settingsResponse.error || !settingsResponse.data) {
            this.state.settings = initialSettings;
         } else {
           if (settingsResponse.data && settingsResponse.data.settings_data) {
@@ -134,14 +128,10 @@ class AppStore {
         }
         
         // Handle Users
-        if (usersResponse.error) {
+        if (usersResponse.error || !usersResponse.data || usersResponse.data.length === 0) {
              this.state.users = initialUsersData;
         } else {
-             if (usersResponse.data?.length) {
-                this.state.users = usersResponse.data;
-            } else {
-                this.state.users = initialUsersData;
-            }
+            this.state.users = usersResponse.data;
         }
 
 
@@ -157,7 +147,7 @@ class AppStore {
     }
   }
 
-  private setupRealtimeListeners() {
+  public setupRealtimeListeners() {
       if (typeof window === 'undefined' || this.realtimeChannel) return;
 
       const supabase = getClient();
@@ -172,16 +162,13 @@ class AppStore {
             }
         })
         .subscribe((status, err) => {
-             if (status === 'SUBSCRIBED') {
-                // console.log('Successfully subscribed to realtime channel.');
-            }
-             if (status === 'CHANNEL_ERROR') {
-                console.error('Realtime channel error.', err);
+             if (status === 'CHANNEL_ERROR' && err) {
+                console.error('Realtime channel error:', err);
             }
         });
   }
   
-  private teardownRealtimeListeners() {
+  public teardownRealtimeListeners() {
       if (this.realtimeChannel) {
           this.realtimeChannel.unsubscribe();
           this.realtimeChannel = null;
