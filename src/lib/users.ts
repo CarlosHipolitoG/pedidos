@@ -38,8 +38,20 @@ const getUserByEmail = (email: string): User | undefined => {
     return users.find(user => user.email.toLowerCase() === email.toLowerCase());
 }
 
-export const addUser = async (userData: Omit<User, 'id' | 'password' | 'temporaryPassword'>): Promise<{ newUser: User | null, tempPassword?: string }> => {
+const getUserByCedula = (cedula: string): User | undefined => {
+    if (!cedula) return undefined;
+    const users = store.getState().users || [];
+    return users.find(user => user.cedula === cedula);
+};
+
+
+export const addUser = async (userData: Omit<User, 'id' | 'password' | 'temporaryPassword'>): Promise<{ newUser: User | null, tempPassword?: string, error?: string }> => {
     let tempPassword: string | undefined;
+
+    // Check for duplicate cedula
+    if (userData.cedula && getUserByCedula(userData.cedula)) {
+        return { newUser: null, error: `La cédula ${userData.cedula} ya está registrada.` };
+    }
     
     // Explicitly copy only the fields we expect, including the role
     const dataToPrepare: Partial<User> = {
@@ -77,6 +89,9 @@ export const addUser = async (userData: Omit<User, 'id' | 'password' | 'temporar
 
         if (error) {
             console.error("Error inserting user into Supabase:", error);
+            if (error.message.includes('duplicate key value violates unique constraint')) {
+                 return { newUser: null, error: 'El correo electrónico ya está en uso.' };
+            }
             throw error;
         }
 
@@ -91,7 +106,7 @@ export const addUser = async (userData: Omit<User, 'id' | 'password' | 'temporar
 
     } catch (error) {
         console.error("Error adding user:", error);
-        return { newUser: null, tempPassword: undefined };
+        return { newUser: null, tempPassword: undefined, error: 'Ocurrió un error inesperado al registrar el usuario.' };
     }
 };
 

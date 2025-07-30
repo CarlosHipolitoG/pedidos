@@ -134,7 +134,8 @@ export default function AdminUsersPage() {
         });
 
       } else {
-        toast({ title: "Error", description: "No se pudo registrar el usuario. El email podría ya estar en uso.", variant: "destructive" });
+        toast({ title: "Error al registrar usuario", description: result.error || "No se pudo registrar el usuario.", variant: "destructive" });
+        return; // Detener la ejecución para no cerrar el modal
       }
     }
     setIsModalOpen(false);
