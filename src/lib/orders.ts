@@ -3,7 +3,6 @@
 
 import {useAppStore, store} from './store';
 import { getClient } from './supabaseClient';
-import { useSettings } from './settings';
 
 // Data types for orders
 export type OrderItem = {
