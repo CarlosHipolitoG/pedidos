@@ -21,12 +21,7 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     if (isInitialized && settings) {
-      setFormState({
-        barName: settings.barName || '',
-        logoUrl: settings.logoUrl || '',
-        backgroundUrl: settings.backgroundUrl || '',
-        promotionalImages: settings.promotionalImages || []
-      });
+      setFormState(settings);
     }
   }, [settings, isInitialized]);
 
@@ -45,7 +40,7 @@ export default function AdminSettingsPage() {
   const handleAddImage = () => {
     if (newImageUrl.trim() === '') return;
     const newImage: PromotionalImage = {
-        id: -Date.now(), 
+        id: -Date.now(),
         src: newImageUrl.trim(),
         alt: 'Promoción',
         hint: 'promotion event'
@@ -64,7 +59,7 @@ export default function AdminSettingsPage() {
     }));
   };
 
-  if (!isInitialized) {
+  if (!isInitialized || !settings) {
     return (
         <div className="container mx-auto py-8">
              <div className="absolute top-4 right-4 flex gap-2">

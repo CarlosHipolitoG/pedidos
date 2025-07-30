@@ -28,13 +28,13 @@ export default function HomePage() {
   );
 
   useEffect(() => {
-    if (emblaApi && settings.promotionalImages) {
+    if (emblaApi && settings?.promotionalImages) {
         emblaApi.reInit();
         if (settings.promotionalImages.length > 0) {
             autoplayPlugin.current.play();
         }
     }
-  }, [emblaApi, settings.promotionalImages]);
+  }, [emblaApi, settings?.promotionalImages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +68,7 @@ export default function HomePage() {
         </div>
 
         <div className="z-10 relative flex flex-col items-center justify-center gap-6 w-full max-w-md">
-            {isInitialized && settings.promotionalImages && settings.promotionalImages.length > 0 && (
+            {isInitialized && settings && settings.promotionalImages.length > 0 && (
                  <Card className="w-full bg-card/80 backdrop-blur-sm shadow-xl">
                      <CardContent className="p-0">
                          <Carousel

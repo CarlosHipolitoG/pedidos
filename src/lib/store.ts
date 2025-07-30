@@ -9,27 +9,27 @@ import { initialUsersData, initialProductsData } from './initial-data';
 import { getClient } from './supabaseClient';
 
 // Definir tipos para los nuevos almacenes de datos
-type ImageSettings = {
-    logoUrl: string | null;
-    backgroundUrl: string | null;
-};
 type PromotionalImage = {
     id: number;
     src: string | null;
     alt: string | null;
     hint: string | null;
 };
+
+// This now represents the single row from the 'settings' table
 type GeneralSettings = {
-    barName: string;
-}
+    id: number;
+    settings_data: { barName: string };
+    logo_url: string | null;
+    background_url: string | null;
+};
 
 // Define la forma de nuestro entero estado de aplicación
 export type AppData = {
   orders: Order[];
   products: Product[];
   users: User[];
-  settings: GeneralSettings; // Configuración general (ej. nombre del bar)
-  image_settings: ImageSettings; // Configuración de imágenes principales
+  settings: GeneralSettings | null; // A single object for all general settings
   promotional_images: PromotionalImage[]; // Lista de imágenes promocionales
 };
 
@@ -40,8 +40,7 @@ class AppStore {
     orders: [],
     products: [],
     users: [],
-    settings: { barName: 'HOLIDAYS FRIENDS'},
-    image_settings: { logoUrl: '', backgroundUrl: '' },
+    settings: null,
     promotional_images: [],
   };
   private listeners: Set<(state: AppData) => void> = new Set();
@@ -86,28 +85,19 @@ class AppStore {
     try {
         const supabase = getClient();
         
-        const [productsResponse, ordersResponse, settingsResponse, usersResponse, imageSettingsResponse, promoImagesResponse] = await Promise.all([
+        const [productsResponse, ordersResponse, settingsResponse, usersResponse, promoImagesResponse] = await Promise.all([
             supabase.from('products').select('*').order('id', { ascending: true }),
             supabase.from('orders').select('*').order('timestamp', { ascending: false }),
-            supabase.from('settings').select('settings_data').eq('id', 1).single(),
+            supabase.from('settings').select('*').eq('id', 1).single(),
             supabase.from('users').select('*').order('id', { ascending: true }),
-            supabase.from('image_settings').select('logo_url, background_url').eq('id', 1).single(),
             supabase.from('promotional_images').select('*').order('id', { ascending: true })
         ]);
         
         this.state.products = productsResponse.data || initialProductsData.map((p, i) => ({ ...p, id: i + 1 }));
         this.state.users = usersResponse.data || initialUsersData;
         this.state.orders = (ordersResponse.data || []).map((o: any) => ({ ...o, timestamp: new Date(o.timestamp).getTime() }));
-
-        if (settingsResponse.data) {
-             this.state.settings = { barName: settingsResponse.data.settings_data.barName || 'HOLIDAYS FRIENDS' };
-        }
-        if (imageSettingsResponse.data) {
-            this.state.image_settings = { logoUrl: imageSettingsResponse.data.logo_url, backgroundUrl: imageSettingsResponse.data.background_url };
-        }
-        if (promoImagesResponse.data) {
-            this.state.promotional_images = promoImagesResponse.data;
-        }
+        this.state.settings = settingsResponse.data || null;
+        this.state.promotional_images = promoImagesResponse.data || [];
 
     } catch (error: any) {
         console.error("Critical error in fetchData:", error);

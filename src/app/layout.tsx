@@ -12,9 +12,6 @@ import { Loader2 } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// No podemos usar la exportación de metadatos regular porque necesitamos obtener la configuración dinámicamente.
-// Este es un componente de cliente, por lo que estableceremos el título y el fondo en un hook useEffect.
-
 export default function RootLayout({
   children,
 }: Readonly<{
