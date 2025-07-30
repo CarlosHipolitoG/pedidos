@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,44 +28,39 @@ export default function MyOrdersPage() {
   const [now, setNow] = useState(Date.now());
   const { toast } = useToast();
 
-  const handleSearch = (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!phone) return;
+  const handleSearch = useCallback(() => {
+    if (!phone || !isInitialized) return;
     const customerOrders = getOrdersByCustomerPhone(phone).filter(
       (order) => order.status !== 'Pagado'
     );
     setFoundOrders(customerOrders);
     setSearched(true);
+  }, [phone, isInitialized]);
+
+  const submitSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
     localStorage.setItem('customerPhone', phone);
+    handleSearch();
   };
-  
+
   useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 30 * 1000);
-    
     const storedPhone = localStorage.getItem('customerPhone');
     if (storedPhone) {
-        setPhone(storedPhone);
-        if (isInitialized) {
-             const customerOrders = getOrdersByCustomerPhone(storedPhone).filter(
-                (order) => order.status !== 'Pagado'
-            );
-            setFoundOrders(customerOrders);
-            setSearched(true);
-        }
+      setPhone(storedPhone);
     }
-
-    return () => clearInterval(interval);
-     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInitialized]);
+  }, []);
 
   useEffect(() => {
-    if (searched && phone && isInitialized) {
-        handleSearch();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orders, phone, searched, isInitialized]);
+    const interval = setInterval(() => setNow(Date.now()), 30 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-  
+  useEffect(() => {
+    if (isInitialized && phone) {
+      handleSearch();
+    }
+  }, [isInitialized, phone, orders, handleSearch]);
+
   const handleGoToMenu = (orderId: number) => {
     const order = foundOrders.find(o => o.id === orderId);
     if (order?.customer) {
@@ -127,7 +122,7 @@ export default function MyOrdersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSearch} className="flex items-center gap-4 mb-8">
+          <form onSubmit={submitSearch} className="flex items-center gap-4 mb-8">
             <div className="flex-grow space-y-2">
               <Label htmlFor="phone" className="sr-only">Número de Celular</Label>
               <Input
@@ -239,7 +234,7 @@ export default function MyOrdersPage() {
                 </>
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
-                  <p>No se encontraron pedidos activos para este número.</p>
+                  <p>No se encontraron pedidos activos para este número de celular.</p>
                 </div>
               )}
             </div>
