@@ -5,27 +5,44 @@ import {useState, useEffect} from 'react';
 import type {Order} from './orders';
 import type {Product} from './products';
 import type {User} from './users';
-import type {Settings} from './settings';
-import { initialUsersData, initialSettings, initialProductsData } from './initial-data';
+import { initialUsersData, initialProductsData } from './initial-data';
 import { getClient } from './supabaseClient';
 
+// Definir tipos para los nuevos almacenes de datos
+type ImageSettings = {
+    logoUrl: string;
+    backgroundUrl: string;
+};
+type PromotionalImage = {
+    id: number;
+    src: string;
+    alt: string;
+    hint: string;
+};
+type GeneralSettings = {
+    barName: string;
+}
 
-// Define the shape of our entire application's data
+// Define la forma de nuestro entero estado de aplicación
 export type AppData = {
   orders: Order[];
   products: Product[];
   users: User[];
-  settings: Settings;
+  settings: GeneralSettings; // Configuración general (ej. nombre del bar)
+  image_settings: ImageSettings; // Configuración de imágenes principales
+  promotional_images: PromotionalImage[]; // Lista de imágenes promocionales
 };
 
-// This class will manage the application's state.
+// Esta clase manejará el estado de la aplicación.
 class AppStore {
   private static instance: AppStore;
   private state: AppData = {
     orders: [],
     products: [],
     users: [],
-    settings: initialSettings,
+    settings: { barName: 'HOLIDAYS FRIENDS'},
+    image_settings: { logoUrl: '', backgroundUrl: '' },
+    promotional_images: [],
   };
   private listeners: Set<(state: AppData) => void> = new Set();
   private isInitialized = false;
@@ -42,9 +59,8 @@ class AppStore {
     return AppStore.instance;
   }
 
-  // Fetch initial data from the server
+  // Obtener datos iniciales del servidor
   private async initialize() {
-    // Prevent initialization on the server
     if (typeof window === 'undefined') {
         return;
     }
@@ -54,7 +70,7 @@ class AppStore {
 
     this.initializationPromise = (async () => {
       try {
-        await this.fetchData(); // Perform the initial fetch
+        await this.fetchData(); // Realizar la obtención inicial
         
         const userEmail = localStorage.getItem('userEmail');
         if (userEmail) {
@@ -65,14 +81,7 @@ class AppStore {
         }
 
       } catch (error) {
-        // Fallback to initial data if fetch fails
-        console.error("Initialization failed, falling back to initial data:", error);
-        this.state = {
-            orders: [],
-            products: initialProductsData.map((p, i) => ({ ...p, id: i + 1 })),
-            users: initialUsersData,
-            settings: initialSettings
-        };
+        console.error("Initialization failed, will retry on next interaction:", error);
       } finally {
         this.isInitialized = true;
         this.broadcast();
@@ -86,64 +95,31 @@ class AppStore {
     try {
         const supabase = getClient();
         
-        // Parallel fetching for better performance
-        const [productsResponse, ordersResponse, settingsResponse, usersResponse] = await Promise.all([
+        const [productsResponse, ordersResponse, settingsResponse, usersResponse, imageSettingsResponse, promoImagesResponse] = await Promise.all([
             supabase.from('products').select('*').order('id', { ascending: true }),
             supabase.from('orders').select('*').order('timestamp', { ascending: false }),
-            supabase.from('settings').select('settings_data').eq('id', 1).single(), // Use single() for one expected row
+            supabase.from('settings').select('settings_data').eq('id', 1).single(),
             supabase.from('users').select('*').order('id', { ascending: true }),
+            supabase.from('image_settings').select('logo_url, background_url').eq('id', 1).single(),
+            supabase.from('promotional_images').select('*').order('id', { ascending: true })
         ]);
         
-        // Handle Products
-        if (productsResponse.error) {
-            console.warn("Could not fetch products, using initial data.", productsResponse.error);
-            this.state.products = initialProductsData.map((p, i) => ({ ...p, id: i + 1 }));
-        } else {
-            this.state.products = productsResponse.data || [];
-        }
-        
-        // Handle Orders
-        if (ordersResponse.error) {
-             console.warn("Could not fetch orders.", ordersResponse.error);
-            this.state.orders = [];
-        } else {
-             this.state.orders = (ordersResponse.data || []).map((o: any) => ({
-                id: o.id,
-                timestamp: new Date(o.timestamp).getTime(),
-                customer: o.customer,
-                items: o.items,
-                total: o.total,
-                status: o.status,
-                orderedBy: o.orderedBy,
-                attendedBy: o.attendedBy
-             }));
-        }
+        this.state.products = productsResponse.data || initialProductsData.map((p, i) => ({ ...p, id: i + 1 }));
+        this.state.users = usersResponse.data || initialUsersData;
+        this.state.orders = (ordersResponse.data || []).map((o: any) => ({ ...o, timestamp: new Date(o.timestamp).getTime() }));
 
-        // Handle Settings
-        if (settingsResponse.error || !settingsResponse.data || !settingsResponse.data.settings_data) {
-           console.warn("Could not fetch settings, using initial data.", settingsResponse.error);
-           this.state.settings = initialSettings;
-        } else {
-           this.state.settings = settingsResponse.data.settings_data;
+        if (settingsResponse.data) {
+             this.state.settings = { barName: settingsResponse.data.settings_data.barName || 'HOLIDAYS FRIENDS' };
         }
-        
-        // Handle Users
-        if (usersResponse.error) {
-             console.warn("Could not fetch users, using initial data.", usersResponse.error);
-             this.state.users = initialUsersData;
-        } else {
-            this.state.users = usersResponse.data || [];
+        if (imageSettingsResponse.data) {
+            this.state.image_settings = { logoUrl: imageSettingsResponse.data.logo_url, backgroundUrl: imageSettingsResponse.data.background_url };
         }
-
+        if (promoImagesResponse.data) {
+            this.state.promotional_images = promoImagesResponse.data;
+        }
 
     } catch (error: any) {
-        console.error("Critical error in fetchData, falling back to all initial data:", error);
-        this.state = {
-            products: initialProductsData.map((p, i) => ({ ...p, id: i + 1 })),
-            orders: [],
-            users: initialUsersData,
-            settings: initialSettings,
-        };
+        console.error("Critical error in fetchData:", error);
     } finally {
         this.broadcast();
     }
@@ -235,5 +211,3 @@ export function useAppStore() {
 
   return { state, isInitialized };
 }
-
-    

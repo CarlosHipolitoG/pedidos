@@ -12,8 +12,8 @@ import { Loader2 } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// We can't use the regular metadata export because we need to fetch settings dynamically.
-// This is a client component, so we'll set the title and background in a useEffect hook.
+// No podemos usar la exportación de metadatos regular porque necesitamos obtener la configuración dinámicamente.
+// Este es un componente de cliente, por lo que estableceremos el título y el fondo en un hook useEffect.
 
 export default function RootLayout({
   children,
@@ -36,7 +36,7 @@ export default function RootLayout({
       if (settings.backgroundUrl) {
           body.style.setProperty('--dynamic-background-image', `url('${settings.backgroundUrl}')`);
       } else {
-          // Fallback to default if no URL is set
+          // Fallback al predeterminado si no se establece ninguna URL
           body.style.setProperty('--dynamic-background-image', `url('https://storage.googleapis.com/project-spark-b6b15e45/dc407172-5953-4565-a83a-48a58ca7694f.png')`);
       }
     }

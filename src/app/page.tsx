@@ -22,24 +22,19 @@ export default function HomePage() {
   const { settings, isInitialized: isSettingsInitialized } = useSettings();
   const router = useRouter();
   const [emblaApi, setEmblaApi] = useState<CarouselApi | undefined>(undefined);
-  const [promotionalImages, setPromotionalImages] = useState<PromotionalImage[]>([]);
-
+  
   const autoplayPlugin = useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true })
   );
 
   useEffect(() => {
-    if (isSettingsInitialized && settings?.promotionalImages) {
-        setPromotionalImages(settings.promotionalImages);
-    }
-  }, [isSettingsInitialized, settings]);
-
-  useEffect(() => {
     if (emblaApi) {
         emblaApi.reInit();
-        autoplayPlugin.current.play();
+        if (settings.promotionalImages.length > 0) {
+            autoplayPlugin.current.play();
+        }
     }
-  }, [emblaApi, promotionalImages]);
+  }, [emblaApi, settings.promotionalImages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +68,7 @@ export default function HomePage() {
         </div>
 
         <div className="z-10 relative flex flex-col items-center justify-center gap-6 w-full max-w-md">
-            {promotionalImages.length > 0 && (
+            {isSettingsInitialized && settings.promotionalImages && settings.promotionalImages.length > 0 && (
                  <Card className="w-full bg-card/80 backdrop-blur-sm shadow-xl">
                      <CardContent className="p-0">
                          <Carousel
@@ -84,7 +79,7 @@ export default function HomePage() {
                             onMouseLeave={() => autoplayPlugin.current.play()}
                         >
                             <CarouselContent>
-                                {promotionalImages.map((img) => (
+                                {settings.promotionalImages.map((img) => (
                                     <CarouselItem key={img.id}>
                                         <div className="relative aspect-video w-full">
                                             <Image
@@ -126,7 +121,7 @@ export default function HomePage() {
                                 />
                             )}
                             <CardTitle className="text-2xl text-center">
-                                {`¡Bienvenido a ${settings.barName}!`}
+                                {`¡Bienvenido a ${settings.barName || 'HOLIDAYS FRIENDS'}!`}
                             </CardTitle>
                             <CardDescription className="text-center">
                                 Ingresa tus datos para comenzar o revisa tus pedidos anteriores.
