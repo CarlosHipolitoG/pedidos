@@ -33,6 +33,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useSettings } from '@/lib/settings';
+import { useToast } from "@/hooks/use-toast";
+
 
 export default function AdminDashboardPage() {
   const { orders, isInitialized: isOrdersInitialized } = useOrders();
@@ -48,10 +50,8 @@ export default function AdminDashboardPage() {
   const [formattedItemDates, setFormattedItemDates] = useState<Record<string, string>>({});
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'Todos'>('Todos');
   const [isDemoNoticeVisible, setIsDemoNoticeVisible] = useState(false);
-  const receiptRef = useRef<HTMLDivElement>(null);
-  const [receiptHtml, setReceiptHtml] = useState('');
+  const { toast } = useToast();
 
-  
   const isMountedAndInitialized = isOrdersInitialized && isProductsInitialized && isSettingsInitialized;
 
   useEffect(() => {
@@ -125,11 +125,12 @@ export default function AdminDashboardPage() {
 
     return `
       <!DOCTYPE html>
-      <html>
+      <html lang="es">
       <head>
           <meta charset="UTF-8">
+          <title>Recibo Pedido #${order.id}</title>
           <style>
-              body { font-family: 'Courier New', monospace; width: 320px; margin: 0 auto; }
+              body { font-family: 'Courier New', monospace; width: 320px; margin: 20px auto; background-color: #f7f7f7; }
               .receipt-container { background-color: white; color: black; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
               .logo { text-align: center; margin-bottom: 15px; }
               .logo img { max-width: 80px; max-height: 80px; }
@@ -173,25 +174,30 @@ export default function AdminDashboardPage() {
 };
 
 
-  const handleGenerateInvoice = (order: Order) => {
+  const handleOpenInvoiceModal = (order: Order) => {
     setSelectedOrder(order);
-    const htmlContent = generateInvoiceHtmlContent(order, settings);
-    setReceiptHtml(htmlContent);
     setIsInvoiceModalOpen(true);
   };
   
-  const handleDownloadImage = () => {
-    if (!receiptHtml || !selectedOrder) return;
-    const encodedHtml = encodeURIComponent(receiptHtml);
-    const downloadUrl = `https://image.thum.io/get/width/320/crop/0/html/${encodedHtml}`;
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = `recibo-pedido-${selectedOrder.id}.png`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadHtml = () => {
+    if (!selectedOrder || !settings) return;
+    try {
+      const htmlContent = generateInvoiceHtmlContent(selectedOrder, settings);
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `recibo-pedido-${selectedOrder.id}.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("HTML download error:", err);
+      toast({ title: "Error de Descarga", description: "No se pudo generar el archivo del recibo.", variant: "destructive" });
+    }
   };
+
 
   const filteredProducts = (products || []).filter((product) =>
     product.nombre.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
@@ -305,6 +311,49 @@ export default function AdminDashboardPage() {
   const handleDeleteOrder = (orderId: number) => {
     deleteOrder(orderId);
   };
+
+  const ReceiptPreview = ({ order, settings }: { order: Order | null; settings: typeof settings | null }) => {
+    if (!order || !settings) return null;
+
+    return (
+        <div className="receipt-container bg-white text-black p-5 border border-gray-300 shadow-lg" style={{ width: '320px' }}>
+            {settings.logoUrl && (
+                <div className="logo text-center mb-4">
+                    <Image src={settings.logoUrl} alt="Logo" width={80} height={80} className="mx-auto" crossOrigin="anonymous" />
+                </div>
+            )}
+            <h2 className="text-center m-0 mb-2.5 text-lg font-bold">{settings.barName || 'Recibo'}</h2>
+            <p className="text-center text-xs m-0">Recibo de Venta</p>
+            <hr className="border-none border-t border-dashed border-black my-4" />
+            <p className="text-xs m-0.5"><strong>Pedido #:</strong> {order.id}</p>
+            <p className="text-xs m-0.5"><strong>Cliente:</strong> {order.customer.name}</p>
+            <p className="text-xs m-0.5"><strong>Fecha:</strong> {format(new Date(order.timestamp), "d/MM/yy, h:mm a", { locale: es })}</p>
+            <hr className="border-none border-t border-dashed border-black my-4" />
+            <table className="w-full text-xs border-collapse">
+                <thead>
+                    <tr>
+                        <th className="text-left p-1.5">Producto</th>
+                        <th className="text-right p-1.5">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {order.items.map(item => (
+                        <tr key={`${item.id}-${item.addedAt}`}>
+                            <td className="p-1.5 text-left">{item.quantity}x {item.nombre}</td>
+                            <td className="p-1.5 text-right">${(item.precio * item.quantity).toLocaleString('es-CO')}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            <hr className="border-none border-t border-dashed border-black my-4" />
+            <div className="total text-right text-base font-bold">
+                <p>TOTAL: $${order.total.toLocaleString('es-CO')}</p>
+            </div>
+            <hr className="border-none border-t border-dashed border-black my-4" />
+            <p className="text-center mt-4 text-xs">¡Gracias por tu compra!</p>
+        </div>
+    );
+};
 
   return (
     <div className="container mx-auto py-8 relative">
@@ -448,7 +497,7 @@ export default function AdminDashboardPage() {
                         </div>
                       </div>
                     </AccordionTrigger>
-                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleGenerateInvoice(order); }}>
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleOpenInvoiceModal(order); }}>
                       <Download className="h-5 w-5" />
                     </Button>
                     <AlertDialog>
@@ -599,22 +648,15 @@ export default function AdminDashboardPage() {
           <DialogHeader>
             <DialogTitle>Recibo del Pedido #{selectedOrder?.id}</DialogTitle>
             <DialogDescription>
-              A continuación se muestra una vista previa del recibo. Puedes descargarlo como imagen.
+              A continuación se muestra una vista previa del recibo. Puedes descargarlo como un archivo HTML.
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4 -mx-2 flex justify-center">
-             {selectedOrder && (
-                <div
-                    ref={receiptRef}
-                    className="p-4 bg-white text-black"
-                    style={{ width: '320px' }}
-                    dangerouslySetInnerHTML={{ __html: receiptHtml.replace(/<!DOCTYPE html>|<html>|<head>.*?<\/head>|<body>|<\/body><\/html>/g, '') }}
-                 />
-              )}
+          <div className="mt-4 -mx-2 flex justify-center scale-90">
+             <ReceiptPreview order={selectedOrder} settings={settings} />
           </div>
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setIsInvoiceModalOpen(false)}>Cerrar</Button>
-            <Button onClick={handleDownloadImage} disabled={!selectedOrder}>
+            <Button onClick={handleDownloadHtml} disabled={!selectedOrder}>
               <Download className="mr-2 h-4 w-4" />
               Descargar Recibo
             </Button>
