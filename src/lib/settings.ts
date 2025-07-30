@@ -30,7 +30,7 @@ export function useSettings() {
 
         return {
             barName: generalSettings.barName,
-            logoUrl: generalSettings.logo_url,
+            logoUrl: generalSettings.logoUrl,
             backgroundUrl: generalSettings.background_url,
             promotionalImages: state.promotional_images || [],
             taxRate: generalSettings.taxRate ?? 19,
@@ -55,7 +55,7 @@ export const updateSettings = async (formState: Settings): Promise<void> => {
     .update({
       barName: formState.barName, 
       taxRate: formState.taxRate,
-      logo_url: formState.logoUrl,
+      logoUrl: formState.logoUrl,
       background_url: formState.backgroundUrl
     })
     .eq('id', 1);
