@@ -37,6 +37,7 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
   const supabase = getClient();
   
   // 1. Actualizar el nombre del bar en la tabla 'settings' (la original)
+  // Esta tabla todavía podría no tener políticas RLS, por lo que podría funcionar de manera diferente
   const { error: settingsError } = await supabase
     .from('settings')
     .update({ settings_data: { barName: newSettings.barName } })
@@ -61,27 +62,28 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
   }
 
   // 3. Sincronizar las imágenes promocionales
-  // Primero, obtener las imágenes actuales de la DB
-  const { data: currentDbImages } = await supabase.from('promotional_images').select('id');
-  const currentDbIds = currentDbImages?.map(img => img.id) || [];
-  const newImageIds = newSettings.promotionalImages.map(img => img.id);
+  try {
+    const { data: currentDbImages } = await supabase.from('promotional_images').select('id');
+    const currentDbIds = currentDbImages?.map(img => img.id) || [];
+    const newImageIds = newSettings.promotionalImages.map(img => img.id);
 
-  // Borrar las que ya no están
-  const idsToDelete = currentDbIds.filter(id => !newImageIds.includes(id));
-  if (idsToDelete.length > 0) {
-    const { error: deleteError } = await supabase
-        .from('promotional_images')
-        .delete()
-        .in('id', idsToDelete);
-     if (deleteError) console.error("Error deleting promo images:", deleteError);
+    const idsToDelete = currentDbIds.filter(id => !newImageIds.includes(id));
+    if (idsToDelete.length > 0) {
+      await supabase.from('promotional_images').delete().in('id', idsToDelete);
+    }
+
+    const upsertData = newSettings.promotionalImages.map(({ id, ...rest }) => ({
+        ...rest,
+        ...(id < 1000000 && { id }), // No incluyas el id si es uno temporal muy grande
+    }));
+
+    const { error: upsertError } = await supabase.from('promotional_images').upsert(upsertData);
+    if (upsertError) {
+      console.error("Error upserting promotional images:", upsertError);
+    }
+  } catch (error) {
+    console.error("Error managing promotional images:", error);
   }
-
-  // Actualizar o insertar las nuevas/existentes
-  const upsertPromises = newSettings.promotionalImages.map(img => {
-    const { id, ...imgData } = img;
-    return supabase.from('promotional_images').upsert({ id: id > 1000000 ? undefined : id, ...imgData });
-  });
-  await Promise.all(upsertPromises);
 
 
   // 4. Finalmente, refrescar el estado local desde la DB para asegurar consistencia
