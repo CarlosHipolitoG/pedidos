@@ -3,6 +3,7 @@
 
 import {useAppStore, store} from './store';
 import { useMemo } from 'react';
+import { getClient } from './supabaseClient';
 
 export type PromotionalImage = {
   id: number;

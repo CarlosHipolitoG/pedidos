@@ -108,9 +108,7 @@ export default function HomePage() {
                              <img 
                                 src={settings.logoUrl} 
                                 alt="Logo" 
-                                width={80} 
-                                height={80} 
-                                className="rounded-full mb-4"
+                                className="h-20 w-auto object-contain rounded-md mb-4"
                                 data-ai-hint="logo"
                                 crossOrigin='anonymous'
                             />
