@@ -39,8 +39,8 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
     // Assuming we have only one row for settings in the DB, with id=1
     const { error } = await supabase
       .from('settings')
-      .update({ settings_data: newSettings })
-      .eq('id', 1); 
+      .update({ settings_data: newSettings }) // Correctly update the 'settings_data' JSONB column
+      .eq('id', 1); // Specify which row to update
     
     if (error) {
       console.error("Error updating settings in Supabase:", error);
@@ -50,5 +50,3 @@ export const updateSettings = async (newSettings: Settings): Promise<void> => {
      console.error("Error in updateSettings:", error);
   }
 };
-
-    

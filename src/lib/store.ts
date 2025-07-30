@@ -90,16 +90,16 @@ class AppStore {
         const [productsResponse, ordersResponse, settingsResponse, usersResponse] = await Promise.all([
             supabase.from('products').select('*').order('id', { ascending: true }),
             supabase.from('orders').select('*').order('timestamp', { ascending: false }),
-            supabase.from('settings').select('settings_data').eq('id', 1).maybeSingle(),
+            supabase.from('settings').select('settings_data').eq('id', 1).single(), // Use single() for one expected row
             supabase.from('users').select('*').order('id', { ascending: true }),
         ]);
         
         // Handle Products
-        if (productsResponse.error || !productsResponse.data || productsResponse.data.length === 0) {
+        if (productsResponse.error) {
             console.warn("Could not fetch products, using initial data.", productsResponse.error);
             this.state.products = initialProductsData.map((p, i) => ({ ...p, id: i + 1 }));
         } else {
-            this.state.products = productsResponse.data;
+            this.state.products = productsResponse.data || [];
         }
         
         // Handle Orders
@@ -128,11 +128,11 @@ class AppStore {
         }
         
         // Handle Users
-        if (usersResponse.error || !usersResponse.data || !usersResponse.data.length === 0) {
+        if (usersResponse.error) {
              console.warn("Could not fetch users, using initial data.", usersResponse.error);
              this.state.users = initialUsersData;
         } else {
-            this.state.users = usersResponse.data;
+            this.state.users = usersResponse.data || [];
         }
 
 
