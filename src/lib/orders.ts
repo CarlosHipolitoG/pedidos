@@ -28,14 +28,13 @@ export type Order = {
     customer: CustomerInfo;
     items: OrderItem[];
     subtotal: number;
-    tax: number;
     total: number;
     status: OrderStatus;
     orderedBy: OrderedBy;
     attendedBy?: string; // Name of the waiter or admin who last added a product
 };
 
-export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status' | 'items' | 'attendedBy' | 'subtotal' | 'tax'> & {
+export type NewOrderPayload = Omit<Order, 'id' | 'timestamp' | 'status' | 'items' | 'attendedBy' | 'subtotal'> & {
     items: Omit<OrderItem, 'addedAt'>[];
 };
 
@@ -49,9 +48,8 @@ export function useOrders() {
 
 const calculateTotals = (items: (OrderItem | Omit<OrderItem, 'addedAt'>)[]) => {
     const subtotal = items.reduce((sum, item) => sum + item.precio * item.quantity, 0);
-    const tax = 0; // Se elimina el cálculo de impuestos
     const total = subtotal; // El total es ahora igual al subtotal
-    return { subtotal, tax, total };
+    return { subtotal, total };
 }
 
 export function getOrderById(orderId: number): Order | undefined {
@@ -93,14 +91,13 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
             addedAt: now
         }));
         
-        const { subtotal, tax, total } = calculateTotals(itemsWithTimestamp);
+        const { subtotal, total } = calculateTotals(itemsWithTimestamp);
 
         const newOrderDataForSupabase = {
             timestamp: new Date(now).toISOString(),
             customer: payload.customer,
             items: itemsWithTimestamp,
             subtotal,
-            tax,
             total,
             status: 'Pendiente' as OrderStatus,
             orderedBy: payload.orderedBy,
@@ -124,7 +121,6 @@ export async function addOrder(payload: NewOrderPayload): Promise<Order | null> 
             customer: data.customer,
             items: data.items,
             subtotal: data.subtotal,
-            tax: data.tax,
             total: data.total,
             status: data.status,
             orderedBy: data.orderedBy,
@@ -184,10 +180,10 @@ export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'add
                     newItems = [...order.items, { ...product, addedAt: now }];
                 }
                 
-                const { subtotal, tax, total } = calculateTotals(newItems);
+                const { subtotal, total } = calculateTotals(newItems);
                 const newStatus = (order.status === 'Completado' || order.status === 'Pagado') ? 'Pendiente' : order.status;
 
-                updatedOrder = { ...order, items: newItems, subtotal, tax, total, status: newStatus, timestamp: now, attendedBy };
+                updatedOrder = { ...order, items: newItems, subtotal, total, status: newStatus, timestamp: now, attendedBy };
                 return updatedOrder;
             }
             return order;
@@ -199,7 +195,6 @@ export function addProductToOrder(orderId: number, product: Omit<OrderItem, 'add
         updateOrderInSupabase(orderId, {
             items: updatedOrder.items,
             subtotal: updatedOrder.subtotal,
-            tax: updatedOrder.tax,
             total: updatedOrder.total,
             status: updatedOrder.status,
             timestamp: new Date(updatedOrder.timestamp).toISOString(),
@@ -228,8 +223,8 @@ export function updateProductQuantityInOrder(orderId: number, itemId: number, ne
                 const newItems = [...order.items];
                 newItems[itemIndex] = { ...item, quantity: newQuantity };
                 
-                const { subtotal, tax, total } = calculateTotals(newItems);
-                updatedOrder = { ...order, items: newItems, subtotal, tax, total };
+                const { subtotal, total } = calculateTotals(newItems);
+                updatedOrder = { ...order, items: newItems, subtotal, total };
                 return updatedOrder;
             }
             return order;
@@ -241,7 +236,6 @@ export function updateProductQuantityInOrder(orderId: number, itemId: number, ne
         updateOrderInSupabase(orderId, {
             items: updatedOrder.items,
             subtotal: updatedOrder.subtotal,
-            tax: updatedOrder.tax,
             total: updatedOrder.total,
         });
     }
@@ -267,9 +261,9 @@ export function removeProductFromOrder(orderId: number, itemId: number): boolean
                 }
 
                 const newItems = order.items.filter(item => item.id !== itemId);
-                const { subtotal, tax, total } = calculateTotals(newItems);
+                const { subtotal, total } = calculateTotals(newItems);
                 success = true;
-                updatedOrder = { ...order, items: newItems, subtotal, tax, total };
+                updatedOrder = { ...order, items: newItems, subtotal, total };
                 return updatedOrder;
             }
             return order;
@@ -281,7 +275,6 @@ export function removeProductFromOrder(orderId: number, itemId: number): boolean
         updateOrderInSupabase(orderId, {
             items: updatedOrder.items,
             subtotal: updatedOrder.subtotal,
-            tax: updatedOrder.tax,
             total: updatedOrder.total,
         });
     }

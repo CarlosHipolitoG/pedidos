@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSettings, updateSettings, Settings } from '@/lib/settings';
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, PlusCircle, Trash2, Shield, Utensils, User, Percent } from 'lucide-react';
+import { ArrowLeft, Save, PlusCircle, Trash2, Shield, Utensils, User } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';

@@ -17,7 +17,6 @@ export type Settings = {
   logoUrl: string | null;
   backgroundUrl: string | null;
   promotionalImages: PromotionalImage[];
-  taxRate?: number;
 };
 
 // --- Hook to get combined settings from the store ---
@@ -33,7 +32,6 @@ export function useSettings() {
             logoUrl: generalSettings.logo_url, // Read from snake_case
             backgroundUrl: generalSettings.background_url, // Read from snake_case
             promotionalImages: state.promotional_images || [],
-            taxRate: generalSettings.taxRate ?? 19,
         };
     }, [state.settings, state.promotional_images]);
 
@@ -54,7 +52,6 @@ export const updateSettings = async (formState: Settings): Promise<void> => {
     .from('settings')
     .update({
       barName: formState.barName, 
-      taxRate: formState.taxRate,
       logo_url: formState.logoUrl, // Write to snake_case
       background_url: formState.backgroundUrl // Write to snake_case
     })

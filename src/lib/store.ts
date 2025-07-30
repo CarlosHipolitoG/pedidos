@@ -20,7 +20,6 @@ type PromotionalImage = {
 type GeneralSettings = {
     id: number;
     barName: string;
-    taxRate?: number;
     logo_url: string | null;
     background_url: string | null;
 };
