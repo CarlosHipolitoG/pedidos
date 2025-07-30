@@ -6,25 +6,30 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useSettings, updateSettings, PromotionalImage } from '@/lib/settings';
+import { useSettings, updateSettings, PromotionalImage, Settings } from '@/lib/settings';
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save, PlusCircle, Trash2, Shield, Utensils, User } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminSettingsPage() {
-  const { settings, isInitialized } = useSettings();
-  const [formState, setFormState] = useState<typeof settings>({ barName: '', logoUrl: '', backgroundUrl: '', promotionalImages: [] });
+  const { settings, image_settings, promotional_images, isInitialized } = useSettings();
+  const [formState, setFormState] = useState<Settings>({ barName: '', logoUrl: '', backgroundUrl: '', promotionalImages: [] });
   const [newImageUrl, setNewImageUrl] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isInitialized && settings) {
-      setFormState(settings);
+    if (isInitialized && settings && image_settings && promotional_images) {
+      setFormState({
+        barName: settings.barName,
+        logoUrl: image_settings.logoUrl,
+        backgroundUrl: image_settings.backgroundUrl,
+        promotionalImages: promotional_images,
+      });
     }
-  }, [settings, isInitialized]);
+  }, [settings, image_settings, promotional_images, isInitialized]);
 
-  const handleInputChange = (field: keyof typeof formState, value: any) => {
+  const handleInputChange = (field: keyof Settings, value: any) => {
     setFormState(prev => ({ ...prev, [field]: value }));
   };
 

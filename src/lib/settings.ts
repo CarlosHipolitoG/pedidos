@@ -22,14 +22,13 @@ export type Settings = {
 // --- Hook para obtener la configuración combinada desde el store ---
 export function useSettings() {
     const { state, isInitialized } = useAppStore();
-    // Combinamos los datos de las diferentes fuentes de estado
-    const settings: Settings = {
-        barName: state.settings?.barName || 'HOLIDAYS FRIENDS',
-        logoUrl: state.image_settings?.logoUrl || '',
-        backgroundUrl: state.image_settings?.backgroundUrl || '',
-        promotionalImages: state.promotional_images || [],
+    // Devolvemos las partes del estado directamente para evitar re-renderizados innecesarios.
+    return { 
+        settings: state.settings,
+        image_settings: state.image_settings,
+        promotional_images: state.promotional_images,
+        isInitialized 
     };
-    return { settings, isInitialized };
 }
 
 // --- Funciones de Manipulación de Datos ---
