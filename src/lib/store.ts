@@ -119,7 +119,7 @@ class AppStore {
         })
         .subscribe((status, err) => {
              if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-                console.error('Realtime channel error:', err);
+                console.error('Realtime channel state:', status, err ? `Error: ${err.message}`: '');
              }
         });
   }
