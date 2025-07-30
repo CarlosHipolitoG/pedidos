@@ -28,7 +28,7 @@ export function useSettings() {
         const settingsData = state.settings;
         if (!settingsData) return null;
 
-        const taxRate = settingsData.settings_data?.taxRate ?? 19; // Default to 19%
+        const taxRate = settingsData.settings_data?.taxRate ?? 19;
 
         return {
             barName: settingsData.settings_data.barName,
