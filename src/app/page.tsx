@@ -108,7 +108,7 @@ export default function HomePage() {
                            <img src={settings.logoUrl} alt="Logo" className="h-24 w-auto" crossOrigin="anonymous" />
                         )}
                         <CardTitle className="text-2xl text-center">
-                            {isInitialized && settings ? `¡Bienvenido a ${settings.barName || 'HOLIDAYS FRIENDS'}!` : <Skeleton className="h-8 w-48" />}
+                            {isInitialized && settings ? `¡Bienvenido a ${settings.barName || 'RESTAURANTE EL TREBOL'}!` : <Skeleton className="h-8 w-48" />}
                         </CardTitle>
                         <CardDescription className="text-center">
                              {isInitialized ? 'Para una mejor experiencia, regístrate o ingresa.' : <Skeleton className="h-4 w-64 mt-2" />}
