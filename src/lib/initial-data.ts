@@ -10,7 +10,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://avatars.mds.yandex.net/get-altay/1987173/2a000001747d295ce25615afd42a81cb6b9e/XXL_height',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 48,
-    categoria: ''
+    categoria: 'ALMUERZO'
   },
   {
     nombre: 'MARTES',
@@ -18,7 +18,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://images.squarespace-cdn.com/content/v1/55697ab8e4b084f6ac0581ef/1543993440671-4K5ZMHREJWHVDD8CHJMP/shutterstock_105912563-1.jpg',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 49,
-    categoria: ''
+    categoria: 'ALMUERZO'
   },
   {
     nombre: 'MIERCOLES',
@@ -26,7 +26,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://i.pinimg.com/736x/4f/14/2d/4f142d8493f4082bf274bfd8af785708.jpg',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 4,
-    categoria: ''
+    categoria: 'ALMUERZO'
   },
   {
     nombre: 'JUEVES',
@@ -34,7 +34,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://us-tuna-sounds-images.voicemod.net/54ee1019-8170-4228-98ae-405c2705df79-1677473885644.jpg',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 8,
-    categoria: ''
+    categoria: 'ALMUERZO'
   },
   {
     nombre: 'VIERNES',
@@ -42,7 +42,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://jumbocolombiafood.vteximg.com.br/arquivos/ids/3500151-750-750/7702049000449.jpg?v=637238805202500000',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 3,
-    categoria: ''
+    categoria: 'ALMUERZO'
   },
   {
     nombre: 'SABADO',
@@ -50,7 +50,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://cdn2.yopongoelhielo.com/4098/aguardiente-antioqueno.jpg',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 5,
-    categoria: ''
+    categoria: 'ALMUERZO'
   },
   {
     nombre: 'DOMINGO',
@@ -58,7 +58,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://lavaquita.co/cdn/shop/products/supermercados_la_vaquita_supervaquita_aguardiente_antioqueno_sin_azucar_375ml_tapa_verde_media_1024x1024.jpg',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 8,
-    categoria: 'AGUARDIENTE'
+    categoria: 'ALMUERZO'
   },
   {
     nombre: 'BEBIDA NATURAL',
@@ -66,7 +66,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://www.totalwine.com/dynamic/x1000,sq/media/sys_master/twmmedia/heb/h8a/14396700590110.png',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 3,
-    categoria: ''
+    categoria: 'BEBIDAS'
   },
   {
     nombre: 'BEBIDA',
@@ -74,7 +74,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://elcorreodelanoche.com.co/wp-content/uploads/2020/02/nectar-azul-375.png',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 1,
-    categoria: ''
+    categoria: 'BEBIDAS'
   },
   {
     nombre: 'POSTRE',
@@ -82,7 +82,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://licoreselcastillo.com.co/wp-content/uploads/2024/12/aguardiente-nectar-azul-x-750-cc.webp',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 2,
-    categoria: ''
+    categoria: 'BEBIDAS'
   },
   {
     nombre: 'AGUARDIENTE NECTAR DORADO 375 ML',
