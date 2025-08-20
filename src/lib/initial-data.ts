@@ -90,7 +90,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://carulla.vtexassets.com/arquivos/ids/17479601/Aguardiente-Dorado-Media-NECTAR-375-ml-3552215_a.jpg?v=638613322877570000',
     disponibilidad: 'PRODUCTO_AGOTADO',
     existencias: 0,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
     nombre: 'AGUARDIENTE NECTAR DORADO 750 ML',
@@ -98,7 +98,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://exitocol.vtexassets.com/arquivos/ids/24497704/Aguardiente-Dorado-NECTAR-750-ml-3488573_a.jpg?v=638613375090730000',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 2,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
     nombre: 'AGUARDIENTE NECTAR ROJO 375 ML',
@@ -106,7 +106,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://elcorreodelanoche.com.co/wp-content/uploads/2020/02/nectar-rojo-375.png',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 1,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
     nombre: 'AGUARDIENTE NECTAR ROJO 750 ML',
@@ -114,7 +114,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://image.winudf.com/v2/image1/Y29tLmdvb2RiYXJiZXIubGljb3JhZG9taWNpbGlvbGljb3Jlc2NvcnJlb2JvZ290YTI0aG9yYXNfc2NyZWVuXzIxXzE2NTgwNzk0MzJfMDQ2/screen-21.jpg?fakeurl=1&type=.jpg',
     disponibilidad: 'PRODUCTO_AGOTADO',
     existencias: 0,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
     nombre: 'AGUARDIENTE NECTAR VERDE 375 ML',
@@ -122,7 +122,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://images.genius.com/127d8a2f62674c50f5c5ea012619ae77.425x425x1.jpg',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 8,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
     nombre: 'AGUARDIENTE NECTAR VERDE 750 ML',
@@ -130,7 +130,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://dislicores.vteximg.com.br/arquivos/ids/155894-1000-1000/Licores-aguardiente_914000_1.jpg?v=637085599417430000',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 10,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
     nombre: 'AGUARDIENTE NECTAR VERDE CUBETAZO 750 ML',
@@ -138,7 +138,7 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     imagen: 'https://i.pinimg.com/originals/96/70/dc/9670dcda808c79eb567f2ea3f3ff92ee.png',
     disponibilidad: 'PRODUCTO_AGOTADO',
     existencias: 0,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
     nombre: 'AGUILA',
