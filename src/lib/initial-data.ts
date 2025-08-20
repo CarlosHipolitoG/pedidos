@@ -5,55 +5,55 @@ import type { Settings } from './settings';
 
 export const initialProductsData: Omit<Product, 'id'>[] = [
   {
-    nombre: 'AGUA',
+    nombre: 'LUNES',
     precio: 4500,
     imagen: 'https://avatars.mds.yandex.net/get-altay/1987173/2a000001747d295ce25615afd42a81cb6b9e/XXL_height',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 48,
-    categoria: 'AGUA'
+    categoria: ''
   },
   {
-    nombre: 'AGUA GAS',
+    nombre: 'MARTES',
     precio: 4500,
     imagen: 'https://images.squarespace-cdn.com/content/v1/55697ab8e4b084f6ac0581ef/1543993440671-4K5ZMHREJWHVDD8CHJMP/shutterstock_105912563-1.jpg',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 49,
-    categoria: 'AGUA'
+    categoria: ''
   },
   {
-    nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 375 ML',
+    nombre: 'MIERCOLES',
     precio: 60000,
     imagen: 'https://i.pinimg.com/736x/4f/14/2d/4f142d8493f4082bf274bfd8af785708.jpg',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 4,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
-    nombre: 'AGUARDIENTE ANTIOQUEÑO AZUL 750 ML',
+    nombre: 'JUEVES',
     precio: 120000,
     imagen: 'https://us-tuna-sounds-images.voicemod.net/54ee1019-8170-4228-98ae-405c2705df79-1677473885644.jpg',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 8,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
-    nombre: 'AGUARDIENTE ANTIOQUEÑO ROJO 375 ML',
+    nombre: 'VIERNES',
     precio: 60000,
     imagen: 'https://jumbocolombiafood.vteximg.com.br/arquivos/ids/3500151-750-750/7702049000449.jpg?v=637238805202500000',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 3,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
-    nombre: 'AGUARDIENTE ANTIOQUEÑO ROJO 750 ML',
+    nombre: 'SABADO',
     precio: 120000,
     imagen: 'https://cdn2.yopongoelhielo.com/4098/aguardiente-antioqueno.jpg',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 5,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
-    nombre: 'AGUARDIENTE ANTIOQUEÑO VERDE 375 ML',
+    nombre: 'DOMINGO',
     precio: 60000,
     imagen: 'https://lavaquita.co/cdn/shop/products/supermercados_la_vaquita_supervaquita_aguardiente_antioqueno_sin_azucar_375ml_tapa_verde_media_1024x1024.jpg',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
@@ -61,28 +61,28 @@ export const initialProductsData: Omit<Product, 'id'>[] = [
     categoria: 'AGUARDIENTE'
   },
   {
-    nombre: 'AGUARDIENTE ANTIOQUEÑO VERDE 750 ML',
+    nombre: 'BEBIDA NATURAL',
     precio: 120000,
     imagen: 'https://www.totalwine.com/dynamic/x1000,sq/media/sys_master/twmmedia/heb/h8a/14396700590110.png',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 3,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
-    nombre: 'AGUARDIENTE NECTAR AZUL 375 ML',
+    nombre: 'BEBIDA',
     precio: 60000,
     imagen: 'https://elcorreodelanoche.com.co/wp-content/uploads/2020/02/nectar-azul-375.png',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 1,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
-    nombre: 'AGUARDIENTE NECTAR AZUL 750 ML',
+    nombre: 'POSTRE',
     precio: 100000,
     imagen: 'https://licoreselcastillo.com.co/wp-content/uploads/2024/12/aguardiente-nectar-azul-x-750-cc.webp',
     disponibilidad: 'PRODUCTO_DISPONIBLE',
     existencias: 2,
-    categoria: 'AGUARDIENTE'
+    categoria: ''
   },
   {
     nombre: 'AGUARDIENTE NECTAR DORADO 375 ML',
